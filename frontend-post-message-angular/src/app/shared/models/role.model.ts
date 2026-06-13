@@ -7,6 +7,7 @@ export interface Role {
   permissionIds?: string[];
   createdAt?: string;
   updatedAt?: string;
+  [key: string]: unknown;
 }
 
 export interface CreateRoleDto {

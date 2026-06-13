@@ -9,6 +9,7 @@ export interface User {
   lastLogin?: string;
   createdAt?: string;
   updatedAt?: string;
+  [key: string]: unknown;
 }
 
 export interface CreateUserDto {

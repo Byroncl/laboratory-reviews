@@ -6,6 +6,7 @@ export interface Permission {
   category?: string;
   createdAt?: string;
   updatedAt?: string;
+  [key: string]: unknown;
 }
 
 export interface CreatePermissionDto {
