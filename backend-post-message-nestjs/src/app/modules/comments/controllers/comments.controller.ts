@@ -58,11 +58,9 @@ export class CommentsController {
     return ApiRes.success(comment, this.i18n.translate('comments.created'));
   }
 
-  @Auth()
   @ApiOperation({ summary: 'Get all comments (optionally filtered by post)' })
   @ApiQuery({ name: 'postId', required: true, type: 'string', description: 'MongoDB ObjectId of the post' })
   @ApiResponse({ status: 200, description: 'List of comments', type: [CommentResponseDto] })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get()
   async findAll(@Query() findCommentsByPostDto: FindCommentsByPostDto) {
     const comments = await this.commentsService.findAll(
@@ -71,12 +69,10 @@ export class CommentsController {
     return ApiRes.success(comments);
   }
 
-  @Auth()
   @ApiOperation({ summary: 'Get a comment by ID' })
   @ApiParam({ name: 'id', type: 'string', description: 'Comment MongoDB ObjectId' })
   @ApiResponse({ status: 200, description: 'Comment found', type: CommentResponseDto })
   @ApiResponse({ status: 404, description: 'Comment not found' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get(':id')
   async findOne(@Param() findOneDto: FindOneDto) {
     const comment = await this.commentsService.findOne(findOneDto.id);
@@ -147,7 +143,6 @@ export class CommentsController {
     return ApiRes.success(formattedReply, this.i18n.translate('comments.reply_created'));
   }
 
-  @Auth()
   @ApiOperation({ summary: 'Get all replies to a comment' })
   @ApiParam({ name: 'id', type: 'string', description: 'Parent comment ID' })
   @ApiQuery({ name: 'skip', required: false, type: 'number' })
@@ -166,7 +161,6 @@ export class CommentsController {
     return ApiRes.success({ items, total, parentCommentId: findOneDto.id });
   }
 
-  @Auth()
   @ApiOperation({ summary: 'Get entire comment thread (root + all nested replies)' })
   @ApiParam({ name: 'id', type: 'string', description: 'Comment ID (root or reply)' })
   @ApiResponse({ status: 200, description: 'Full comment thread', type: CommentThreadDto })
@@ -176,7 +170,6 @@ export class CommentsController {
     return ApiRes.success(thread, this.i18n.translate('comments.thread_retrieved'));
   }
 
-  @Auth()
   @ApiOperation({ summary: 'Get comment with immediate replies' })
   @ApiParam({ name: 'id', type: 'string', description: 'Comment ID' })
   @ApiResponse({ status: 200, description: 'Comment with direct replies', type: CommentTreeNodeDto })
@@ -245,7 +238,10 @@ export class CommentsController {
     return ApiRes.success(null, this.i18n.translate('comments.reaction_removed'));
   }
 
-  @Auth()
+  /**
+   * @public — no @Auth() decorator.
+   * userReacted always false — @CurrentUser() returns undefined without optional-auth layer; see follow-up.
+   */
   @ApiOperation({ summary: 'Get all reactions for a comment' })
   @ApiParam({ name: 'id', type: 'string', description: 'Comment MongoDB ObjectId' })
   @ApiResponse({ status: 200, description: 'Reactions summary', type: ReactionResponseDto })

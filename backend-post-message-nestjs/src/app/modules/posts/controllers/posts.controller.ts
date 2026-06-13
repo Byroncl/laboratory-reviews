@@ -53,10 +53,8 @@ export class PostsController {
     return ApiRes.success(post, this.i18n.translate('posts.created'));
   }
 
-  @Auth()
   @ApiOperation({ summary: 'Get all posts (paginated with filters)' })
   @ApiResponse({ status: 200, description: 'Paginated list of posts' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get()
   async findAll(
     @Query() paginationDto: PaginationQueryDto,
@@ -72,12 +70,10 @@ export class PostsController {
     return ApiRes.success(result);
   }
 
-  @Auth()
   @ApiOperation({ summary: 'Get a post by ID' })
   @ApiParam({ name: 'id', type: 'string', description: 'Post MongoDB ObjectId' })
   @ApiResponse({ status: 200, description: 'Post found', type: PostResponseDto })
   @ApiResponse({ status: 404, description: 'Post not found' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get(':id')
   async findOne(@Param() findOneDto: FindOneDto) {
     const post = await this.postsService.findOne(findOneDto.id);
