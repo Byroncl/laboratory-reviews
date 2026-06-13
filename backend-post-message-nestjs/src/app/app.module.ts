@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CommentsModule } from './modules/comments/comments.module';
@@ -9,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './modules/auth/auth.module';
 import { TranslationService } from './core/utils/translation.service';
+import { AuthGuard } from './core/guards/auth.guard';
 
 @Module({
   imports: [
@@ -23,6 +25,13 @@ import { TranslationService } from './core/utils/translation.service';
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, TranslationService],
+  providers: [
+    AppService,
+    TranslationService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AppModule {}

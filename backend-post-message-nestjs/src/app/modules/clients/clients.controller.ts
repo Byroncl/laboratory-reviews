@@ -6,7 +6,6 @@ import {
   Put,
   Delete,
   Param,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -14,14 +13,13 @@ import {
   ApiParam,
   ApiBody,
   ApiResponse,
-  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { ClientResponseDto } from './dto/client-response.dto';
 import { ApiResponse as ApiRes } from '../../core/dto/api.response';
-import { AuthGuard } from '@nestjs/passport';
+import { Auth } from '../../core/decorators/auth.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
 
 @ApiTags('clients')
@@ -39,38 +37,35 @@ export class ClientsController {
     return ApiRes.success(client, 'Client created successfully');
   }
 
-  @ApiBearerAuth()
+  @Auth()
   @ApiOperation({ summary: 'Get all clients' })
   @ApiResponse({ status: 200, description: 'List of clients', type: [ClientResponseDto] })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @UseGuards(AuthGuard('jwt'))
   @Get()
   async findAll() {
     const clients = await this.clientsService.findAll();
     return ApiRes.success(clients);
   }
 
-  @ApiBearerAuth()
+  @Auth()
   @ApiOperation({ summary: 'Get a client by ID' })
   @ApiParam({ name: 'id', type: 'string', description: 'Client MongoDB ObjectId' })
   @ApiResponse({ status: 200, description: 'Client found', type: ClientResponseDto })
   @ApiResponse({ status: 404, description: 'Client not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   async findOne(@Param() findOneDto: FindOneDto) {
     const client = await this.clientsService.findOne(findOneDto.id);
     return ApiRes.success(client);
   }
 
-  @ApiBearerAuth()
+  @Auth()
   @ApiOperation({ summary: 'Update a client' })
   @ApiParam({ name: 'id', type: 'string', description: 'Client MongoDB ObjectId' })
   @ApiBody({ type: UpdateClientDto })
   @ApiResponse({ status: 200, description: 'Client updated successfully', type: ClientResponseDto })
   @ApiResponse({ status: 404, description: 'Client not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @UseGuards(AuthGuard('jwt'))
   @Put(':id')
   async update(
     @Param() findOneDto: FindOneDto,
@@ -83,13 +78,12 @@ export class ClientsController {
     return ApiRes.success(client, 'Client updated successfully');
   }
 
-  @ApiBearerAuth()
+  @Auth()
   @ApiOperation({ summary: 'Delete a client' })
   @ApiParam({ name: 'id', type: 'string', description: 'Client MongoDB ObjectId' })
   @ApiResponse({ status: 200, description: 'Client deleted successfully' })
   @ApiResponse({ status: 404, description: 'Client not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
   async remove(@Param() findOneDto: FindOneDto) {
     await this.clientsService.remove(findOneDto.id);
