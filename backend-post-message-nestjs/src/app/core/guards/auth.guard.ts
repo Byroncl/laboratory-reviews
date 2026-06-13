@@ -9,19 +9,22 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { AUTH_KEY, AuthOptions } from '../decorators/auth.decorator';
+import { JwtPayload } from '../interfaces/user.interface';
+import { CurrentUserPayload } from '../interfaces/user.interface';
+import { TranslationService } from '../utils/translation.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly jwtService: JwtService,
+    private readonly i18n: TranslationService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const authOptions = this.reflector.getAllAndOverride<AuthOptions | undefined>(
-      AUTH_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const authOptions = this.reflector.getAllAndOverride<
+      AuthOptions | undefined
+    >(AUTH_KEY, [context.getHandler(), context.getClass()]);
 
     // No @Auth() decorator — public endpoint
     if (authOptions === undefined) {
@@ -32,30 +35,32 @@ export class AuthGuard implements CanActivate {
     const token = this.extractBearerToken(request);
 
     if (!token) {
-      throw new UnauthorizedException('Missing authentication token');
+      throw new UnauthorizedException(this.i18n.translate('auth.missing_token'));
     }
 
-    let payload: { username: string; sub: string; type: 'user' | 'client'; iat: number; exp: number };
+    let payload: JwtPayload;
 
     try {
-      payload = await this.jwtService.verifyAsync(token);
+      payload = await this.jwtService.verifyAsync<JwtPayload>(token);
     } catch {
-      throw new UnauthorizedException('Invalid or expired token');
+      throw new UnauthorizedException(this.i18n.translate('auth.invalid_token'));
     }
 
-    // Attach to request so controllers can access via @Req()
-    (request as any).user = {
+    const currentUser: CurrentUserPayload = {
       userId: payload.sub,
       username: payload.username,
       type: payload.type,
     };
+
+    // Attach to request so controllers can access via @Req() or @CurrentUser()
+    (request as any).user = currentUser;
 
     // If roles specified, validate role membership
     const { roles } = authOptions;
     if (roles && roles.length > 0) {
       if (!roles.includes(payload.type)) {
         throw new ForbiddenException(
-          `Access restricted to roles: ${roles.join(', ')}`,
+          `${this.i18n.translate('auth.access_denied')}: ${roles.join(', ')}`,
         );
       }
     }

@@ -4,6 +4,7 @@ import { PostsService } from '../services/posts.service';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 describe('PostsController', () => {
   let controller: PostsController;
@@ -33,7 +34,13 @@ describe('PostsController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PostsController],
-      providers: [{ provide: PostsService, useValue: mockPostsService }],
+      providers: [
+        { provide: PostsService, useValue: mockPostsService },
+        {
+          provide: TranslationService,
+          useValue: { translate: jest.fn((key: string) => key) },
+        },
+      ],
     }).compile();
 
     controller = module.get<PostsController>(PostsController);

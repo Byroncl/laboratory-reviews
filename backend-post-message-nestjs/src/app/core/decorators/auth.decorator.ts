@@ -1,9 +1,8 @@
 import { SetMetadata, applyDecorators } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { AuthRole } from '../types/common.types';
 
 export const AUTH_KEY = 'auth_options';
-
-export type AuthRole = 'user' | 'client';
 
 export interface AuthOptions {
   roles?: AuthRole[];

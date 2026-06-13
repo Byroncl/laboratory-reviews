@@ -4,6 +4,7 @@ import { PermissionsService } from '../services/permissions.service';
 import { CreatePermissionDto } from '../dto/create-permission.dto';
 import { UpdatePermissionDto } from '../dto/update-permission.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 describe('PermissionsController', () => {
   let controller: PermissionsController;
@@ -28,6 +29,10 @@ describe('PermissionsController', () => {
       controllers: [PermissionsController],
       providers: [
         { provide: PermissionsService, useValue: mockPermissionsService },
+        {
+          provide: TranslationService,
+          useValue: { translate: jest.fn((key: string) => key) },
+        },
       ],
     }).compile();
 

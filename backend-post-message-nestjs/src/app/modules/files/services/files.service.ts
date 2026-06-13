@@ -1,6 +1,9 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { Client } from 'minio';
 import { createMinioClient, MINIO_BUCKET } from '../../../core/config/minio.config';
+import { FileUploadResponse } from '../../../core/interfaces/file.interface';
+import { FileUtils } from '../../../core/utils/file.utils';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 @Injectable()
 export class FilesService {
@@ -9,7 +12,7 @@ export class FilesService {
   private readonly bucket: string;
   private readonly publicUrl: string;
 
-  constructor() {
+  constructor(private readonly i18n: TranslationService) {
     this.minioClient = createMinioClient();
     this.bucket = MINIO_BUCKET;
     this.publicUrl =
@@ -17,13 +20,10 @@ export class FilesService {
       `http://${process.env.MINIO_ENDPOINT || 'localhost'}:9000`;
   }
 
-  async uploadImage(
-    file: Express.Multer.File,
-  ): Promise<{ url: string; filename: string }> {
+  async uploadImage(file: Express.Multer.File): Promise<FileUploadResponse> {
     await this.ensureBucketExists();
 
-    const extension = file.originalname.split('.').pop() ?? 'jpg';
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+    const filename = FileUtils.generateFileName(file.originalname);
 
     try {
       await this.minioClient.putObject(
@@ -34,8 +34,8 @@ export class FilesService {
         { 'Content-Type': file.mimetype },
       );
     } catch (error) {
-      this.logger.error(`Failed to upload image: ${(error as Error).message}`);
-      throw new InternalServerErrorException('Failed to upload image to storage');
+      this.logger.error(`${this.i18n.translate('files.upload_failed')}: ${(error as Error).message}`);
+      throw new InternalServerErrorException(this.i18n.translate('files.upload_failed'));
     }
 
     return {
@@ -69,7 +69,7 @@ export class FilesService {
       this.logger.error(
         `Failed to ensure bucket exists: ${(error as Error).message}`,
       );
-      throw new InternalServerErrorException('Storage service unavailable');
+      throw new InternalServerErrorException(this.i18n.translate('common.internal_error'));
     }
   }
 }

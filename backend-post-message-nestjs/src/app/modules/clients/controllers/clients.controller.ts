@@ -21,11 +21,15 @@ import { ClientResponseDto } from '../dto/client-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 @ApiTags('clients')
 @Controller('clients')
 export class ClientsController {
-  constructor(private readonly clientsService: ClientsService) {}
+  constructor(
+    private readonly clientsService: ClientsService,
+    private readonly i18n: TranslationService,
+  ) {}
 
   @ApiOperation({ summary: 'Create a new client' })
   @ApiBody({ type: CreateClientDto })
@@ -38,7 +42,7 @@ export class ClientsController {
   @Post()
   async create(@Body() createClientDto: CreateClientDto) {
     const client = await this.clientsService.create(createClientDto);
-    return ApiRes.success(client, 'Client created successfully');
+    return ApiRes.success(client, this.i18n.translate('clients.created'));
   }
 
   @Auth()
@@ -99,7 +103,7 @@ export class ClientsController {
       findOneDto.id,
       updateClientDto,
     );
-    return ApiRes.success(client, 'Client updated successfully');
+    return ApiRes.success(client, this.i18n.translate('clients.updated'));
   }
 
   @Auth()
@@ -115,6 +119,6 @@ export class ClientsController {
   @Delete(':id')
   async remove(@Param() findOneDto: FindOneDto) {
     await this.clientsService.remove(findOneDto.id);
-    return ApiRes.success(null, 'Client deleted successfully');
+    return ApiRes.success(null, this.i18n.translate('clients.deleted'));
   }
 }

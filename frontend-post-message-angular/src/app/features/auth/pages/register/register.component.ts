@@ -1,0 +1,85 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { Router } from '@angular/router';
+import { selectIsLoading, selectAuthError } from '../../store/auth.selectors';
+import * as AuthActions from '../../store/auth.actions';
+
+@Component({
+  selector: 'app-register',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './register.component.html',
+  styleUrls: ['./register.component.scss']
+})
+export class RegisterComponent implements OnInit {
+  registerForm!: FormGroup;
+  isLoading = false;
+  error: string | null = null;
+  isShowPassword = false;
+  isShowConfirmPassword = false;
+
+  constructor(
+    private formBuilder: FormBuilder,
+    private store: Store,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.initForm();
+  }
+
+  private initForm(): void {
+    this.registerForm = this.formBuilder.group(
+      {
+        name: ['', [Validators.required, Validators.minLength(2)]],
+        email: ['', [Validators.required, Validators.email]],
+        password: ['', [Validators.required, Validators.minLength(6)]],
+        confirmPassword: ['', [Validators.required]]
+      },
+      { validators: this.passwordMatchValidator }
+    );
+  }
+
+  private passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const password = control.get('password');
+    const confirmPassword = control.get('confirmPassword');
+
+    if (!password || !confirmPassword) return null;
+    return password.value === confirmPassword.value ? null : { passwordMismatch: true };
+  }
+
+  onSubmit(): void {
+    if (this.registerForm.valid) {
+      this.isLoading = true;
+      this.error = null;
+
+      const { name, email, password } = this.registerForm.value;
+
+      setTimeout(() => {
+        const mockUser = {
+          id: Math.random().toString(),
+          email,
+          name
+        };
+
+        this.store.dispatch(AuthActions.registerSuccess({ user: mockUser }));
+        this.isLoading = false;
+        this.router.navigate(['/auth/login']);
+      }, 1500);
+    }
+  }
+
+  togglePasswordVisibility(): void {
+    this.isShowPassword = !this.isShowPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.isShowConfirmPassword = !this.isShowConfirmPassword;
+  }
+
+  goToLogin(): void {
+    this.router.navigate(['/auth/login']);
+  }
+}

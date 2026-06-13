@@ -17,11 +17,15 @@ import { FileValidationPipe } from '../../../core/pipes/file-validation.pipe';
 import { FileResponseDto } from '../dto/file-response.dto';
 import { UploadFileDto } from '../dto/upload-file.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 @ApiTags('files')
 @Controller('files')
 export class FilesController {
-  constructor(private readonly filesService: FilesService) {}
+  constructor(
+    private readonly filesService: FilesService,
+    private readonly i18n: TranslationService,
+  ) {}
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
@@ -35,9 +39,9 @@ export class FilesController {
   })
   @ApiResponse({ status: 400, description: 'Invalid file type or size' })
   async upload(
-    @UploadedFile(new FileValidationPipe()) file: Express.Multer.File,
+    @UploadedFile(new FileValidationPipe(new TranslationService())) file: Express.Multer.File,
   ) {
     const result = await this.filesService.uploadImage(file);
-    return ApiRes.success(result, 'Image uploaded successfully');
+    return ApiRes.success(result, this.i18n.translate('files.uploaded'));
   }
 }

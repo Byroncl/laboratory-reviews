@@ -24,11 +24,15 @@ import { FindCommentsByPostDto } from '../dto/find-comments-by-post.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 @ApiTags('comments')
 @Controller('comments')
 export class CommentsController {
-  constructor(private readonly commentsService: CommentsService) {}
+  constructor(
+    private readonly commentsService: CommentsService,
+    private readonly i18n: TranslationService,
+  ) {}
 
   @ApiOperation({ summary: 'Create a new comment' })
   @ApiBody({ type: CreateCommentDto })
@@ -37,7 +41,7 @@ export class CommentsController {
   @Post()
   async create(@Body() createCommentDto: CreateCommentDto) {
     const comment = await this.commentsService.create(createCommentDto);
-    return ApiRes.success(comment, 'Comment created successfully');
+    return ApiRes.success(comment, this.i18n.translate('comments.created'));
   }
 
   @Auth()
@@ -81,7 +85,7 @@ export class CommentsController {
       findOneDto.id,
       updateCommentDto,
     );
-    return ApiRes.success(comment, 'Comment updated successfully');
+    return ApiRes.success(comment, this.i18n.translate('comments.updated'));
   }
 
   @Auth()
@@ -93,6 +97,6 @@ export class CommentsController {
   @Delete(':id')
   async remove(@Param() findOneDto: FindOneDto) {
     await this.commentsService.remove(findOneDto.id);
-    return ApiRes.success(null, 'Comment deleted successfully');
+    return ApiRes.success(null, this.i18n.translate('comments.deleted'));
   }
 }

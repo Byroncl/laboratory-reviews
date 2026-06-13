@@ -4,6 +4,7 @@ import { RolesService } from '../services/roles.service';
 import { CreateRoleDto } from '../dto/create-role.dto';
 import { UpdateRoleDto } from '../dto/update-role.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 describe('RolesController', () => {
   let controller: RolesController;
@@ -27,7 +28,13 @@ describe('RolesController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RolesController],
-      providers: [{ provide: RolesService, useValue: mockRolesService }],
+      providers: [
+        { provide: RolesService, useValue: mockRolesService },
+        {
+          provide: TranslationService,
+          useValue: { translate: jest.fn((key: string) => key) },
+        },
+      ],
     }).compile();
 
     controller = module.get<RolesController>(RolesController);

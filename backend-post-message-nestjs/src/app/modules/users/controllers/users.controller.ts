@@ -6,6 +6,7 @@ import {
   Put,
   Delete,
   Param,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -13,6 +14,7 @@ import {
   ApiParam,
   ApiBody,
   ApiResponse,
+  ApiHeader,
 } from '@nestjs/swagger';
 import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -21,11 +23,23 @@ import { UserResponseDto } from '../dto/user-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { I18nService } from '../../../core/i18n/i18n.service';
+import { CurrentUser } from '../../../core/decorators/current-user.decorator';
+import type { CurrentUserPayload } from '../../../core/decorators/current-user.decorator';
 
 @ApiTags('users')
+@ApiHeader({
+  name: 'Accept-Language',
+  description: 'Language preference: en (English) or es (Spanish)',
+  required: false,
+  example: 'es',
+})
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly i18n: I18nService,
+  ) {}
 
   @ApiOperation({ summary: 'Create a new user' })
   @ApiBody({ type: CreateUserDto })
@@ -34,7 +48,7 @@ export class UsersController {
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
     const user = await this.usersService.create(createUserDto);
-    return ApiRes.success(user, 'User created successfully');
+    return ApiRes.success(user, this.i18n.translate('users.created'));
   }
 
   @Auth()
@@ -72,7 +86,7 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
   ) {
     const user = await this.usersService.update(findOneDto.id, updateUserDto);
-    return ApiRes.success(user, 'User updated successfully');
+    return ApiRes.success(user, this.i18n.translate('users.updated'));
   }
 
   @Auth()
@@ -84,6 +98,33 @@ export class UsersController {
   @Delete(':id')
   async remove(@Param() findOneDto: FindOneDto) {
     await this.usersService.remove(findOneDto.id);
-    return ApiRes.success(null, 'User deleted successfully');
+    return ApiRes.success(null, this.i18n.translate('users.deleted'));
+  }
+
+  @Auth()
+  @ApiOperation({ summary: 'Set language preference for authenticated user' })
+  @ApiParam({ name: 'language', enum: ['en', 'es'], description: 'Preferred language' })
+  @ApiResponse({ status: 200, description: 'Language preference updated' })
+  @ApiResponse({ status: 400, description: 'Invalid language' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Put('language/:language')
+  async setLanguage(
+    @Param('language') language: string,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    if (language !== 'en' && language !== 'es') {
+      throw new BadRequestException(
+        this.i18n.translate('users.language_invalid'),
+      );
+    }
+
+    const updated = await this.usersService.updateLanguagePreference(
+      user.userId,
+      language as 'en' | 'es',
+    );
+    return ApiRes.success(
+      updated,
+      this.i18n.translate('users.language_updated'),
+    );
   }
 }

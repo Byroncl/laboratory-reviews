@@ -1,13 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { BadRequestException } from '@nestjs/common';
 import { UsersController } from './users.controller';
 import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { I18nService } from '../../../core/i18n/i18n.service';
+import { CurrentUserPayload } from '../../../core/decorators/current-user.decorator';
 
 describe('UsersController', () => {
   let controller: UsersController;
   let mockUsersService: jest.Mocked<UsersService>;
+  let mockI18n: jest.Mocked<I18nService>;
 
   const mockUser = {
     _id: '507f1f77bcf86cd799439011',
@@ -20,6 +24,12 @@ describe('UsersController', () => {
     isActive: true,
   } as any;
 
+  const mockCurrentUser: CurrentUserPayload = {
+    userId: '507f1f77bcf86cd799439011',
+    username: 'johndoe',
+    type: 'user',
+  };
+
   beforeEach(async () => {
     mockUsersService = {
       create: jest.fn(),
@@ -28,11 +38,20 @@ describe('UsersController', () => {
       update: jest.fn(),
       remove: jest.fn(),
       findOneByUsername: jest.fn(),
+      updateLanguagePreference: jest.fn(),
+    } as any;
+
+    mockI18n = {
+      translate: jest.fn((key: string) => key),
+      getLanguage: jest.fn().mockReturnValue('en'),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
-      providers: [{ provide: UsersService, useValue: mockUsersService }],
+      providers: [
+        { provide: UsersService, useValue: mockUsersService },
+        { provide: I18nService, useValue: mockI18n },
+      ],
     }).compile();
 
     controller = module.get<UsersController>(UsersController);
@@ -59,6 +78,7 @@ describe('UsersController', () => {
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockUser);
       expect(mockUsersService.create).toHaveBeenCalledWith(dto);
+      expect(mockI18n.translate).toHaveBeenCalledWith('users.created');
     });
 
     it('should propagate service errors', async () => {
@@ -129,6 +149,7 @@ describe('UsersController', () => {
         '507f1f77bcf86cd799439011',
         updateDto,
       );
+      expect(mockI18n.translate).toHaveBeenCalledWith('users.updated');
     });
   });
 
@@ -143,6 +164,45 @@ describe('UsersController', () => {
       expect(response.data).toBeNull();
       expect(mockUsersService.remove).toHaveBeenCalledWith(
         '507f1f77bcf86cd799439011',
+      );
+      expect(mockI18n.translate).toHaveBeenCalledWith('users.deleted');
+    });
+  });
+
+  describe('setLanguage', () => {
+    it('should update language preference and return success', async () => {
+      const updatedUser = { ...mockUser, preferredLanguage: 'es' };
+      mockUsersService.updateLanguagePreference.mockResolvedValue(updatedUser);
+
+      const response = await controller.setLanguage('es', mockCurrentUser);
+
+      expect(response.success).toBe(true);
+      expect(response.data).toEqual(updatedUser);
+      expect(mockUsersService.updateLanguagePreference).toHaveBeenCalledWith(
+        mockCurrentUser.userId,
+        'es',
+      );
+      expect(mockI18n.translate).toHaveBeenCalledWith('users.language_updated');
+    });
+
+    it('should throw BadRequestException for invalid language', async () => {
+      await expect(
+        controller.setLanguage('fr', mockCurrentUser),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(mockI18n.translate).toHaveBeenCalledWith('users.language_invalid');
+    });
+
+    it('should accept "en" as valid language', async () => {
+      const updatedUser = { ...mockUser, preferredLanguage: 'en' };
+      mockUsersService.updateLanguagePreference.mockResolvedValue(updatedUser);
+
+      const response = await controller.setLanguage('en', mockCurrentUser);
+
+      expect(response.success).toBe(true);
+      expect(mockUsersService.updateLanguagePreference).toHaveBeenCalledWith(
+        mockCurrentUser.userId,
+        'en',
       );
     });
   });
