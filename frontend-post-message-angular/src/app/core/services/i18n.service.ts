@@ -21,6 +21,7 @@ export class I18nService {
         permissions: 'Gestionar Permisos',
         comments: 'Gestionar Comentarios',
         files: 'Gestionar Archivos',
+        auditLogs: 'Registros de Auditoría',
         logout: 'Cerrar sesión'
       },
       navbar: {
@@ -83,6 +84,7 @@ export class I18nService {
         permissions: 'Manage Permissions',
         comments: 'Manage Comments',
         files: 'Manage Files',
+        auditLogs: 'Audit Logs',
         logout: 'Log out'
       },
       navbar: {

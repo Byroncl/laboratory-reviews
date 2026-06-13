@@ -6,3 +6,4 @@ export * from './user.model';
 export * from './role.model';
 export * from './permission.model';
 export * from './file.model';
+export * from './audit-log.model';
