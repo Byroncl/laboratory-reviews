@@ -8,6 +8,7 @@ import { UpdateCommentDto } from '../dto/update-comment.dto';
 import { FindCommentsByPostDto } from '../dto/find-comments-by-post.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
 import { TranslationService } from '../../../core/utils/translation.service';
+import { AUTH_KEY } from '../../../core/decorators/auth.decorator';
 
 describe('CommentsController', () => {
   let controller: CommentsController;
@@ -268,6 +269,86 @@ describe('CommentsController', () => {
   describe('getCommentWithMedia integration', () => {
     it('should expose getCommentWithMedia on commentsService', () => {
       expect(typeof mockCommentsService.getCommentWithMedia).toBe('function');
+    });
+  });
+
+  // ─── Auth metadata assertions (TEST-BE-008) ───────────────────────────────
+
+  describe('auth metadata', () => {
+    it('create handler carries AUTH_KEY metadata (TEST-BE-008)', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.create);
+      expect(metadata).toBeDefined();
+    });
+
+    it('findAll handler does NOT carry AUTH_KEY metadata (public read)', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.findAll);
+      expect(metadata).toBeUndefined();
+    });
+
+    it('findOne handler does NOT carry AUTH_KEY metadata (public read)', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.findOne);
+      expect(metadata).toBeUndefined();
+    });
+
+    it('getReplies handler does NOT carry AUTH_KEY metadata (public read)', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.getReplies);
+      expect(metadata).toBeUndefined();
+    });
+
+    it('getCommentThread handler does NOT carry AUTH_KEY metadata (public read)', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.getCommentThread);
+      expect(metadata).toBeUndefined();
+    });
+
+    it('getCommentWithReplies handler does NOT carry AUTH_KEY metadata (public read)', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.getCommentWithReplies);
+      expect(metadata).toBeUndefined();
+    });
+
+    it('getReactions handler does NOT carry AUTH_KEY metadata (public read)', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.getReactions);
+      expect(metadata).toBeUndefined();
+    });
+  });
+
+  // ─── Public read contracts (TEST-BE-003, TEST-BE-004, TEST-BE-005) ────────
+
+  describe('findAll — public read (TEST-BE-003)', () => {
+    it('should return comments without auth context', async () => {
+      const queryDto: FindCommentsByPostDto = {
+        postId: '507f1f77bcf86cd799439022' as any,
+      };
+      mockCommentsService.findAll.mockResolvedValue([mockComment]);
+
+      const response = await controller.findAll(queryDto);
+
+      expect(response.success).toBe(true);
+      expect(response.data).toEqual([mockComment]);
+    });
+  });
+
+  describe('getReplies — public read (TEST-BE-004)', () => {
+    it('should return replies without auth context', async () => {
+      const findOneDto: FindOneDto = { id: 'parent-id' };
+      const pagination = { skip: 0, limit: 10 };
+      mockCommentsService.getReplies.mockResolvedValue({ items: [mockComment], total: 1 });
+
+      const response = await controller.getReplies(findOneDto, pagination);
+
+      expect(response.success).toBe(true);
+      expect(response.data).toMatchObject({ total: 1, parentCommentId: 'parent-id' });
+    });
+  });
+
+  describe('getReactions — public read (TEST-BE-005)', () => {
+    it('should return reactions with userReacted:false when no user provided', async () => {
+      const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439011' };
+
+      const response = await controller.getReactions(findOneDto, undefined);
+
+      expect(response.success).toBe(true);
+      expect(response.data.userReacted).toBe(false);
+      expect(response.data.userReaction).toBeNull();
     });
   });
 });

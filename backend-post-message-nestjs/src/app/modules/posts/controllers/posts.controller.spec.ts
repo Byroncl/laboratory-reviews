@@ -1,14 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Reflector } from '@nestjs/core';
 import { PostsController } from './posts.controller';
 import { PostsService } from '../services/posts.service';
+import { PostsGateway } from '../gateways/posts.gateway';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
 import { TranslationService } from '../../../core/utils/translation.service';
+import { AUTH_KEY } from '../../../core/decorators/auth.decorator';
 
 describe('PostsController', () => {
   let controller: PostsController;
   let mockPostsService: jest.Mocked<PostsService>;
+  let reflector: Reflector;
 
   const mockPost = {
     _id: '507f1f77bcf86cd799439011',
@@ -22,10 +26,17 @@ describe('PostsController', () => {
     imageFilename: 'photo.jpg',
   } as any;
 
+  const mockGateway = {
+    notifyPostCreated: jest.fn(),
+    notifyPostUpdated: jest.fn(),
+    notifyPostDeleted: jest.fn(),
+  };
+
   beforeEach(async () => {
     mockPostsService = {
       create: jest.fn(),
       findAll: jest.fn(),
+      findAllPaginated: jest.fn(),
       findOne: jest.fn(),
       update: jest.fn(),
       remove: jest.fn(),
@@ -36,6 +47,7 @@ describe('PostsController', () => {
       controllers: [PostsController],
       providers: [
         { provide: PostsService, useValue: mockPostsService },
+        { provide: PostsGateway, useValue: mockGateway },
         {
           provide: TranslationService,
           useValue: { translate: jest.fn((key: string) => key) },
@@ -44,11 +56,87 @@ describe('PostsController', () => {
     }).compile();
 
     controller = module.get<PostsController>(PostsController);
+    reflector = module.get<Reflector>(Reflector);
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
+
+  // ─── Auth metadata assertions (TEST-BE-006, TEST-BE-007) ──────────────────
+
+  describe('auth metadata', () => {
+    it('create handler carries AUTH_KEY metadata (TEST-BE-006)', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.create);
+      expect(metadata).toBeDefined();
+    });
+
+    it('bulkCreate handler carries AUTH_KEY metadata (TEST-BE-007)', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.bulkCreate);
+      expect(metadata).toBeDefined();
+    });
+
+    it('findAll handler does NOT carry AUTH_KEY metadata (public read)', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.findAll);
+      expect(metadata).toBeUndefined();
+    });
+
+    it('findOne handler does NOT carry AUTH_KEY metadata (public read)', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.findOne);
+      expect(metadata).toBeUndefined();
+    });
+  });
+
+  // ─── Public read contracts (TEST-BE-001, TEST-BE-002) ─────────────────────
+
+  describe('findAll — public read (TEST-BE-001)', () => {
+    it('should return paginated posts without auth context', async () => {
+      const paginatedResult = { items: [mockPost], total: 1, skip: 0, limit: 10 };
+      mockPostsService.findAllPaginated.mockResolvedValue(paginatedResult as any);
+
+      const response = await controller.findAll(
+        { skip: 0, limit: 10 } as any,
+        undefined,
+        undefined,
+        undefined,
+      );
+
+      expect(response.success).toBe(true);
+      expect(mockPostsService.findAllPaginated).toHaveBeenCalled();
+    });
+
+    it('should return empty result when no posts exist', async () => {
+      mockPostsService.findAllPaginated.mockResolvedValue({ items: [], total: 0, skip: 0, limit: 10 } as any);
+
+      const response = await controller.findAll({ skip: 0, limit: 10 } as any);
+
+      expect(response.success).toBe(true);
+    });
+  });
+
+  describe('findOne — public read (TEST-BE-002)', () => {
+    it('should return post by id without auth context', async () => {
+      const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439011' };
+      mockPostsService.findOne.mockResolvedValue(mockPost);
+
+      const response = await controller.findOne(findOneDto);
+
+      expect(response.success).toBe(true);
+      expect(response.data).toEqual(mockPost);
+      expect(mockPostsService.findOne).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+    });
+
+    it('should return null data when post not found', async () => {
+      const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439099' };
+      mockPostsService.findOne.mockResolvedValue(null);
+
+      const response = await controller.findOne(findOneDto);
+
+      expect(response.data).toBeNull();
+    });
+  });
+
+  // ─── create ───────────────────────────────────────────────────────────────
 
   describe('create', () => {
     it('should create a post and return wrapped response', async () => {
@@ -89,57 +177,17 @@ describe('PostsController', () => {
     });
   });
 
-  describe('findAll', () => {
-    it('should return all posts', async () => {
-      mockPostsService.findAll.mockResolvedValue([mockPost]);
-
-      const response = await controller.findAll();
-
-      expect(response.success).toBe(true);
-      expect(response.data).toEqual([mockPost]);
-    });
-
-    it('should return empty array when no posts', async () => {
-      mockPostsService.findAll.mockResolvedValue([]);
-
-      const response = await controller.findAll();
-
-      expect(response.data).toEqual([]);
-    });
-  });
-
-  describe('findOne', () => {
-    it('should return post by id', async () => {
-      const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439011' };
-      mockPostsService.findOne.mockResolvedValue(mockPost);
-
-      const response = await controller.findOne(findOneDto);
-
-      expect(response.success).toBe(true);
-      expect(response.data).toEqual(mockPost);
-      expect(mockPostsService.findOne).toHaveBeenCalledWith(
-        '507f1f77bcf86cd799439011',
-      );
-    });
-
-    it('should return null data when post not found', async () => {
-      const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439099' };
-      mockPostsService.findOne.mockResolvedValue(null);
-
-      const response = await controller.findOne(findOneDto);
-
-      expect(response.data).toBeNull();
-    });
-  });
+  // ─── update ───────────────────────────────────────────────────────────────
 
   describe('update', () => {
     it('should update a post and return wrapped response', async () => {
       const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439011' };
       const dto: UpdatePostDto = { title: 'Updated' };
       const updated = { ...mockPost, title: 'Updated' };
+      const currentUser = { userId: 'u1', username: 'testuser' } as any;
       mockPostsService.update.mockResolvedValue(updated);
 
-      const response = await controller.update(findOneDto, dto);
+      const response = await controller.update(findOneDto, dto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(updated);
@@ -156,21 +204,25 @@ describe('PostsController', () => {
         imageFilename: 'new.jpg',
       };
       const updated = { ...mockPost, ...dto };
+      const currentUser = { userId: 'u1', username: 'testuser' } as any;
       mockPostsService.update.mockResolvedValue(updated);
 
-      const response = await controller.update(findOneDto, dto);
+      const response = await controller.update(findOneDto, dto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data.imageUrl).toBe('http://localhost:9000/posts/new.jpg');
     });
   });
 
+  // ─── remove ───────────────────────────────────────────────────────────────
+
   describe('remove', () => {
     it('should delete a post and return success response', async () => {
       const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439011' };
+      const currentUser = { userId: 'u1', username: 'testuser' } as any;
       mockPostsService.remove.mockResolvedValue(mockPost);
 
-      const response = await controller.remove(findOneDto);
+      const response = await controller.remove(findOneDto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toBeNull();
@@ -179,6 +231,8 @@ describe('PostsController', () => {
       );
     });
   });
+
+  // ─── bulkCreate ───────────────────────────────────────────────────────────
 
   describe('bulkCreate', () => {
     it('should create multiple posts', async () => {
