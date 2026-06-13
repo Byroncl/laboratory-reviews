@@ -1,10 +1,14 @@
+import { Permission } from './permission.model';
+
 export interface Role {
   id?: string;
   _id?: string;
   name: string;
-  description?: string;
-  permissions?: string[];
+  identifier?: string;
+  permissions?: string[] | Permission[];
   permissionIds?: string[];
+  isActive?: boolean;
+  isDeleted?: boolean;
   createdAt?: string;
   updatedAt?: string;
   [key: string]: unknown;
@@ -12,14 +16,16 @@ export interface Role {
 
 export interface CreateRoleDto {
   name: string;
-  description?: string;
-  permissions?: string[];
+  permissions: string[];
 }
 
 export interface UpdateRoleDto {
   name?: string;
-  description?: string;
   permissions?: string[];
+}
+
+export interface AssignPermissionsDto {
+  permissionIds: string[];
 }
 
 export interface RoleResponse {

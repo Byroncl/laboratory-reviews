@@ -45,21 +45,21 @@ import { SpinnerComponent } from '../../../shared/components/spinner/spinner.com
           <p class="text-sm text-gray-500 italic">Cargando permisos...</p>
         } @else {
           <div class="space-y-2 max-h-64 overflow-y-auto border border-gray-300 rounded-lg p-4">
-            @for (permission of permissions; let i = $index) {
+            @for (permission of permissions; track (permission.id || permission._id)) {
               <div class="flex items-center">
                 <input
                   type="checkbox"
-                  [id]="'perm-' + permission._id"
-                  (change)="onPermissionToggle(permission._id)"
-                  [checked]="isPermissionSelected(permission._id)"
+                  [id]="'perm-' + (permission.id || permission._id)"
+                  (change)="onPermissionToggle((permission.id || permission._id))"
+                  [checked]="isPermissionSelected((permission.id || permission._id))"
                   class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer"
                 />
                 <label
-                  [for]="'perm-' + permission._id"
+                  [for]="'perm-' + (permission.id || permission._id)"
                   class="ml-3 text-sm text-gray-700 cursor-pointer hover:text-primary transition"
                 >
                   {{ permission.name }}
-                  <span class="text-xs text-gray-500 ml-1">({{ permission.type }})</span>
+                  <span class="text-xs text-gray-500 ml-1">({{ permission['type'] }})</span>
                 </label>
               </div>
             }
@@ -174,19 +174,26 @@ export class RoleFormComponent implements OnInit, OnDestroy {
         name: role.name
       });
       if (role.permissions && Array.isArray(role.permissions)) {
-        role.permissions.forEach(permId => {
-          this.selectedPermissions.add(permId);
+        role.permissions.forEach((perm: unknown) => {
+          const permId = typeof perm === 'string' ? perm : (perm as { _id?: string; id?: string })?._id ?? (perm as { _id?: string; id?: string })?.id;
+          if (permId) this.selectedPermissions.add(permId);
         });
       }
       this.validatePermissions();
     }
   }
 
-  isPermissionSelected(permissionId: string): boolean {
+  getPermId(permission: Permission): string {
+    return (permission._id ?? permission.id) as string;
+  }
+
+  isPermissionSelected(permissionId: string | undefined): boolean {
+    if (!permissionId) return false;
     return this.selectedPermissions.has(permissionId);
   }
 
-  onPermissionToggle(permissionId: string): void {
+  onPermissionToggle(permissionId: string | undefined): void {
+    if (!permissionId) return;
     if (this.selectedPermissions.has(permissionId)) {
       this.selectedPermissions.delete(permissionId);
     } else {

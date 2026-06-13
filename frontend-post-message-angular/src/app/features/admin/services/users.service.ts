@@ -47,9 +47,9 @@ export class UsersService {
     this.error$.set(null);
 
     const params: Record<string, unknown> = { skip, limit };
-    if (filters?.role) params.role = filters.role;
-    if (filters?.status) params.status = filters.status;
-    if (filters?.email) params.email = filters.email;
+    if (filters?.role) params['role'] = filters.role;
+    if (filters?.status) params['status'] = filters.status;
+    if (filters?.email) params['email'] = filters.email;
 
     return this.api.get<UsersPaginatedResponse>('/users', params).pipe(
       tap(response => {

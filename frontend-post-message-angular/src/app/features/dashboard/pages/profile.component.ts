@@ -21,7 +21,7 @@ import { SpinnerComponent } from '../../../shared/components/spinner/spinner.com
         </div>
         <div>
           <h1 class="text-2xl font-bold text-gray-900">{{ user?.name }} {{ user?.lastname }}</h1>
-          <p class="text-gray-500">@{{ user?.username }} · {{ user?.email }}</p>
+          <p class="text-gray-500">{{ user?.username }} · {{ user?.email }}</p>
         </div>
       </div>
 

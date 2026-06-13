@@ -81,8 +81,8 @@ export class PostsService {
   ): Observable<{ data: Post[] | { items: Post[]; total: number }; message: string }> {
     this.loading.set(true);
     const params: Record<string, unknown> = { skip, limit };
-    if (filters?.status) params.status = filters.status;
-    if (filters?.author) params.author = filters.author;
+    if (filters?.status) params['status'] = filters.status;
+    if (filters?.author) params['author'] = filters.author;
 
     return this.api.get<{ data: Post[] | { items: Post[]; total: number }; message: string }>('/posts', params).pipe(
       delay(300),
@@ -109,7 +109,6 @@ export class PostsService {
     const nextSkip = skip + limit;
     if (nextSkip < total) {
       const filters = {
-        status: this.selectedPost()?.status,
         author: this.filterAuthor() || undefined
       };
       this.loadPosts(nextSkip, limit, filters).subscribe();
@@ -121,7 +120,6 @@ export class PostsService {
     const prevSkip = Math.max(0, skip - limit);
     if (prevSkip !== skip) {
       const filters = {
-        status: this.selectedPost()?.status,
         author: this.filterAuthor() || undefined
       };
       this.loadPosts(prevSkip, limit, filters).subscribe();

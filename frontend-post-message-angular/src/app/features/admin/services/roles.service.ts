@@ -2,7 +2,7 @@ import { Injectable, signal, computed } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
-import { Role, CreateRoleDto, UpdateRoleDto, RolesPaginatedResponse } from '../../../shared/models/role.model';
+import { Role, CreateRoleDto, UpdateRoleDto, AssignPermissionsDto, RolesPaginatedResponse } from '../../../shared/models/role.model';
 
 @Injectable({ providedIn: 'root' })
 export class RolesService {
@@ -43,7 +43,7 @@ export class RolesService {
     this.error$.set(null);
 
     const params: Record<string, unknown> = { skip, limit };
-    if (name) params.name = name;
+    if (name) params['name'] = name;
 
     return this.api.get<RolesPaginatedResponse>('/roles', params).pipe(
       tap(response => {
@@ -132,6 +132,35 @@ export class RolesService {
         this.error$.set(errorMsg);
         this.loading$.set(false);
         console.error('[RolesService] deleteRole error', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  assignPermissions(id: string, permissionIds: string[]): Observable<{ data: Role; message: string }> {
+    console.log('[RolesService] assignPermissions', { id, permissionIds });
+    this.loading$.set(true);
+    this.error$.set(null);
+
+    const dto: AssignPermissionsDto = { permissionIds };
+
+    return this.api.post<{ data: Role; message: string }>(`/roles/${id}/permissions`, dto).pipe(
+      tap(response => {
+        const updated = response.data;
+        const index = this.roles$().findIndex(r => this.roleId(r) === id);
+        if (index !== -1) {
+          const roles = [...this.roles$()];
+          roles[index] = updated;
+          this.roles$.set(roles);
+        }
+        this.loading$.set(false);
+        console.log('[RolesService] assignPermissions success', updated);
+      }),
+      catchError(err => {
+        const errorMsg = err?.message || 'Failed to assign permissions';
+        this.error$.set(errorMsg);
+        this.loading$.set(false);
+        console.error('[RolesService] assignPermissions error', err);
         return throwError(() => err);
       })
     );

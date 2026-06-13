@@ -5,18 +5,8 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { PermissionsService } from '../../admin/services/permissions.service';
-import { Permission } from '../../../shared/models/permission.model';
+import { Permission, PermissionType } from '../../../shared/models/permission.model';
 import { SpinnerComponent } from '../../../shared/components/spinner/spinner.component';
-
-export enum PermissionType {
-  USER = 'user',
-  ROLES = 'roles',
-  PERMISSIONS = 'permissions',
-  COMMENTS = 'comments',
-  CLIENTS = 'clients',
-  STATISTICS = 'statistics',
-  AUDITS = 'audits'
-}
 
 @Component({
   selector: 'app-permission-form',
@@ -54,7 +44,7 @@ export enum PermissionType {
           [class.border-red-500]="isFieldInvalid('type')"
         >
           <option value="">Seleccionar categoría...</option>
-          @for (type of permissionTypes; let i = $index) {
+          @for (type of permissionTypes; track type) {
             <option [value]="type">{{ formatType(type) }}</option>
           }
         </select>
@@ -156,7 +146,7 @@ export class PermissionFormComponent implements OnInit, OnDestroy {
     if (permission) {
       this.form.patchValue({
         name: permission.name,
-        type: permission.type
+        type: permission['type']
       });
     }
   }

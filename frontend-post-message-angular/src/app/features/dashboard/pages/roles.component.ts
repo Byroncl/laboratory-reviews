@@ -17,6 +17,7 @@ import { ModalService, NotificationService } from '../../../shared/services/inde
 import { RolesService } from '../../admin/services/roles.service';
 import { Role } from '../../../shared/models/role.model';
 import { RoleFormComponent } from '../components/role-form.component';
+import { RolePermissionsComponent } from '../components/role-permissions.component';
 
 @Component({
   selector: 'app-roles',
@@ -30,11 +31,12 @@ import { RoleFormComponent } from '../components/role-form.component';
     BadgeComponent,
     SpinnerComponent,
     SkeletonComponent,
-    RoleFormComponent
+    RoleFormComponent,
+    RolePermissionsComponent
   ],
   template: `
     <div class="space-y-6">
-      <!-- Form Modal -->
+      <!-- Role Form Panel -->
       @if (showRoleForm) {
         <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
           <div class="flex justify-between items-center mb-4">
@@ -56,12 +58,32 @@ import { RoleFormComponent } from '../components/role-form.component';
         </div>
       }
 
+      <!-- Permissions Assignment Panel -->
+      @if (assigningRole) {
+        <div class="bg-white rounded-lg shadow p-6 border border-purple-200">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-900">Gestionar Permisos</h2>
+            <button
+              (click)="closePermissionsPanel()"
+              class="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+          <app-role-permissions
+            [role]="assigningRole"
+            (saved)="onPermissionsSaved()"
+            (cancelled)="closePermissionsPanel()"
+          ></app-role-permissions>
+        </div>
+      }
+
       <!-- Header -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 class="text-3xl font-bold text-primary">{{ 'sidebar.roles' | t }}</h1>
         <button
           (click)="onCreateRole()"
-          [disabled]="showRoleForm"
+          [disabled]="showRoleForm || !!assigningRole"
           class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
         >
           + Nuevo Rol
@@ -136,18 +158,21 @@ export class RolesComponent implements OnInit, OnDestroy {
   totalRolesCount = 0;
   showRoleForm = false;
   editingRoleId: string | null = null;
+  assigningRole: Role | null = null;
   private columnFilters: Record<string, string> = {};
   private destroy$ = new Subject<void>();
 
   columns: TableColumn[] = [
     { key: 'name', label: 'Nombre', sortable: true, filterable: true },
-    { key: 'description', label: 'Descripción', sortable: true, filterable: true },
+    { key: 'identifier', label: 'Identificador', sortable: true, filterable: true },
+    { key: 'isActive', label: 'Activo', sortable: true },
     { key: 'createdAt', label: 'Creado', sortable: true }
   ];
 
   actions: TableAction[] = [
     { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
     { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
+    { id: 'assign', label: 'Permisos', icon: 'permissions', class: 'text-purple-600 hover:text-purple-700' },
     {
       id: 'delete',
       label: 'Eliminar',
@@ -199,6 +224,7 @@ export class RolesComponent implements OnInit, OnDestroy {
   onCreateRole(): void {
     this.showRoleForm = true;
     this.editingRoleId = null;
+    this.assigningRole = null;
   }
 
   closeForm(): void {
@@ -206,9 +232,18 @@ export class RolesComponent implements OnInit, OnDestroy {
     this.editingRoleId = null;
   }
 
+  closePermissionsPanel(): void {
+    this.assigningRole = null;
+  }
+
   onFormSubmitted(): void {
     this.closeForm();
     this.updateStats();
+  }
+
+  onPermissionsSaved(): void {
+    this.closePermissionsPanel();
+    this.loadRolesWithFilter();
   }
 
   onTableAction(event: { action: string; row: Record<string, unknown> }): void {
@@ -221,6 +256,9 @@ export class RolesComponent implements OnInit, OnDestroy {
       case 'edit':
         this.editRole(role);
         break;
+      case 'assign':
+        this.assignPermissions(role);
+        break;
       case 'delete':
         this.deleteRole(role);
         break;
@@ -228,10 +266,11 @@ export class RolesComponent implements OnInit, OnDestroy {
   }
 
   viewRole(role: Role): void {
+    const permCount = Array.isArray(role.permissions) ? role.permissions.length : 0;
     this.modalService
       .openConfirm(
         role.name,
-        `Descripción: ${role.description ?? 'N/A'}\nCreado: ${role.createdAt}`
+        `Identificador: ${role.identifier ?? 'N/A'}\nPermisos asignados: ${permCount}\nActivo: ${role.isActive ? 'Si' : 'No'}\nCreado: ${role.createdAt}`
       )
       .pipe(takeUntil(this.destroy$))
       .subscribe();
@@ -240,13 +279,20 @@ export class RolesComponent implements OnInit, OnDestroy {
   editRole(role: Role): void {
     this.editingRoleId = (role._id ?? role.id) as string;
     this.showRoleForm = true;
+    this.assigningRole = null;
+  }
+
+  assignPermissions(role: Role): void {
+    this.assigningRole = role;
+    this.showRoleForm = false;
+    this.editingRoleId = null;
   }
 
   deleteRole(role: Role): void {
     this.modalService
       .openConfirm(
-        'Confirmar eliminación',
-        `¿Estás seguro de que deseas eliminar el rol "${role.name}"?`,
+        'Confirmar eliminacion',
+        `Esta seguro de que desea eliminar el rol "${role.name}"?`,
         true
       )
       .pipe(takeUntil(this.destroy$))

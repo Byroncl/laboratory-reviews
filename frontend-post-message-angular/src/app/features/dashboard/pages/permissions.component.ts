@@ -227,7 +227,7 @@ export class PermissionsComponent implements OnInit, OnDestroy {
     this.modalService
       .openConfirm(
         permission.name,
-        `Descripción: ${permission.description ?? 'N/A'}\nCreado: ${permission.createdAt}`
+        `Descripción: ${permission['description'] ?? 'N/A'}\nCreado: ${permission.createdAt}`
       )
       .pipe(takeUntil(this.destroy$))
       .subscribe();
