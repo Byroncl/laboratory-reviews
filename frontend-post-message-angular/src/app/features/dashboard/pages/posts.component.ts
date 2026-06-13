@@ -13,7 +13,7 @@ import {
   SpinnerComponent,
   SkeletonComponent
 } from '../../../shared/components/index';
-import { ModalService } from '../../../shared/services/index';
+import { ModalService, NotificationService } from '../../../shared/services/index';
 
 interface Post extends Record<string, unknown> {
   id: string;
@@ -239,7 +239,10 @@ export class PostsComponent implements OnInit, OnDestroy {
     return Math.ceil(this.filteredPosts.length / this.pageSize);
   }
 
-  constructor(private modalService: ModalService) {}
+  constructor(
+    private modalService: ModalService,
+    private notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
     this.loadPosts();
@@ -274,7 +277,7 @@ export class PostsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(result => {
         if (result.confirmed) {
-          console.log('Creating post...');
+          this.notificationService.success('Post creado', 'El post se creó correctamente');
         }
       });
   }
@@ -296,6 +299,7 @@ export class PostsComponent implements OnInit, OnDestroy {
   }
 
   viewPost(post: Post): void {
+    this.notificationService.toast('Post abierto', 'success');
     this.modalService
       .openConfirm(
         post.title,
@@ -325,8 +329,13 @@ export class PostsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(result => {
         if (result.confirmed) {
-          this.posts = this.posts.filter(p => p.id !== post.id);
-          console.log('Post eliminado:', post.id);
+          try {
+            this.posts = this.posts.filter(p => p.id !== post.id);
+            this.updateStats();
+            this.notificationService.toast('Post eliminado correctamente', 'success');
+          } catch {
+            this.notificationService.toast('Error al eliminar el post', 'error');
+          }
         }
       });
   }

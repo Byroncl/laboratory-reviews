@@ -11,10 +11,9 @@ import {
   PaginationComponent,
   BadgeComponent,
   SpinnerComponent,
-  SkeletonComponent,
-  AdvancedModalComponent
+  SkeletonComponent
 } from '../../../shared/components/index';
-import { ModalService } from '../../../shared/services/index';
+import { ModalService, NotificationService } from '../../../shared/services/index';
 
 interface User extends Record<string, unknown> {
   id: string;
@@ -268,7 +267,10 @@ export class UsersComponent implements OnInit, OnDestroy {
     return Math.ceil(this.filteredUsers.length / this.pageSize);
   }
 
-  constructor(private modalService: ModalService) {}
+  constructor(
+    private modalService: ModalService,
+    private notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -302,7 +304,11 @@ export class UsersComponent implements OnInit, OnDestroy {
         'Funcionalidad de crear usuarios próximamente disponible.'
       )
       .pipe(takeUntil(this.destroy$))
-      .subscribe();
+      .subscribe(result => {
+        if (result.confirmed) {
+          this.notificationService.success('Usuario creado', 'El usuario se creó correctamente');
+        }
+      });
   }
 
   onTableAction(event: { action: string; row: Record<string, unknown> }): void {
@@ -351,10 +357,21 @@ export class UsersComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(result => {
         if (result.confirmed) {
-          this.users = this.users.filter(u => u.id !== user.id);
-          console.log('Usuario eliminado:', user.id);
+          try {
+            this.users = this.users.filter(u => u.id !== user.id);
+            this.updateStats();
+            this.notificationService.toast('Usuario eliminado correctamente', 'success');
+          } catch {
+            this.notificationService.toast('Error al eliminar el usuario', 'error');
+          }
         }
       });
+  }
+
+  onStatusChange(user: User, newStatus: User['status']): void {
+    user.status = newStatus;
+    this.updateStats();
+    this.notificationService.toast('Estado actualizado', 'success');
   }
 
   onGlobalSearch(): void {

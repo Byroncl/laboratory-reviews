@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy, Inject, LOCALE_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ModalService, ModalConfig, ModalResult } from '../../services/modal.service';
+import { ModalService, ModalConfig } from '../../services/modal.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -12,7 +12,6 @@ import { takeUntil } from 'rxjs/operators';
     @if (currentModal) {
       <div
         class="fixed inset-0 z-50 flex items-center justify-center"
-        [@backdrop]
         (click)="onBackdropClick()"
       >
         <!-- Backdrop -->
@@ -24,7 +23,6 @@ import { takeUntil } from 'rxjs/operators';
         <!-- Modal Container -->
         <div
           class="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 transform transition-all"
-          [@modal]
           (click)="$event.stopPropagation()"
           role="dialog"
           [attr.aria-labelledby]="'modal-title-' + currentModal.id"
@@ -38,60 +36,73 @@ import { takeUntil } from 'rxjs/operators';
             >
               {{ currentModal.title }}
             </h2>
-            <button
-              type="button"
-              (click)="onCancel()"
-              class="p-1 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100"
-              [attr.aria-label]="'Close ' + currentModal.title"
-            >
-              <svg
-                class="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div class="flex items-center gap-1">
+              <button
+                type="button"
+                (click)="toggleMinimize()"
+                class="p-1 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100"
+                [attr.aria-label]="isMinimized ? 'Expand modal' : 'Minimize modal'"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                ></path>
-              </svg>
-            </button>
+                <span class="text-base leading-none select-none">{{ isMinimized ? '▲' : '▼' }}</span>
+              </button>
+              <button
+                type="button"
+                (click)="onCancel()"
+                class="p-1 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100"
+                [attr.aria-label]="'Close ' + currentModal.title"
+              >
+                <svg
+                  class="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  ></path>
+                </svg>
+              </button>
+            </div>
           </div>
 
-          <!-- Body -->
-          <div class="px-6 py-4">
-            @if (currentModal.message) {
-              <p class="text-gray-600 text-sm leading-relaxed">
-                {{ currentModal.message }}
-              </p>
-            }
-            @if (currentModal.template) {
-              <ng-container [ngTemplateOutlet]="currentModal.template"></ng-container>
-            }
-          </div>
+          <!-- Collapsible body + footer -->
+          <div class="modal-collapsible" [class.modal-collapsed]="isMinimized">
+            <!-- Body -->
+            <div class="px-6 py-4">
+              @if (currentModal.message) {
+                <p class="text-gray-600 text-sm leading-relaxed">
+                  {{ currentModal.message }}
+                </p>
+              }
+              @if (currentModal.template) {
+                <ng-container [ngTemplateOutlet]="currentModal.template"></ng-container>
+              }
+            </div>
 
-          <!-- Footer -->
-          <div class="flex gap-3 justify-end px-6 py-4 border-t border-gray-200">
-            <button
-              type="button"
-              (click)="onCancel()"
-              class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
-            >
-              {{ currentModal.cancelText || 'Cancelar' }}
-            </button>
-            <button
-              type="button"
-              (click)="onConfirm()"
-              [class]="
-                currentModal.isDangerous
-                  ? 'px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm'
-                  : 'px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition-colors font-medium text-sm'
-              "
-            >
-              {{ currentModal.confirmText || 'Confirmar' }}
-            </button>
+            <!-- Footer -->
+            <div class="flex gap-3 justify-end px-6 py-4 border-t border-gray-200">
+              <button
+                type="button"
+                (click)="onCancel()"
+                class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
+              >
+                {{ currentModal.cancelText || 'Cancelar' }}
+              </button>
+              <button
+                type="button"
+                (click)="onConfirm()"
+                [class]="
+                  currentModal.isDangerous
+                    ? 'px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm'
+                    : 'px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition-colors font-medium text-sm'
+                "
+              >
+                {{ currentModal.confirmText || 'Confirmar' }}
+              </button>
+            </div>
           </div>
 
           <!-- Loading Overlay -->
@@ -123,6 +134,20 @@ import { takeUntil } from 'rxjs/operators';
       display: block;
     }
 
+    .modal-collapsible {
+      overflow: hidden;
+      max-height: 600px;
+      opacity: 1;
+      transition:
+        max-height 0.3s ease,
+        opacity 0.2s ease;
+    }
+
+    .modal-collapsed {
+      max-height: 0;
+      opacity: 0;
+    }
+
     @keyframes slideIn {
       from {
         opacity: 0;
@@ -147,6 +172,7 @@ import { takeUntil } from 'rxjs/operators';
 export class AdvancedModalComponent implements OnInit, OnDestroy {
   currentModal: ModalConfig | null = null;
   isProcessing = false;
+  isMinimized = false;
 
   private destroy$ = new Subject<void>();
 
@@ -157,12 +183,20 @@ export class AdvancedModalComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(modal => {
         this.currentModal = modal;
+        // Reset minimized state when a new modal opens
+        if (modal) {
+          this.isMinimized = false;
+        }
       });
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  toggleMinimize(): void {
+    this.isMinimized = !this.isMinimized;
   }
 
   onConfirm(): void {

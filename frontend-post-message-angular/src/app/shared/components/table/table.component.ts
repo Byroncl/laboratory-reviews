@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, takeUntil } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import Swal from 'sweetalert2';
 
 export interface TableColumn {
   key: string;
@@ -298,9 +299,20 @@ export class TableComponent implements OnInit, OnDestroy {
     action: TableAction
   ): void {
     if (action.confirm && action.confirmMessage) {
-      if (confirm(action.confirmMessage)) {
-        this.actionTriggered.emit({ action: actionId, row });
-      }
+      Swal.fire({
+        title: '¿Confirmar?',
+        text: action.confirmMessage,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Eliminar',
+        cancelButtonText: 'Cancelar'
+      }).then(result => {
+        if (result.isConfirmed) {
+          this.actionTriggered.emit({ action: actionId, row });
+        }
+      });
     } else {
       this.actionTriggered.emit({ action: actionId, row });
     }
