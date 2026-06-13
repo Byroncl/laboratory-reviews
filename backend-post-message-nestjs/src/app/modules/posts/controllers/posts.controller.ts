@@ -39,11 +39,13 @@ export class PostsController {
     private readonly i18n: TranslationService,
   ) {}
 
+  @Auth()
   @AuditActionDecorator(AuditAction.CREATE, EntityType.POST)
   @ApiOperation({ summary: 'Create a new post' })
   @ApiBody({ type: CreatePostDto })
   @ApiResponse({ status: 201, description: 'Post created successfully', type: PostResponseDto })
   @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post()
   async create(@Body() createPostDto: CreatePostDto) {
     const post = await this.postsService.create(createPostDto);
@@ -118,10 +120,12 @@ export class PostsController {
     return ApiRes.success(null, this.i18n.translate('posts.deleted'));
   }
 
+  @Auth()
   @ApiOperation({ summary: 'Bulk create posts' })
   @ApiBody({ type: [CreatePostDto] })
   @ApiResponse({ status: 201, description: 'Posts created successfully', type: [PostResponseDto] })
   @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post('bulk')
   async bulkCreate(@Body() createPostDtos: CreatePostDto[]) {
     const result = await this.postsService.bulkCreate(createPostDtos);

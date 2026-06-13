@@ -45,11 +45,13 @@ export class CommentsController {
     private readonly i18n: TranslationService,
   ) {}
 
+  @Auth()
   @AuditActionDecorator(AuditAction.CREATE, EntityType.COMMENT)
   @ApiOperation({ summary: 'Create a new comment' })
   @ApiBody({ type: CreateCommentDto })
   @ApiResponse({ status: 201, description: 'Comment created successfully', type: CommentResponseDto })
   @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post()
   async create(@Body() createCommentDto: CreateCommentDto) {
     const comment = await this.commentsService.create(createCommentDto);

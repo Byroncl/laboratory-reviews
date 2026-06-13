@@ -32,11 +32,13 @@ export class CategoriesController {
     private readonly i18n: TranslationService,
   ) {}
 
+  @Auth()
   @AuditActionDecorator(AuditAction.CREATE, EntityType.CATEGORY)
   @ApiOperation({ summary: 'Create a new category' })
   @ApiBody({ type: CreateCategoryDto })
   @ApiResponse({ status: 201, description: 'Category created successfully', type: CategoryResponseDto })
   @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 409, description: 'Slug already exists' })
   @Post()
   async create(@Body() createCategoryDto: CreateCategoryDto) {
