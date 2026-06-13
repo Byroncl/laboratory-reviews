@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateUserDto } from '../../dto/create-user.dto';
 import { UpdateUserDto } from '../../dto/update-user.dto';
 import { User, UserDocument } from '../../schemas/user.schema';
@@ -50,6 +50,17 @@ export class UserMongoRepository implements UserRepository {
   ): Promise<User | null> {
     return this.userModel
       .findByIdAndUpdate(id, { preferredLanguage: language }, { new: true })
+      .exec();
+  }
+
+  async assignRole(id: string, roleId: string): Promise<User | null> {
+    return this.userModel
+      .findByIdAndUpdate(
+        id,
+        { role: new Types.ObjectId(roleId) },
+        { new: true },
+      )
+      .populate('role')
       .exec();
   }
 }

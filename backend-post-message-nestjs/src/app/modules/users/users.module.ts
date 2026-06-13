@@ -12,6 +12,7 @@ import { FindUserByIdUseCase } from './domain/use-cases/find-user-by-id.use-case
 import { UpdateUserUseCase } from './domain/use-cases/update-user.use-case';
 import { RemoveUserUseCase } from './domain/use-cases/remove-user.use-case';
 import { UpdateLanguagePreferenceUseCase } from './domain/use-cases/update-language-preference.use-case';
+import { AssignRoleUseCase } from './domain/use-cases/assign-role.use-case';
 import { I18nService } from '../../core/i18n/i18n.service';
 
 @Module({
@@ -28,6 +29,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
     UpdateUserUseCase,
     RemoveUserUseCase,
     UpdateLanguagePreferenceUseCase,
+    AssignRoleUseCase,
     I18nService,
     {
       provide: UserRepository,

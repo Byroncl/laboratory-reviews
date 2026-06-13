@@ -13,4 +13,5 @@ export abstract class UserRepository {
     id: string,
     language: 'en' | 'es',
   ): Promise<User | null>;
+  abstract assignRole(id: string, roleId: string): Promise<User | null>;
 }

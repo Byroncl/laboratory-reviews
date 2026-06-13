@@ -215,7 +215,7 @@ export interface SortEvent {
 })
 export class TableComponent implements OnInit, OnDestroy {
   @Input() columns: TableColumn[] = [];
-  @Input() data: Record<string, unknown>[] = [];
+  @Input() data: any[] = [];
   @Input() actions: TableAction[] = [];
   @Input() primaryColumnKey = 'id';
 

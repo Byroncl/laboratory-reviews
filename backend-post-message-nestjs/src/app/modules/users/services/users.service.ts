@@ -9,6 +9,7 @@ import { FindUserByIdUseCase } from '../domain/use-cases/find-user-by-id.use-cas
 import { UpdateUserUseCase } from '../domain/use-cases/update-user.use-case';
 import { RemoveUserUseCase } from '../domain/use-cases/remove-user.use-case';
 import { UpdateLanguagePreferenceUseCase } from '../domain/use-cases/update-language-preference.use-case';
+import { AssignRoleUseCase } from '../domain/use-cases/assign-role.use-case';
 
 @Injectable()
 export class UsersService {
@@ -20,6 +21,7 @@ export class UsersService {
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly removeUserUseCase: RemoveUserUseCase,
     private readonly updateLanguagePreferenceUseCase: UpdateLanguagePreferenceUseCase,
+    private readonly assignRoleUseCase: AssignRoleUseCase,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -51,5 +53,9 @@ export class UsersService {
     language: 'en' | 'es',
   ): Promise<User | null> {
     return this.updateLanguagePreferenceUseCase.execute(id, language);
+  }
+
+  async assignRole(userId: string, roleId: string): Promise<User | null> {
+    return this.assignRoleUseCase.execute(userId, roleId);
   }
 }

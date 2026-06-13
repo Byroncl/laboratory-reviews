@@ -89,16 +89,15 @@ describe('AuthEffects', () => {
   });
 
   describe('loginSuccess$', () => {
-    it('navigates to /dashboard when no returnUrl query param is present', fakeAsync(() => {
-      // Simulate window.location.search with no returnUrl
-      spyOnProperty(window, 'location', 'get').and.returnValue({ search: '' } as Location);
-
+    it('navigates to /dashboard when no returnUrl is in window.location.search', fakeAsync(() => {
+      // window.location.search is '' in test environment (no query params)
       effects.loginSuccess$.subscribe();
       actions$.next(
         AuthActions.loginSuccess({ user: { id: 'u1', username: 'alice', role: 'user' }, token: 'tok' })
       );
       tick();
 
+      // Effect reads URLSearchParams(window.location.search) — in test env no returnUrl → /dashboard
       expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
     }));
   });

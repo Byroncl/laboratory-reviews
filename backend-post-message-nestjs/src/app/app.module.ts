@@ -17,6 +17,8 @@ import { I18nModule } from './modules/i18n/i18n.module';
 import { TransformInterceptor } from './core/interceptors/transform.interceptor';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { CategoriesModule } from './modules/categories/categories.module';
     I18nModule,
     NotificationsModule,
     CategoriesModule,
+    RolesModule,
+    PermissionsModule,
   ],
   controllers: [AppController],
   providers: [

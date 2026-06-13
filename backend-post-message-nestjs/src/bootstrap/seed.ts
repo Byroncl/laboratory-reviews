@@ -41,11 +41,15 @@ export async function seedDatabase(): Promise<void> {
     }
 
     const categories = await seedCategories(app);
-    const users = await seedUsers(app, config.usersCount);
+    const permissions = await seedPermissions(app);
+    const roles = await seedRoles(app, permissions);
+    const users = await seedUsers(app, config.usersCount, roles);
     const posts = await seedPosts(app, users, categories, config.postsPerUser);
     await seedComments(app, posts, users, config.commentsPerPost, config.reactionsPerComment);
 
     console.log('Seed completed successfully!');
+    console.log(`   - Permissions: ${permissions.length}`);
+    console.log(`   - Roles: ${roles.length}`);
     console.log(`   - Categories: ${categories.length}`);
     console.log(`   - Users: ${users.length}`);
     console.log(`   - Posts: ${posts.length}`);
@@ -55,6 +59,104 @@ export async function seedDatabase(): Promise<void> {
   } finally {
     await app.close();
   }
+}
+
+const SEED_PERMISSIONS = [
+  { name: 'Create Posts', identifier: 'posts:create', type: 'user' as const },
+  { name: 'Read Posts', identifier: 'posts:read', type: 'user' as const },
+  { name: 'Update Posts', identifier: 'posts:update', type: 'user' as const },
+  { name: 'Delete Posts', identifier: 'posts:delete', type: 'user' as const },
+  { name: 'Create Comments', identifier: 'comments:create', type: 'user' as const },
+  { name: 'Delete Comments', identifier: 'comments:delete', type: 'user' as const },
+  { name: 'Manage Categories', identifier: 'categories:manage', type: 'user' as const },
+  { name: 'Manage Users', identifier: 'users:manage', type: 'user' as const },
+  { name: 'Manage Roles', identifier: 'roles:manage', type: 'roles' as const },
+  { name: 'Manage Permissions', identifier: 'permissions:manage', type: 'permissions' as const },
+];
+
+async function seedPermissions(
+  app: { get: (token: unknown) => unknown },
+): Promise<Array<{ _id: unknown; identifier: string; name: string }>> {
+  const PermissionModel = app.get(getModelToken('Permission')) as {
+    findOne: (filter: unknown) => { exec: () => Promise<unknown> };
+    create: (data: unknown) => Promise<{ _id: unknown; identifier: string; name: string }>;
+  };
+
+  const permissions: Array<{ _id: unknown; identifier: string; name: string }> = [];
+
+  for (const data of SEED_PERMISSIONS) {
+    const existing = await PermissionModel.findOne({ identifier: data.identifier }).exec();
+    if (existing) {
+      permissions.push(existing as { _id: unknown; identifier: string; name: string });
+      console.log(`   Skipped existing permission: ${data.name}`);
+      continue;
+    }
+    const permission = await PermissionModel.create(data);
+    permissions.push(permission);
+    console.log(`   Created permission: ${data.name}`);
+  }
+
+  return permissions;
+}
+
+async function seedRoles(
+  app: { get: (token: unknown) => unknown },
+  permissions: Array<{ _id: unknown; identifier: string; name: string }>,
+): Promise<Array<{ _id: unknown; name: string; identifier: string }>> {
+  const RoleModel = app.get(getModelToken('Role')) as {
+    findOne: (filter: unknown) => { exec: () => Promise<unknown> };
+    create: (data: unknown) => Promise<{ _id: unknown; name: string; identifier: string }>;
+  };
+
+  const findPermIds = (identifiers: string[]) =>
+    permissions
+      .filter(p => identifiers.includes(p.identifier))
+      .map(p => p._id);
+
+  const roleData = [
+    {
+      name: 'Admin',
+      identifier: 'admin',
+      description: 'Administrator with full access',
+      permissions: findPermIds(SEED_PERMISSIONS.map(p => p.identifier)),
+      isActive: true,
+    },
+    {
+      name: 'Moderator',
+      identifier: 'moderator',
+      description: 'Can moderate content',
+      permissions: findPermIds([
+        'posts:create', 'posts:read', 'posts:update', 'posts:delete',
+        'comments:create', 'comments:delete',
+      ]),
+      isActive: true,
+    },
+    {
+      name: 'User',
+      identifier: 'user',
+      description: 'Regular user with basic access',
+      permissions: findPermIds([
+        'posts:create', 'posts:read', 'comments:create',
+      ]),
+      isActive: true,
+    },
+  ];
+
+  const roles: Array<{ _id: unknown; name: string; identifier: string }> = [];
+
+  for (const data of roleData) {
+    const existing = await RoleModel.findOne({ identifier: data.identifier }).exec();
+    if (existing) {
+      roles.push(existing as { _id: unknown; name: string; identifier: string });
+      console.log(`   Skipped existing role: ${data.name}`);
+      continue;
+    }
+    const role = await RoleModel.create(data);
+    roles.push(role);
+    console.log(`   Created role: ${data.name}`);
+  }
+
+  return roles;
 }
 
 async function clearCollections(app: { get: (token: unknown) => unknown }): Promise<void> {
@@ -150,15 +252,24 @@ const POST_CATEGORY_MAP: Record<string, number> = {
 async function seedUsers(
   app: { get: (token: unknown) => unknown },
   count: number,
+  roles: Array<{ _id: unknown; name: string; identifier: string }>,
 ): Promise<Array<{ _id: unknown; username: string }>> {
   const UserModel = app.get(getModelToken('User')) as {
     create: (data: unknown) => Promise<{ _id: unknown; username: string }>;
   };
   const users: Array<{ _id: unknown; username: string }> = [];
 
+  const adminRole = roles.find(r => r.identifier === 'admin');
+  const moderatorRole = roles.find(r => r.identifier === 'moderator');
+  const userRole = roles.find(r => r.identifier === 'user');
+
+  // Role assignment: index 0,1 → admin type; index 2 → moderator; rest → user
+  const roleAssignment = [adminRole, adminRole, moderatorRole];
+
   const limit = Math.min(count, SEED_USERS.length);
   for (let i = 0; i < limit; i++) {
     const { firstName, type } = SEED_USERS[i];
+    const assignedRole = roleAssignment[i] ?? userRole;
     const user = await UserModel.create({
       name: firstName,
       lastname: 'Seed',
@@ -168,9 +279,10 @@ async function seedUsers(
       type,
       isActive: true,
       preferredLanguage: i % 2 === 0 ? 'en' : 'es',
+      role: assignedRole ? assignedRole._id : undefined,
     });
     users.push(user);
-    console.log(`   Created user: ${firstName}`);
+    console.log(`   Created user: ${firstName} (${assignedRole?.name ?? 'no role'})`);
   }
 
   return users;

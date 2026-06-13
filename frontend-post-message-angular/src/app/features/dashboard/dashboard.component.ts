@@ -5,7 +5,7 @@ import { Store } from '@ngrx/store';
 import { selectUser, selectIsAuthenticated } from '../auth/store/auth.selectors';
 import * as AuthActions from '../auth/store/auth.actions';
 import { Observable } from 'rxjs';
-import { User } from '../auth/models/auth.model';
+import { AuthUser as User } from '../auth/models/auth.model';
 import { SidebarComponent } from '../../core/components/sidebar.component';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { LanguageSelectorComponent } from './components/language-selector.component';

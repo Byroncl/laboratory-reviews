@@ -17,7 +17,8 @@
     "email_already_exists": "Email already exists",
     "username_already_exists": "Username already exists",
     "language_updated": "Language preference updated successfully",
-    "language_invalid": "Invalid language. Supported: en, es"
+    "language_invalid": "Invalid language. Supported: en, es",
+    "role_assigned": "Role assigned to user successfully"
   },
   "posts": {
     "created": "Post created successfully",
@@ -54,7 +55,8 @@
     "created": "Role created successfully",
     "updated": "Role updated successfully",
     "deleted": "Role deleted successfully",
-    "not_found": "Role not found"
+    "not_found": "Role not found",
+    "permissions_assigned": "Permissions assigned to role successfully"
   },
   "permissions": {
     "created": "Permission created successfully",

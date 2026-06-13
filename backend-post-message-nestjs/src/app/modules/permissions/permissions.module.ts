@@ -13,5 +13,6 @@ import { TranslationService } from '../../core/utils/translation.service';
   ],
   controllers: [PermissionsController],
   providers: [PermissionsService, TranslationService],
+  exports: [PermissionsService],
 })
 export class PermissionsModule {}

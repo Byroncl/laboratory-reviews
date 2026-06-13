@@ -17,6 +17,7 @@ import {
 import { RolesService } from '../services/roles.service';
 import { CreateRoleDto } from '../dto/create-role.dto';
 import { UpdateRoleDto } from '../dto/update-role.dto';
+import { AssignPermissionsDto } from '../dto/assign-permissions.dto';
 import { RoleResponseDto } from '../dto/role-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
@@ -79,6 +80,25 @@ export class RolesController {
   ) {
     const role = await this.rolesService.update(findOneDto.id, updateRoleDto);
     return ApiRes.success(role, this.i18n.translate('roles.updated'));
+  }
+
+  @Auth()
+  @ApiOperation({ summary: 'Assign permissions to a role' })
+  @ApiParam({ name: 'id', type: 'string', description: 'Role MongoDB ObjectId' })
+  @ApiBody({ type: AssignPermissionsDto })
+  @ApiResponse({ status: 200, description: 'Permissions assigned successfully', type: RoleResponseDto })
+  @ApiResponse({ status: 404, description: 'Role not found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Post(':id/permissions')
+  async assignPermissions(
+    @Param() findOneDto: FindOneDto,
+    @Body() assignPermissionsDto: AssignPermissionsDto,
+  ) {
+    const role = await this.rolesService.assignPermissions(
+      findOneDto.id,
+      assignPermissionsDto.permissionIds,
+    );
+    return ApiRes.success(role, this.i18n.translate('roles.permissions_assigned'));
   }
 
   @Auth()

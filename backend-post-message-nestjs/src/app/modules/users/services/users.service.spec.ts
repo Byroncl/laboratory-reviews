@@ -7,6 +7,7 @@ import { FindUserByIdUseCase } from '../domain/use-cases/find-user-by-id.use-cas
 import { UpdateUserUseCase } from '../domain/use-cases/update-user.use-case';
 import { RemoveUserUseCase } from '../domain/use-cases/remove-user.use-case';
 import { UpdateLanguagePreferenceUseCase } from '../domain/use-cases/update-language-preference.use-case';
+import { AssignRoleUseCase } from '../domain/use-cases/assign-role.use-case';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 
@@ -20,6 +21,7 @@ describe('UsersService', () => {
   const mockUpdateUserUseCase = { execute: jest.fn() };
   const mockRemoveUserUseCase = { execute: jest.fn() };
   const mockUpdateLanguagePreferenceUseCase = { execute: jest.fn() };
+  const mockAssignRoleUseCase = { execute: jest.fn() };
 
   const mockUser = {
     _id: '507f1f77bcf86cd799439011',
@@ -51,6 +53,7 @@ describe('UsersService', () => {
           provide: UpdateLanguagePreferenceUseCase,
           useValue: mockUpdateLanguagePreferenceUseCase,
         },
+        { provide: AssignRoleUseCase, useValue: mockAssignRoleUseCase },
       ],
     }).compile();
 
@@ -215,6 +218,32 @@ describe('UsersService', () => {
       mockUpdateLanguagePreferenceUseCase.execute.mockResolvedValue(null);
 
       const result = await service.updateLanguagePreference('ghost-id', 'en');
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('assignRole', () => {
+    it('should delegate to AssignRoleUseCase', async () => {
+      const updatedUser = { ...mockUser, role: { _id: '507f1f77bcf86cd799439022' } };
+      mockAssignRoleUseCase.execute.mockResolvedValue(updatedUser);
+
+      const result = await service.assignRole(
+        '507f1f77bcf86cd799439011',
+        '507f1f77bcf86cd799439022',
+      );
+
+      expect(result).toEqual(updatedUser);
+      expect(mockAssignRoleUseCase.execute).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011',
+        '507f1f77bcf86cd799439022',
+      );
+    });
+
+    it('should return null when user not found', async () => {
+      mockAssignRoleUseCase.execute.mockResolvedValue(null);
+
+      const result = await service.assignRole('ghost-id', '507f1f77bcf86cd799439022');
 
       expect(result).toBeNull();
     });

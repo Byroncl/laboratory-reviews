@@ -19,6 +19,7 @@ import {
 import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { AssignRoleDto } from '../dto/assign-role.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
@@ -99,6 +100,22 @@ export class UsersController {
   async remove(@Param() findOneDto: FindOneDto) {
     await this.usersService.remove(findOneDto.id);
     return ApiRes.success(null, this.i18n.translate('users.deleted'));
+  }
+
+  @Auth()
+  @ApiOperation({ summary: 'Assign a role to a user' })
+  @ApiParam({ name: 'id', type: 'string', description: 'User MongoDB ObjectId' })
+  @ApiBody({ type: AssignRoleDto })
+  @ApiResponse({ status: 200, description: 'Role assigned successfully', type: UserResponseDto })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Post(':id/role')
+  async assignRole(
+    @Param() findOneDto: FindOneDto,
+    @Body() assignRoleDto: AssignRoleDto,
+  ) {
+    const user = await this.usersService.assignRole(findOneDto.id, assignRoleDto.roleId);
+    return ApiRes.success(user, this.i18n.translate('users.role_assigned'));
   }
 
   @Auth()

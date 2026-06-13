@@ -11,5 +11,6 @@ import { TranslationService } from '../../core/utils/translation.service';
   ],
   controllers: [RolesController],
   providers: [RolesService, TranslationService],
+  exports: [RolesService],
 })
 export class RolesModule {}

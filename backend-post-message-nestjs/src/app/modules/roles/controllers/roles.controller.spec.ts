@@ -3,6 +3,7 @@ import { RolesController } from './roles.controller';
 import { RolesService } from '../services/roles.service';
 import { CreateRoleDto } from '../dto/create-role.dto';
 import { UpdateRoleDto } from '../dto/update-role.dto';
+import { AssignPermissionsDto } from '../dto/assign-permissions.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
 import { TranslationService } from '../../../core/utils/translation.service';
 
@@ -24,6 +25,7 @@ describe('RolesController', () => {
       findOne: jest.fn(),
       update: jest.fn(),
       remove: jest.fn(),
+      assignPermissions: jest.fn(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -129,6 +131,32 @@ describe('RolesController', () => {
       expect(response.data).toBeNull();
       expect(mockRolesService.remove).toHaveBeenCalledWith(
         '507f1f77bcf86cd799439011',
+      );
+    });
+  });
+
+  describe('assignPermissions', () => {
+    it('should assign permissions to a role and return wrapped response', async () => {
+      const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439011' };
+      const dto: AssignPermissionsDto = {
+        permissionIds: ['507f1f77bcf86cd799439022', '507f1f77bcf86cd799439033'],
+      };
+      const updatedRole = {
+        ...mockRole,
+        permissions: [
+          { _id: '507f1f77bcf86cd799439022', identifier: 'posts:read' },
+          { _id: '507f1f77bcf86cd799439033', identifier: 'posts:create' },
+        ],
+      };
+      mockRolesService.assignPermissions.mockResolvedValue(updatedRole);
+
+      const response = await controller.assignPermissions(findOneDto, dto);
+
+      expect(response.success).toBe(true);
+      expect(response.data).toEqual(updatedRole);
+      expect(mockRolesService.assignPermissions).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011',
+        dto.permissionIds,
       );
     });
   });

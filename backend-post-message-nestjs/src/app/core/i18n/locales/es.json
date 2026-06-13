@@ -17,7 +17,8 @@
     "email_already_exists": "El email ya existe",
     "username_already_exists": "El nombre de usuario ya existe",
     "language_updated": "Preferencia de idioma actualizada exitosamente",
-    "language_invalid": "Idioma inválido. Soportados: en, es"
+    "language_invalid": "Idioma inválido. Soportados: en, es",
+    "role_assigned": "Rol asignado al usuario exitosamente"
   },
   "posts": {
     "created": "Post creado exitosamente",
@@ -54,7 +55,8 @@
     "created": "Rol creado exitosamente",
     "updated": "Rol actualizado exitosamente",
     "deleted": "Rol eliminado exitosamente",
-    "not_found": "Rol no encontrado"
+    "not_found": "Rol no encontrado",
+    "permissions_assigned": "Permisos asignados al rol exitosamente"
   },
   "permissions": {
     "created": "Permiso creado exitosamente",
