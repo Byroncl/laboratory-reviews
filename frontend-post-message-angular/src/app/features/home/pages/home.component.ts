@@ -1,19 +1,48 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { CommonModule, AsyncPipe } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
 import { catchError, of } from 'rxjs';
+import { Store } from '@ngrx/store';
 import { PostsService } from '../../posts/services/posts.service';
 import { PostCardComponent } from '../components/post-card/post-card.component';
+import { HeaderComponent } from '../components/header/header.component';
 import { mapToPostViewModel, PostViewModel } from '../../../shared/models/post.model';
+import { selectIsAuthenticated } from '../../auth/store/auth.selectors';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, PostCardComponent],
+  imports: [CommonModule, RouterModule, AsyncPipe, PostCardComponent, HeaderComponent],
   template: `
-    <div class="max-w-4xl mx-auto px-4 py-8">
-      <h1 class="text-3xl font-bold text-primary mb-6">Latest Posts</h1>
+    <app-header />
 
+    <div class="max-w-4xl mx-auto px-4 py-8">
+      <!-- Hero section -->
+      <section data-cy="hero-section" class="mb-10 text-center">
+        <h1 class="text-4xl font-bold text-primary mb-3">Discover</h1>
+        <p class="text-gray-500 text-lg mb-6">
+          Explore posts, join the conversation, and share your ideas.
+        </p>
+        @if (isAuthenticated$ | async) {
+          <button
+            data-cy="hero-cta"
+            class="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-black transition"
+            (click)="navigateToDashboard()"
+          >
+            Create Post
+          </button>
+        } @else {
+          <button
+            data-cy="hero-cta"
+            class="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-black transition"
+            (click)="navigateToLogin()"
+          >
+            Sign in to Comment
+          </button>
+        }
+      </section>
+
+      <!-- Posts feed -->
       @if (loading()) {
         <div class="space-y-4">
           @for (i of [1,2,3]; track i) {
@@ -53,7 +82,10 @@ import { mapToPostViewModel, PostViewModel } from '../../../shared/models/post.m
 })
 export class HomeComponent implements OnInit {
   private readonly postsService = inject(PostsService);
+  private readonly store = inject(Store);
+  private readonly router = inject(Router);
 
+  readonly isAuthenticated$ = this.store.select(selectIsAuthenticated);
   readonly loading = signal(false);
   readonly loadError = signal<string | null>(null);
   readonly postViewModels = signal<PostViewModel[]>([]);
@@ -87,5 +119,13 @@ export class HomeComponent implements OnInit {
 
   retry(): void {
     this.loadData();
+  }
+
+  navigateToLogin(): void {
+    this.router.navigate(['/auth/login'], { queryParams: { returnUrl: '/' } });
+  }
+
+  navigateToDashboard(): void {
+    this.router.navigate(['/dashboard']);
   }
 }
