@@ -12,6 +12,9 @@ export class Role extends Document {
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Permission' }] })
   permissions: Permission[];
+
+  @Prop({ default: true })
+  isActive: boolean;
 }
 
 export const RoleSchema = SchemaFactory.createForClass(Role);
