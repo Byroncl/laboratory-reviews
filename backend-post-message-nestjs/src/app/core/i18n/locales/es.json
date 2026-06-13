@@ -29,7 +29,13 @@
     "created": "Comentario creado exitosamente",
     "updated": "Comentario actualizado exitosamente",
     "deleted": "Comentario eliminado exitosamente",
-    "not_found": "Comentario no encontrado"
+    "not_found": "Comentario no encontrado",
+    "user_joined": "{0} se unió a los comentarios"
+  },
+  "socket": {
+    "connected": "Socket conectado",
+    "disconnected": "Socket desconectado",
+    "error": "Ocurrió un error en socket"
   },
   "clients": {
     "created": "Cliente creado exitosamente",

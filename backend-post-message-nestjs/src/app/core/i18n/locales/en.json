@@ -29,7 +29,13 @@
     "created": "Comment created successfully",
     "updated": "Comment updated successfully",
     "deleted": "Comment deleted successfully",
-    "not_found": "Comment not found"
+    "not_found": "Comment not found",
+    "user_joined": "{0} joined the comments"
+  },
+  "socket": {
+    "connected": "Socket connected",
+    "disconnected": "Socket disconnected",
+    "error": "Socket error occurred"
   },
   "clients": {
     "created": "Client created successfully",

@@ -1,1 +1,26 @@
-/* Tailwind will handle all styling */
+:host {
+  display: block;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+/* Input transitions */
+input {
+  transition: all 0.3s ease;
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+}
+
+/* Button ripple effect */
+button[type="submit"] {
+  position: relative;
+  overflow: hidden;
+
+  &:not(:disabled):active {
+    transform: scale(0.98);
+  }
+}

@@ -1,28 +1,34 @@
-<div class="min-h-screen flex bg-gray-50">
+<div class="min-h-screen flex flex-col lg:flex-row bg-white relative overflow-hidden">
+  <!-- Animated background -->
+  <div class="absolute inset-0 -z-10">
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary opacity-5 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+    <div class="absolute top-1/2 right-1/4 w-96 h-96 bg-secondary opacity-5 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+    <div class="absolute bottom-0 left-1/2 w-96 h-96 bg-primary opacity-5 rounded-full mix-blend-multiply filter blur-3xl animate-blob" style="animation-delay: 4s;"></div>
+  </div>
+
   <!-- Left Side - Login Form -->
-  <div class="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-12 py-12">
+  <div class="w-full lg:w-1/2 flex flex-col justify-center px-4 sm:px-8 lg:px-12 py-8 lg:py-12 bg-gradient-to-b from-white to-gray-50 relative z-10">
     <!-- Logo -->
-    <div class="mb-12">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-gradient-to-br from-gray-600 to-gray-800 rounded-lg flex items-center justify-center">
-          <span class="text-white font-bold">P</span>
-        </div>
-        <h1 class="text-2xl font-bold text-gray-900">Posts</h1>
-      </div>
+    <div class="mb-8 lg:mb-12 flex justify-center lg:justify-start">
+      <img
+        src="/images/logos/header-logo-2.png"
+        alt="Albatros Logo"
+        class="h-16 lg:h-20 w-auto object-contain"
+      />
     </div>
 
     <!-- Form Container -->
-    <div class="max-w-md">
-      <h2 class="text-3xl font-bold text-gray-900 mb-2">Inicio de sesión</h2>
-      <p class="text-gray-600 mb-8">Accede con tu correo o nombre de usuario y contraseña.</p>
+    <div class="w-full max-w-md mx-auto lg:mx-0">
+      <h2 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Bienvenido de vuelta</h2>
+      <p class="text-sm lg:text-base text-gray-600 mb-6 lg:mb-8">Inicia sesión en tu cuenta para continuar</p>
 
       <!-- Error Message -->
-      <div *ngIf="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-        <p class="font-medium text-sm">{{ error }}</p>
+      <div *ngIf="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
+        <p class="font-medium">{{ error }}</p>
       </div>
 
       <!-- Form -->
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5">
         <!-- Email/Username -->
         <div>
           <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
@@ -32,11 +38,11 @@
             id="email"
             type="email"
             formControlName="email"
-            placeholder="john@example.com"
-            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-gray-600 focus:border-transparent transition outline-none text-sm"
+            placeholder="tu@correo.com"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition outline-none text-sm lg:text-base bg-white"
             [class.border-red-500]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
           />
-          <p *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-red-500 text-xs mt-1">
+          <p *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-red-500 text-xs mt-1.5">
             Correo inválido
           </p>
         </div>
@@ -47,7 +53,7 @@
             <label for="password" class="block text-sm font-medium text-gray-700">
               Contraseña
             </label>
-            <a href="#" class="text-xs text-gray-600 hover:text-gray-800">¿Olvidaste tu contraseña?</a>
+            <a href="#" class="text-xs text-blue-600 hover:text-blue-700 font-medium">¿Olvidaste?</a>
           </div>
           <div class="relative">
             <input
@@ -55,13 +61,13 @@
               [type]="isShowPassword ? 'text' : 'password'"
               formControlName="password"
               placeholder="••••••••"
-              class="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-gray-600 focus:border-transparent transition outline-none text-sm"
+              class="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition outline-none text-sm lg:text-base bg-white pr-12"
               [class.border-red-500]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
             />
             <button
               type="button"
               (click)="togglePasswordVisibility()"
-              class="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+              class="absolute right-3 top-3 text-gray-500 hover:text-gray-700 transition"
             >
               <svg *ngIf="!isShowPassword" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -73,16 +79,16 @@
               </svg>
             </button>
           </div>
-          <p *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-red-500 text-xs mt-1">
+          <p *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-red-500 text-xs mt-1.5">
             Mínimo 6 caracteres
           </p>
         </div>
 
         <!-- Remember Me -->
-        <label class="flex items-center gap-2 py-2">
+        <label class="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
-            class="w-4 h-4 rounded border-gray-300 text-gray-600 focus:ring-gray-500"
+            class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
           />
           <span class="text-sm text-gray-700">Recordar mi contraseña</span>
         </label>
@@ -91,7 +97,7 @@
         <button
           type="submit"
           [disabled]="isLoading || loginForm.invalid"
-          class="w-full bg-gray-700 hover:bg-gray-800 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+          class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-7 text-sm lg:text-base shadow-md hover:shadow-lg"
         >
           <span *ngIf="!isLoading">Iniciar sesión</span>
           <span *ngIf="isLoading" class="flex items-center gap-2">
@@ -104,51 +110,80 @@
         </button>
       </form>
 
+      <!-- Divider -->
+      <div class="relative my-6">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-gray-200"></div>
+        </div>
+        <div class="relative flex justify-center text-xs">
+          <span class="px-2 bg-gradient-to-b from-white to-gray-50 text-gray-500">¿No tienes cuenta?</span>
+        </div>
+      </div>
+
       <!-- Sign Up -->
-      <p class="text-center text-gray-600 text-sm mt-6">
-        ¿No tienes cuenta?
-        <button (click)="goToRegister()" class="text-gray-700 hover:text-gray-900 font-semibold">
-          Crear cuenta
-        </button>
-      </p>
+      <button
+        type="button"
+        (click)="goToRegister()"
+        class="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-3 rounded-lg transition text-sm lg:text-base"
+      >
+        Crear cuenta
+      </button>
     </div>
 
     <!-- Footer -->
-    <p class="text-center text-gray-500 text-xs mt-12">© Posts Panel de gestión</p>
+    <p class="text-center text-gray-400 text-xs mt-8 lg:mt-12">© 2024 Albatros. Todos los derechos reservados.</p>
   </div>
 
   <!-- Right Side - Dashboard Preview (Hidden on Mobile) -->
-  <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 flex-col justify-center items-center p-12 relative overflow-hidden">
-    <!-- Background Image -->
-    <div class="absolute inset-0 opacity-10">
-      <img src="/images/logos/hero-login.png" alt="bg" class="w-full h-full object-cover" />
-    </div>
+  <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 flex-col justify-center items-center p-12 relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="absolute top-0 right-0 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+    <div class="absolute bottom-0 left-0 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
 
     <!-- Content -->
-    <div class="relative z-10 max-w-md">
-      <!-- Floating Cards -->
-      <div class="absolute -top-20 -right-10 bg-white bg-opacity-95 rounded-xl p-4 shadow-lg max-w-xs">
-        <div class="flex items-center gap-2 mb-2">
-          <div class="w-6 h-6 bg-gray-600 rounded-full flex items-center justify-center">
-            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
+    <div class="relative z-10 max-w-md text-center lg:text-left">
+      <!-- Stats Cards -->
+      <div class="mb-8 space-y-4">
+        <div class="bg-white bg-opacity-10 backdrop-blur-md border border-white border-opacity-20 rounded-xl p-4 transform hover:scale-105 transition">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V9.414l-4.293 4.293a1 1 0 01-1.414-1.414L13.586 8H12z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs text-white text-opacity-80">Crecimiento</p>
+              <p class="text-2xl font-bold text-white">+24.8%</p>
+            </div>
           </div>
-          <span class="text-xs font-medium text-gray-900">Crecimiento Mensajero</span>
         </div>
-        <p class="text-2xl font-bold text-gray-900">+24.8%</p>
-      </div>
 
-      <div class="absolute top-32 -right-5 bg-white bg-opacity-95 rounded-xl p-4 shadow-lg max-w-xs">
-        <p class="text-xs text-gray-600 mb-1">Mensajes Activos</p>
-        <p class="text-3xl font-bold text-gray-900">1,204</p>
+        <div class="bg-white bg-opacity-10 backdrop-blur-md border border-white border-opacity-20 rounded-xl p-4 transform hover:scale-105 transition">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs text-white text-opacity-80">Mensajes Activos</p>
+              <p class="text-2xl font-bold text-white">1,204</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Main Text -->
-      <h2 class="text-5xl font-bold text-white mb-4">Panel de gestión de</h2>
-      <p class="text-lg text-white text-opacity-90 leading-relaxed">
-        Bienvenido al panel administrativo de su plataforma de pronósticos. Este sistema le ofrece acceso seguro y fácil a todas las funciones clave. Gestione usuarios, contenidos con total eficiencia. Inicie sesión para administrar su sitio de manera profesional.
+      <h2 class="text-4xl lg:text-5xl font-bold text-white mb-4">Gestiona tu</h2>
+      <h2 class="text-4xl lg:text-5xl font-bold text-blue-200 mb-6">plataforma</h2>
+      <p class="text-base lg:text-lg text-white text-opacity-90 leading-relaxed mb-8">
+        Panel administrativo profesional para gestionar usuarios, contenidos y comunicaciones con total seguridad y eficiencia.
       </p>
+      <div class="flex gap-2 justify-center lg:justify-start">
+        <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+        <div class="w-2 h-2 bg-white rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+        <div class="w-2 h-2 bg-white rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+      </div>
     </div>
   </div>
 </div>
