@@ -1,15 +1,29 @@
-import { IsString, IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsUrl,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreatePostDto {
   @ApiProperty({ example: 'My First Post', description: 'Title of the post' })
   @IsString()
   @IsNotEmpty()
+  @MinLength(3)
+  @MaxLength(200)
+  @Transform(({ value }: { value: string }) => value?.trim())
   title: string;
 
   @ApiProperty({ example: 'This is the post content.', description: 'Body content of the post' })
   @IsString()
   @IsNotEmpty()
+  @MinLength(1)
+  @MaxLength(5000)
+  @Transform(({ value }: { value: string }) => value?.trim())
   content: string;
 
   @ApiPropertyOptional({
@@ -26,5 +40,6 @@ export class CreatePostDto {
   })
   @IsOptional()
   @IsString()
+  @MaxLength(500)
   imageFilename?: string;
 }

@@ -3,18 +3,21 @@ import { Document } from 'mongoose';
 
 export type PostDocument = Post & Document;
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  collection: 'posts',
+})
 export class Post {
-  @Prop({ required: true })
+  @Prop({ required: true, minlength: 3, maxlength: 200, index: true })
   title: string;
 
   @Prop({ required: true })
   body: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, index: true })
   author: string;
 
-  @Prop({ default: true })
+  @Prop({ default: true, index: true })
   isActive: boolean;
 
   @Prop({ required: false })
@@ -22,6 +25,9 @@ export class Post {
 
   @Prop({ required: false })
   imageFilename?: string;
+
+  @Prop({ default: false })
+  isDeleted: boolean;
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);

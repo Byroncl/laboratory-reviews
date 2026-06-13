@@ -89,10 +89,15 @@ export class AuthEffects {
     { dispatch: false }
   );
 
-  loadAuthFromStorage$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AuthActions.loadAuthFromStorage),
-      map(() => AuthActions.loadAuthFromStorage())
-    )
+  loadAuthFromStorage$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(AuthActions.loadAuthFromStorage),
+        tap(() => {
+          // La acción solo dispara la carga, el reducer maneja el estado
+          // No devolvemos nada para evitar loops infinitos
+        })
+      ),
+    { dispatch: false }
   );
 }

@@ -5,7 +5,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiResponse } from '../dto/api.response';
+import { Request, Response } from 'express';
 import { TranslationService } from '../utils/translation.service';
 import { SupportedLanguage } from '../i18n/locales';
 
@@ -15,8 +15,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
-    const request = ctx.getRequest();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
 
     const rawLang = (request.headers['accept-language'] as string)
       ?.split(',')[0]
@@ -25,16 +25,32 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const lang: SupportedLanguage =
       rawLang === 'es' || rawLang === 'en' ? rawLang : 'en';
 
-    const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    let statusCode: number;
+    let message: string;
+    let errors: unknown = undefined;
 
-    const message =
-      exception instanceof HttpException
-        ? exception.message
-        : this.translationService.translate('common.internal_error', lang);
+    if (exception instanceof HttpException) {
+      statusCode = exception.getStatus();
+      const errorResponse = exception.getResponse();
 
-    response.status(status).json(ApiResponse.error(message, status));
+      if (typeof errorResponse === 'object' && errorResponse !== null && 'message' in errorResponse) {
+        message = (errorResponse as Record<string, unknown>)['message'] as string;
+        errors = (errorResponse as Record<string, unknown>)['errors'];
+      } else {
+        message = exception.message;
+      }
+    } else {
+      statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+      message = this.translationService.translate('common.internal_error', lang);
+    }
+
+    response.status(statusCode).json({
+      statusCode,
+      message,
+      ...(errors !== undefined && { errors }),
+      timestamp: new Date().toISOString(),
+      path: request.url,
+      success: false,
+    });
   }
 }

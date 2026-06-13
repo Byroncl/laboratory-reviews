@@ -11,19 +11,25 @@ export enum PermissionType {
   AUDITS = 'audits',
 }
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  collection: 'permissions',
+})
 export class Permission extends Document {
-  @Prop({ unique: true, required: true, trim: true })
+  @Prop({ unique: true, required: true, trim: true, index: true })
   name: string;
 
-  @Prop({ unique: true, required: true, trim: true })
+  @Prop({ unique: true, required: true, trim: true, index: true })
   identifier: string;
 
-  @Prop({ default: true })
+  @Prop({ default: true, index: true })
   isActive: boolean;
 
-  @Prop({ type: String, enum: Object.values(PermissionType) })
+  @Prop({ type: String, enum: Object.values(PermissionType), index: true })
   type: PermissionType;
+
+  @Prop({ default: false })
+  isDeleted: boolean;
 }
 
 export const PermissionSchema = SchemaFactory.createForClass(Permission);

@@ -1,10 +1,14 @@
-import { IsString, IsNotEmpty, IsArray } from 'class-validator';
+import { IsString, IsNotEmpty, IsArray, MaxLength, MinLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateRoleDto {
   @ApiProperty({ example: 'Administrator', description: 'Display name of the role' })
   @IsString()
   @IsNotEmpty()
+  @MinLength(2)
+  @MaxLength(100)
+  @Transform(({ value }: { value: string }) => value?.trim())
   name: string;
 
   @ApiProperty({

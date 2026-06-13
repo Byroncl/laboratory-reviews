@@ -1,5 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CommentsModule } from './modules/comments/comments.module';
@@ -14,6 +14,7 @@ import { TranslationService } from './core/utils/translation.service';
 import { AuthGuard } from './core/guards/auth.guard';
 import { I18nMiddleware } from './core/middleware/i18n.middleware';
 import { I18nModule } from './modules/i18n/i18n.module';
+import { TransformInterceptor } from './core/interceptors/transform.interceptor';
 
 @Module({
   imports: [
@@ -36,6 +37,10 @@ import { I18nModule } from './modules/i18n/i18n.module';
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformInterceptor,
     },
   ],
 })
