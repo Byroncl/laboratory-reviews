@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { Schema as MongooseSchema } from 'mongoose';
 import { CommentsService } from './comments.service';
 import { Comment } from '../schemas/comment.schema';
 import { CreateCommentDto } from '../dto/create-comment.dto';
@@ -77,7 +76,7 @@ describe('CommentsService', () => {
     });
 
     it('should filter by postId when provided', async () => {
-      const postId = '507f1f77bcf86cd799439022' as any as MongooseSchema.Types.ObjectId;
+      const postId = '507f1f77bcf86cd799439022';
       mockExec.mockResolvedValue([mockComment]);
 
       const result = await service.findAll(postId);
@@ -159,6 +158,174 @@ describe('CommentsService', () => {
       const result = await service.remove('ghost-id');
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('create with media', () => {
+    it('should persist mediaUrls, mediaTypes, and mediaFilenames', async () => {
+      const dtoWithMedia: CreateCommentDto = {
+        content: 'Great post with image!',
+        postId: '507f1f77bcf86cd799439022',
+        mediaUrls: ['http://localhost:9000/posts/img.jpg'],
+        mediaTypes: ['image/jpeg'],
+        mediaFilenames: ['img.jpg'],
+      } as any;
+      const savedComment = { ...dtoWithMedia, _id: '507f1f77bcf86cd799439011' };
+      mockSave.mockResolvedValue(savedComment);
+
+      const result = await service.create(dtoWithMedia);
+
+      expect(result).toEqual(savedComment);
+      expect(MockCommentModel).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mediaUrls: ['http://localhost:9000/posts/img.jpg'],
+          mediaTypes: ['image/jpeg'],
+          mediaFilenames: ['img.jpg'],
+        }),
+      );
+    });
+
+    it('should default to empty arrays when media fields are not provided', async () => {
+      const dto: CreateCommentDto = {
+        content: 'Text only comment',
+        postId: '507f1f77bcf86cd799439022',
+      } as any;
+      mockSave.mockResolvedValue({ ...dto, _id: 'cid' });
+
+      await service.create(dto);
+
+      expect(MockCommentModel).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mediaUrls: [],
+          mediaTypes: [],
+          mediaFilenames: [],
+        }),
+      );
+    });
+  });
+
+  describe('getCommentWithMedia', () => {
+    it('should return media array built from mediaUrls, mediaTypes, and mediaFilenames', () => {
+      const commentDoc = {
+        _id: 'c1',
+        content: 'hello',
+        mediaUrls: ['http://localhost:9000/posts/img.jpg'],
+        mediaTypes: ['image/jpeg'],
+        mediaFilenames: ['img.jpg'],
+        toObject: () => ({
+          _id: 'c1',
+          content: 'hello',
+          mediaUrls: ['http://localhost:9000/posts/img.jpg'],
+          mediaTypes: ['image/jpeg'],
+          mediaFilenames: ['img.jpg'],
+        }),
+      };
+
+      const result = service.getCommentWithMedia(commentDoc as any);
+
+      expect(result.media).toHaveLength(1);
+      expect(result.media[0]).toEqual({
+        url: 'http://localhost:9000/posts/img.jpg',
+        type: 'image/jpeg',
+        filename: 'img.jpg',
+      });
+    });
+
+    it('should return media array with audio entry', () => {
+      const commentDoc = {
+        _id: 'c2',
+        content: 'voice note',
+        mediaUrls: ['http://localhost:9000/posts/audio.mp3'],
+        mediaTypes: ['audio/mpeg'],
+        mediaFilenames: ['audio.mp3'],
+        toObject: () => ({
+          _id: 'c2',
+          content: 'voice note',
+          mediaUrls: ['http://localhost:9000/posts/audio.mp3'],
+          mediaTypes: ['audio/mpeg'],
+          mediaFilenames: ['audio.mp3'],
+        }),
+      };
+
+      const result = service.getCommentWithMedia(commentDoc as any);
+
+      expect(result.media[0].type).toBe('audio/mpeg');
+      expect(result.media[0].url).toContain('.mp3');
+    });
+
+    it('should return empty media array when no mediaUrls', () => {
+      const commentDoc = {
+        _id: 'c3',
+        content: 'text only',
+        mediaUrls: [],
+        mediaTypes: [],
+        mediaFilenames: [],
+        toObject: () => ({
+          _id: 'c3',
+          content: 'text only',
+          mediaUrls: [],
+          mediaTypes: [],
+          mediaFilenames: [],
+        }),
+      };
+
+      const result = service.getCommentWithMedia(commentDoc as any);
+
+      expect(result.media).toHaveLength(0);
+    });
+
+    it('should handle missing mediaTypes/mediaFilenames gracefully', () => {
+      const commentDoc = {
+        _id: 'c4',
+        content: 'partial',
+        mediaUrls: ['http://localhost:9000/posts/img.jpg'],
+        toObject: () => ({
+          _id: 'c4',
+          content: 'partial',
+          mediaUrls: ['http://localhost:9000/posts/img.jpg'],
+        }),
+      };
+
+      const result = service.getCommentWithMedia(commentDoc as any);
+
+      expect(result.media[0].type).toBe('unknown');
+      expect(result.media[0].filename).toBe('media-0');
+    });
+  });
+
+  describe('update with media', () => {
+    it('should update mediaUrls when provided in updateDto', async () => {
+      const dto: UpdateCommentDto = {
+        mediaUrls: ['http://localhost:9000/posts/new.png'],
+        mediaTypes: ['image/png'],
+        mediaFilenames: ['new.png'],
+      } as any;
+      const updated = { ...mockComment, ...dto };
+      mockExec.mockResolvedValue(updated);
+
+      const result = await service.update('507f1f77bcf86cd799439011', dto);
+
+      expect(result).toEqual(updated);
+      expect(MockCommentModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011',
+        expect.objectContaining({
+          mediaUrls: ['http://localhost:9000/posts/new.png'],
+          mediaTypes: ['image/png'],
+          mediaFilenames: ['new.png'],
+        }),
+        { new: true },
+      );
+    });
+
+    it('should not include media fields in update when not provided', async () => {
+      const dto: UpdateCommentDto = { content: 'Updated only content' } as any;
+      const updated = { ...mockComment, content: 'Updated only content' };
+      mockExec.mockResolvedValue(updated);
+
+      await service.update('507f1f77bcf86cd799439011', dto);
+
+      const callArg = MockCommentModel.findByIdAndUpdate.mock.calls[0][1];
+      expect(callArg.mediaUrls).toBeUndefined();
     });
   });
 });

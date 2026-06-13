@@ -21,6 +21,7 @@ describe('CommentsGateway', () => {
       update: jest.fn(),
       remove: jest.fn(),
       findAll: jest.fn(),
+      getCommentWithMedia: jest.fn((c) => ({ ...c, media: [] })),
     } as unknown as jest.Mocked<CommentsService>;
 
     mockI18n = {
@@ -154,6 +155,31 @@ describe('CommentsGateway', () => {
         expect(mockClient.emit).toHaveBeenCalledWith(
           'error',
           expect.objectContaining({ error: 'DB error' }),
+        );
+      });
+
+      it('should include media array in comment:created broadcast', async () => {
+        const commentData = { postId: 'post-1', content: 'With image', userId: 'user-1' };
+        const createdComment = {
+          _id: 'c2',
+          ...commentData,
+          createdAt: new Date(),
+        };
+        mockService.create.mockResolvedValue(createdComment as any);
+        (mockService.getCommentWithMedia as jest.Mock).mockReturnValue({
+          ...createdComment,
+          media: [{ url: 'http://localhost:9000/posts/img.jpg', type: 'image/jpeg', filename: 'img.jpg' }],
+        });
+
+        await gateway.handleCommentCreate(mockClient as any, commentData);
+
+        expect(mockServer.emit).toHaveBeenCalledWith(
+          'comment:created',
+          expect.objectContaining({
+            media: expect.arrayContaining([
+              expect.objectContaining({ type: 'image/jpeg' }),
+            ]),
+          }),
         );
       });
     });

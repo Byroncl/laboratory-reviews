@@ -84,12 +84,14 @@ export class CommentsGateway
       }
 
       const comment = await this.commentsService.create(data);
+      const commentWithMedia = this.commentsService.getCommentWithMedia(comment as any);
 
       this.server.emit('comment:created', {
         id: (comment as any)._id,
         postId: (comment as any).postId,
         userId: (comment as any).userId,
         content: (comment as any).content,
+        media: commentWithMedia.media,
         username: user.username,
         createdAt: (comment as any).createdAt,
         message: this.i18n.translate('comments.created'),

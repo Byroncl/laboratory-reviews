@@ -8,6 +8,11 @@
 
   <!-- Left Side - Login Form -->
   <div class="w-full lg:w-1/2 flex flex-col justify-center px-4 sm:px-8 lg:px-12 py-8 lg:py-12 bg-gradient-to-b from-white to-gray-50 relative z-10">
+    <!-- Language Switcher -->
+    <div class="absolute top-4 right-4 sm:top-6 sm:right-6">
+      <app-language-switcher></app-language-switcher>
+    </div>
+
     <!-- Logo -->
     <div class="mb-8 lg:mb-12 flex justify-center lg:justify-start">
       <img
@@ -19,8 +24,8 @@
 
     <!-- Form Container -->
     <div class="w-full max-w-md mx-auto lg:mx-0">
-      <h2 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Bienvenido de vuelta</h2>
-      <p class="text-sm lg:text-base text-gray-600 mb-6 lg:mb-8">Inicia sesión en tu cuenta para continuar</p>
+      <h2 class="text-2xl lg:text-3xl font-bold text-primary mb-2">{{ 'auth.login.title' | t }}</h2>
+      <p class="text-sm lg:text-base text-secondary mb-6 lg:mb-8">{{ 'auth.login.subtitle' | t }}</p>
 
       <!-- Error Message -->
       <div *ngIf="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
@@ -31,43 +36,40 @@
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5">
         <!-- Email/Username -->
         <div>
-          <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-            Correo o usuario
+          <label for="email" class="block text-sm font-medium text-primary mb-2">
+            {{ 'auth.login.email' | t }}
           </label>
           <input
             id="email"
             type="email"
             formControlName="email"
             placeholder="tu@correo.com"
-            class="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition outline-none text-sm lg:text-base bg-white"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 text-primary placeholder-secondary focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-white transition outline-none text-sm lg:text-base bg-white"
             [class.border-red-500]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
           />
           <p *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-red-500 text-xs mt-1.5">
-            Correo inválido
+            {{ 'auth.login.errors.invalidEmail' | t }}
           </p>
         </div>
 
         <!-- Password -->
         <div>
-          <div class="flex items-center justify-between mb-2">
-            <label for="password" class="block text-sm font-medium text-gray-700">
-              Contraseña
-            </label>
-            <a href="#" class="text-xs text-blue-600 hover:text-blue-700 font-medium">¿Olvidaste?</a>
-          </div>
+          <label for="password" class="block text-sm font-medium text-primary mb-2">
+            {{ 'auth.login.password' | t }}
+          </label>
           <div class="relative">
             <input
               id="password"
               [type]="isShowPassword ? 'text' : 'password'"
               formControlName="password"
               placeholder="••••••••"
-              class="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition outline-none text-sm lg:text-base bg-white pr-12"
+              class="w-full px-4 py-3 rounded-lg border border-gray-300 text-primary placeholder-secondary focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-white transition outline-none text-sm lg:text-base bg-white pr-12"
               [class.border-red-500]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
             />
             <button
               type="button"
               (click)="togglePasswordVisibility()"
-              class="absolute right-3 top-3 text-gray-500 hover:text-gray-700 transition"
+              class="absolute right-3 top-3 text-secondary hover:text-primary transition"
             >
               <svg *ngIf="!isShowPassword" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -80,7 +82,7 @@
             </button>
           </div>
           <p *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-red-500 text-xs mt-1.5">
-            Mínimo 6 caracteres
+            {{ 'auth.login.errors.minPassword' | t }}
           </p>
         </div>
 
@@ -88,24 +90,24 @@
         <label class="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
-            class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
           />
-          <span class="text-sm text-gray-700">Recordar mi contraseña</span>
+          <span class="text-sm text-primary">{{ 'auth.login.rememberMe' | t }}</span>
         </label>
 
         <!-- Submit Button -->
         <button
           type="submit"
           [disabled]="isLoading || loginForm.invalid"
-          class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-7 text-sm lg:text-base shadow-md hover:shadow-lg"
+          class="w-full bg-primary hover:bg-black text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-7 text-sm lg:text-base shadow-md hover:shadow-lg"
         >
-          <span *ngIf="!isLoading">Iniciar sesión</span>
+          <span *ngIf="!isLoading">{{ 'auth.login.signIn' | t }}</span>
           <span *ngIf="isLoading" class="flex items-center gap-2">
             <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Iniciando...
+            {{ 'auth.login.signing' | t }}
           </span>
         </button>
       </form>
@@ -116,7 +118,7 @@
           <div class="w-full border-t border-gray-200"></div>
         </div>
         <div class="relative flex justify-center text-xs">
-          <span class="px-2 bg-gradient-to-b from-white to-gray-50 text-gray-500">¿No tienes cuenta?</span>
+          <span class="px-2 bg-gradient-to-b from-white to-gray-50 text-secondary">{{ 'auth.login.noAccount' | t }}</span>
         </div>
       </div>
 
@@ -124,21 +126,21 @@
       <button
         type="button"
         (click)="goToRegister()"
-        class="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-3 rounded-lg transition text-sm lg:text-base"
+        class="w-full border-2 border-primary text-primary hover:bg-gray-50 font-semibold py-3 rounded-lg transition text-sm lg:text-base"
       >
-        Crear cuenta
+        {{ 'auth.login.createAccount' | t }}
       </button>
     </div>
 
     <!-- Footer -->
-    <p class="text-center text-gray-400 text-xs mt-8 lg:mt-12">© 2024 Albatros. Todos los derechos reservados.</p>
+    <p class="text-center text-secondary text-xs mt-8 lg:mt-12">{{ 'auth.login.copyright' | t }}</p>
   </div>
 
   <!-- Right Side - Dashboard Preview (Hidden on Mobile) -->
-  <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 flex-col justify-center items-center p-12 relative overflow-hidden">
+  <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-gray-900 to-black flex-col justify-center items-center p-12 relative overflow-hidden">
     <!-- Background Elements -->
-    <div class="absolute top-0 right-0 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-    <div class="absolute bottom-0 left-0 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+    <div class="absolute top-0 right-0 w-96 h-96 bg-secondary rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+    <div class="absolute bottom-0 left-0 w-96 h-96 bg-gray-700 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
 
     <!-- Content -->
     <div class="relative z-10 max-w-md text-center lg:text-left">

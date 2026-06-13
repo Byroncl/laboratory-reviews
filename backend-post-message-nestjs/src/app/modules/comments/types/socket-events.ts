@@ -1,8 +1,15 @@
+export interface CommentMedia {
+  url: string;
+  type: string;
+  filename: string;
+}
+
 export interface CommentCreatedEvent {
   id: string;
   postId: string;
   userId: string;
   content: string;
+  media: CommentMedia[];
   username: string;
   createdAt: Date;
   message: string;

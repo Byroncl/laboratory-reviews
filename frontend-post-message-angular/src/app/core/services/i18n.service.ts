@@ -3,12 +3,26 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 export type Language = 'es' | 'en';
 
+interface TranslationMap {
+  [key: string]: string | TranslationMap;
+}
+
 @Injectable({ providedIn: 'root' })
 export class I18nService {
   private currentLanguage$ = new BehaviorSubject<Language>('es');
 
-  private translations: Record<Language, Record<string, any>> = {
+  private translations: Record<Language, TranslationMap> = {
     es: {
+      sidebar: {
+        dashboard: 'Panel de control',
+        posts: 'Gestionar Posts',
+        users: 'Gestionar Usuarios',
+        roles: 'Gestionar Roles',
+        permissions: 'Gestionar Permisos',
+        comments: 'Gestionar Comentarios',
+        files: 'Gestionar Archivos',
+        logout: 'Cerrar sesión'
+      },
       auth: {
         login: {
           title: 'Bienvenido de vuelta',
@@ -55,6 +69,16 @@ export class I18nService {
       }
     },
     en: {
+      sidebar: {
+        dashboard: 'Dashboard',
+        posts: 'Manage Posts',
+        users: 'Manage Users',
+        roles: 'Manage Roles',
+        permissions: 'Manage Permissions',
+        comments: 'Manage Comments',
+        files: 'Manage Files',
+        logout: 'Log out'
+      },
       auth: {
         login: {
           title: 'Welcome back',
@@ -112,24 +136,36 @@ export class I18nService {
 
   setLanguage(lang: Language): void {
     this.currentLanguage$.next(lang);
-    localStorage.setItem('app-language', lang);
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      localStorage.setItem('app-language', lang);
+    }
   }
 
   translate(key: string, fallback: string = ''): string {
     const keys = key.split('.');
-    let value: any = this.translations[this.currentLanguage];
+    let value: TranslationMap | string | undefined = this.translations[this.currentLanguage];
 
     for (const k of keys) {
-      value = value?.[k];
+      if (typeof value === 'object' && value !== null) {
+        value = value[k];
+      } else {
+        value = undefined;
+        break;
+      }
     }
 
-    return value || fallback || key;
+    if (typeof value === 'string') {
+      return value;
+    }
+    return fallback || key;
   }
 
   constructor() {
-    const savedLang = localStorage.getItem('app-language') as Language;
-    if (savedLang) {
-      this.currentLanguage$.next(savedLang);
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      const savedLang = localStorage.getItem('app-language') as Language;
+      if (savedLang) {
+        this.currentLanguage$.next(savedLang);
+      }
     }
   }
 }

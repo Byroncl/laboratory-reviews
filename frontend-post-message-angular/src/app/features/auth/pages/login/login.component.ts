@@ -7,11 +7,14 @@ import { selectIsLoading, selectAuthError, selectIsAuthenticated } from '../../s
 import * as AuthActions from '../../store/auth.actions';
 import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { I18nService } from '../../../../core/services/i18n.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageSwitcherComponent } from '../../../../core/components/language-switcher.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipe, LanguageSwitcherComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -23,10 +26,15 @@ export class LoginComponent implements OnInit {
   isLoading = false;
   error: string | null = null;
 
+  get i18n(): I18nService {
+    return this.i18nService;
+  }
+
   constructor(
     private formBuilder: FormBuilder,
     private store: Store,
-    private router: Router
+    private router: Router,
+    private i18nService: I18nService
   ) {}
 
   ngOnInit(): void {

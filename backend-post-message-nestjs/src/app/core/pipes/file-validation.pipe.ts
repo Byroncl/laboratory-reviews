@@ -11,17 +11,18 @@ export class FileValidationPipe implements PipeTransform {
       throw new BadRequestException(this.i18n.translate('validation.required'));
     }
 
-    if (
-      !(FILE_CONFIG.ALLOWED_MIME_TYPES as readonly string[]).includes(
-        file.mimetype,
-      )
-    ) {
+    const isImage = (FILE_CONFIG.ALLOWED_IMAGE_MIME_TYPES as readonly string[]).includes(file.mimetype);
+    const isAudio = (FILE_CONFIG.ALLOWED_AUDIO_MIME_TYPES as readonly string[]).includes(file.mimetype);
+
+    if (!isImage && !isAudio) {
+      const allowed = [...FILE_CONFIG.ALLOWED_IMAGE_MIME_TYPES, ...FILE_CONFIG.ALLOWED_AUDIO_MIME_TYPES];
       throw new BadRequestException(
-        `${this.i18n.translate('files.invalid_type')}. Allowed types: ${FILE_CONFIG.ALLOWED_MIME_TYPES.join(', ')}`,
+        `${this.i18n.translate('files.invalid_type')}. Allowed types: ${allowed.join(', ')}`,
       );
     }
 
-    if (file.size > FILE_CONFIG.MAX_SIZE) {
+    const maxSize = isAudio ? FILE_CONFIG.MAX_AUDIO_SIZE : FILE_CONFIG.MAX_IMAGE_SIZE;
+    if (file.size > maxSize) {
       throw new BadRequestException(this.i18n.translate('files.too_large'));
     }
 

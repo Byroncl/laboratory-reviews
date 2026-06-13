@@ -60,7 +60,9 @@
     "upload_failed": "La carga del archivo falló",
     "deleted": "Archivo eliminado exitosamente",
     "invalid_type": "Tipo de archivo inválido",
-    "too_large": "El archivo excede el tamaño máximo"
+    "too_large": "El archivo excede el tamaño máximo",
+    "invalid_audio_type": "Formato de audio inválido. Soportados: MP3, WAV, OGG, WebM",
+    "audio_too_large": "El archivo de audio excede el límite de 20MB"
   },
   "validation": {
     "required": "Este campo es obligatorio",

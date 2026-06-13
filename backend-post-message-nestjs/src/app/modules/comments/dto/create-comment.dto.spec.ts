@@ -30,4 +30,49 @@ describe('CreateCommentDto', () => {
     const dto = plainToInstance(CreateCommentDto, { ...validPayload, content: '  Great post!  ' });
     expect(dto.content).toBe('Great post!');
   });
+
+  // New — media fields
+  it('should accept valid mediaUrls array with http URLs', async () => {
+    const dto = plainToInstance(CreateCommentDto, {
+      ...validPayload,
+      mediaUrls: ['http://localhost:9000/posts/image1.jpg'],
+      mediaTypes: ['image/jpeg'],
+      mediaFilenames: ['image1.jpg'],
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('should accept comment without media fields (all optional)', async () => {
+    const dto = plainToInstance(CreateCommentDto, validPayload);
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.mediaUrls).toBeUndefined();
+  });
+
+  it('should reject non-array value in mediaUrls', async () => {
+    const dto = plainToInstance(CreateCommentDto, {
+      ...validPayload,
+      mediaUrls: 'http://localhost:9000/posts/img.jpg', // string, not array
+    });
+    const errors = await validate(dto);
+    // class-validator @IsArray checks that the value is an actual array
+    expect(errors.find((e) => e.property === 'mediaUrls')).toBeDefined();
+  });
+
+  it('should accept multiple media entries for both image and audio URLs', async () => {
+    const dto = plainToInstance(CreateCommentDto, {
+      ...validPayload,
+      mediaUrls: [
+        'http://localhost:9000/posts/img.jpg',
+        'http://localhost:9000/posts/audio.mp3',
+      ],
+      mediaTypes: ['image/jpeg', 'audio/mpeg'],
+      mediaFilenames: ['img.jpg', 'audio.mp3'],
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.mediaUrls).toHaveLength(2);
+    expect(dto.mediaTypes).toHaveLength(2);
+  });
 });

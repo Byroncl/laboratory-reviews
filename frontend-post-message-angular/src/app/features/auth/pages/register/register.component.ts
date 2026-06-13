@@ -5,11 +5,14 @@ import { Store } from '@ngrx/store';
 import { Router } from '@angular/router';
 import { selectIsLoading, selectAuthError } from '../../store/auth.selectors';
 import * as AuthActions from '../../store/auth.actions';
+import { I18nService } from '../../../../core/services/i18n.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { LanguageSwitcherComponent } from '../../../../core/components/language-switcher.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipe, LanguageSwitcherComponent],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
@@ -20,10 +23,15 @@ export class RegisterComponent implements OnInit {
   isShowPassword = false;
   isShowConfirmPassword = false;
 
+  get i18n(): I18nService {
+    return this.i18nService;
+  }
+
   constructor(
     private formBuilder: FormBuilder,
     private store: Store,
-    private router: Router
+    private router: Router,
+    private i18nService: I18nService
   ) {}
 
   ngOnInit(): void {

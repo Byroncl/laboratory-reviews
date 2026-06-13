@@ -105,4 +105,38 @@ describe('FilesController', () => {
       expect(() => pipe.transform(undefined as any)).toThrow(BadRequestException);
     });
   });
+
+  describe('uploadMultiple', () => {
+    it('should upload multiple files and return an array of results', async () => {
+      const files = [
+        buildFile({ mimetype: 'image/jpeg', originalname: 'a.jpg' }),
+        buildFile({ mimetype: 'audio/mpeg', originalname: 'b.mp3' }),
+      ];
+      mockFilesService.uploadImage
+        .mockResolvedValueOnce({ url: 'http://localhost:9000/posts/a.jpg', filename: 'a.jpg' })
+        .mockResolvedValueOnce({ url: 'http://localhost:9000/posts/b.mp3', filename: 'b.mp3' });
+
+      const response = await controller.uploadMultiple(files);
+
+      expect(response.success).toBe(true);
+      expect(response.data).toHaveLength(2);
+      expect(response.data[0].url).toContain('a.jpg');
+      expect(response.data[1].url).toContain('b.mp3');
+      expect(mockFilesService.uploadImage).toHaveBeenCalledTimes(2);
+    });
+
+    it('should return single-element array when only one file is uploaded', async () => {
+      const files = [buildFile({ mimetype: 'image/png', originalname: 'photo.png' })];
+      mockFilesService.uploadImage.mockResolvedValue({
+        url: 'http://localhost:9000/posts/photo.png',
+        filename: 'photo.png',
+      });
+
+      const response = await controller.uploadMultiple(files);
+
+      expect(response.success).toBe(true);
+      expect(response.data).toHaveLength(1);
+      expect(mockFilesService.uploadImage).toHaveBeenCalledWith(files[0]);
+    });
+  });
 });

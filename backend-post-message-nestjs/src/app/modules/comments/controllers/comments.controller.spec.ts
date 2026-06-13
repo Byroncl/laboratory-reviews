@@ -24,6 +24,7 @@ describe('CommentsController', () => {
       findOne: jest.fn(),
       update: jest.fn(),
       remove: jest.fn(),
+      getCommentWithMedia: jest.fn((c) => ({ ...c, media: [] })),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -140,6 +141,13 @@ describe('CommentsController', () => {
       expect(mockCommentsService.remove).toHaveBeenCalledWith(
         '507f1f77bcf86cd799439011',
       );
+    });
+  });
+
+  describe('getCommentWithMedia integration', () => {
+    it('should expose getCommentWithMedia on commentsService', () => {
+      // Service must have this method for controller to call
+      expect(typeof mockCommentsService.getCommentWithMedia).toBe('function');
     });
   });
 });

@@ -2,9 +2,10 @@ import {
   Controller,
   Post,
   UploadedFile,
+  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiBody,
   ApiConsumes,
@@ -29,12 +30,12 @@ export class FilesController {
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  @ApiOperation({ summary: 'Upload an image file' })
+  @ApiOperation({ summary: 'Upload a single image or audio file' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: UploadFileDto })
   @ApiResponse({
     status: 201,
-    description: 'Image uploaded successfully',
+    description: 'File uploaded successfully',
     type: FileResponseDto,
   })
   @ApiResponse({ status: 400, description: 'Invalid file type or size' })
@@ -43,5 +44,44 @@ export class FilesController {
   ) {
     const result = await this.filesService.uploadImage(file);
     return ApiRes.success(result, this.i18n.translate('files.uploaded'));
+  }
+
+  @Post('upload-multiple')
+  @UseInterceptors(FilesInterceptor('files'))
+  @ApiOperation({ summary: 'Upload multiple media files (images and audios)' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Files uploaded successfully',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          url: { type: 'string' },
+          filename: { type: 'string' },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Invalid file type or size' })
+  async uploadMultiple(
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    const results = await Promise.all(
+      files.map((file) => this.filesService.uploadImage(file)),
+    );
+    return ApiRes.success(results, this.i18n.translate('files.uploaded'));
   }
 }
