@@ -8,6 +8,12 @@ export const selectUser = createSelector(
   (state) => state.user
 );
 
+/** Alias of selectUser — typed to AuthUser | null */
+export const selectAuthUser = createSelector(
+  selectAuthState,
+  (state) => state.user
+);
+
 export const selectIsAuthenticated = createSelector(
   selectAuthState,
   (state) => state.isAuthenticated
