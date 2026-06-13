@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "@nestjs/swagger": "^11.4.4",
-    "@scalar/nestjs-api-reference": "^1.2.3",
-    "swagger-ui-express": "^5.0.1"
-  }
-}
