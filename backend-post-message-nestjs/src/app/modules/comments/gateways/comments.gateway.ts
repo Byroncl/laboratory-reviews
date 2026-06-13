@@ -8,6 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { CommentsService } from '../services/comments.service';
+import { ReactionsService } from '../services/reactions.service';
 import { TranslationService } from '../../../core/utils/translation.service';
 
 @WebSocketGateway({
@@ -31,6 +32,7 @@ export class CommentsGateway
 
   constructor(
     private readonly commentsService: CommentsService,
+    private readonly reactionsService: ReactionsService,
     private readonly i18n: TranslationService,
   ) {}
 
@@ -225,5 +227,86 @@ export class CommentsGateway
       count: users.length,
       users,
     });
+  }
+
+  // ─── Reaction events ───────────────────────────────────────────────────────
+
+  @SubscribeMessage('reaction:add')
+  async handleReactionAdd(client: Socket, data: any): Promise<void> {
+    try {
+      const user = this.connectedUsers.get(client.id);
+      if (!user) {
+        client.emit('error', {
+          message: this.i18n.translate('auth.unauthorized'),
+        });
+        return;
+      }
+
+      const reaction = await this.reactionsService.addReaction({
+        ...data,
+        userId: user.userId,
+      });
+
+      const reactionsSummary = await this.reactionsService.getReactionsByComment(
+        data.commentId,
+      );
+
+      this.server.emit('reaction:added', {
+        commentId: data.commentId,
+        emoji: reaction.emoji,
+        userId: user.userId,
+        username: user.username,
+        reactions: reactionsSummary,
+      });
+
+      client.emit('reaction:add:success', {
+        emoji: reaction.emoji,
+      });
+    } catch (error: any) {
+      client.emit('error', {
+        message: this.i18n.translate('common.error'),
+        error: error.message,
+      });
+    }
+  }
+
+  @SubscribeMessage('reaction:remove')
+  async handleReactionRemove(client: Socket, data: any): Promise<void> {
+    try {
+      const user = this.connectedUsers.get(client.id);
+      if (!user) {
+        client.emit('error', {
+          message: this.i18n.translate('auth.unauthorized'),
+        });
+        return;
+      }
+
+      await this.reactionsService.removeReaction(
+        data.commentId,
+        user.userId,
+        data.emoji,
+      );
+
+      const reactionsSummary = await this.reactionsService.getReactionsByComment(
+        data.commentId,
+      );
+
+      this.server.emit('reaction:removed', {
+        commentId: data.commentId,
+        emoji: data.emoji,
+        userId: user.userId,
+        username: user.username,
+        reactions: reactionsSummary,
+      });
+
+      client.emit('reaction:remove:success', {
+        emoji: data.emoji,
+      });
+    } catch (error: any) {
+      client.emit('error', {
+        message: this.i18n.translate('common.error'),
+        error: error.message,
+      });
+    }
   }
 }

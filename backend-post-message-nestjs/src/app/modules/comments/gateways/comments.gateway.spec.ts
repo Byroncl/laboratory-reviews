@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommentsGateway } from './comments.gateway';
 import { CommentsService } from '../services/comments.service';
+import { ReactionsService } from '../services/reactions.service';
 import { TranslationService } from '../../../core/utils/translation.service';
 
 describe('CommentsGateway', () => {
@@ -37,10 +38,19 @@ describe('CommentsGateway', () => {
       handshake: { auth: { token: 'valid-token' } },
     };
 
+    const mockReactionsService = {
+      addReaction: jest.fn(),
+      removeReaction: jest.fn(),
+      getReactionsByComment: jest.fn().mockResolvedValue([]),
+      getUserReaction: jest.fn().mockResolvedValue(null),
+      removeAllUserReactions: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CommentsGateway,
         { provide: CommentsService, useValue: mockService },
+        { provide: ReactionsService, useValue: mockReactionsService },
         { provide: TranslationService, useValue: mockI18n },
       ],
     }).compile();

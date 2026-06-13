@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { AuthComponent } from './features/auth/auth.component';
 import { authRoutes } from './features/auth/auth.routes';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
+import { OverviewComponent } from './features/dashboard/pages/overview.component';
 import { PostsComponent } from './features/dashboard/pages/posts.component';
 import { UsersComponent } from './features/dashboard/pages/users.component';
 import { RolesComponent } from './features/dashboard/pages/roles.component';
@@ -21,8 +22,7 @@ export const routes: Routes = [
     component: DashboardComponent,
     canActivate: [authGuard],
     children: [
-      { path: '', redirectTo: 'overview', pathMatch: 'full' },
-      { path: 'overview', component: DashboardComponent },
+      { path: '', component: OverviewComponent },
       { path: 'posts', component: PostsComponent },
       { path: 'users', component: UsersComponent },
       { path: 'roles', component: RolesComponent },

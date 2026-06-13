@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  Optional,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,12 +18,17 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { CommentsService } from '../services/comments.service';
+import { ReactionsService } from '../services/reactions.service';
+import { CommentsGateway } from '../gateways/comments.gateway';
 import { CreateCommentDto } from '../dto/create-comment.dto';
 import { UpdateCommentDto } from '../dto/update-comment.dto';
 import { CommentResponseDto } from '../dto/comment-response.dto';
 import { FindCommentsByPostDto } from '../dto/find-comments-by-post.dto';
+import { CreateReactionDto } from '../dto/create-reaction.dto';
+import { ReactionResponseDto } from '../dto/reaction-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
+import { CurrentUser, CurrentUserPayload } from '../../../core/decorators/current-user.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
 import { TranslationService } from '../../../core/utils/translation.service';
 
@@ -31,6 +37,8 @@ import { TranslationService } from '../../../core/utils/translation.service';
 export class CommentsController {
   constructor(
     private readonly commentsService: CommentsService,
+    private readonly reactionsService: ReactionsService,
+    @Optional() private readonly commentsGateway: CommentsGateway,
     private readonly i18n: TranslationService,
   ) {}
 
@@ -98,5 +106,92 @@ export class CommentsController {
   async remove(@Param() findOneDto: FindOneDto) {
     await this.commentsService.remove(findOneDto.id);
     return ApiRes.success(null, this.i18n.translate('comments.deleted'));
+  }
+
+  // ─── Reactions ────────────────────────────────────────────────────────────
+
+  @Auth()
+  @ApiOperation({ summary: 'Add reaction to comment' })
+  @ApiParam({ name: 'id', type: 'string', description: 'Comment MongoDB ObjectId' })
+  @ApiBody({ type: CreateReactionDto })
+  @ApiResponse({ status: 200, description: 'Reaction added successfully' })
+  @Post(':id/reactions')
+  async addReaction(
+    @Param() findOneDto: FindOneDto,
+    @Body() createReactionDto: CreateReactionDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    const reaction = await this.reactionsService.addReaction({
+      ...createReactionDto,
+      commentId: findOneDto.id,
+      userId: user.userId,
+    });
+
+    const reactionsSummary = await this.reactionsService.getReactionsByComment(
+      findOneDto.id,
+    );
+
+    this.commentsGateway?.server?.emit('comment:reaction:added', {
+      commentId: findOneDto.id,
+      emoji: reaction.emoji,
+      userId: user.userId,
+      reactions: reactionsSummary,
+    });
+
+    return ApiRes.success(reaction, this.i18n.translate('comments.reaction_added'));
+  }
+
+  @Auth()
+  @ApiOperation({ summary: 'Remove reaction from comment' })
+  @ApiParam({ name: 'id', type: 'string', description: 'Comment MongoDB ObjectId' })
+  @ApiParam({ name: 'emoji', type: 'string', description: 'Emoji to remove' })
+  @ApiResponse({ status: 200, description: 'Reaction removed successfully' })
+  @Delete(':id/reactions/:emoji')
+  async removeReaction(
+    @Param() params: { id: string; emoji: string },
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    await this.reactionsService.removeReaction(params.id, user.userId, params.emoji);
+
+    const reactionsSummary = await this.reactionsService.getReactionsByComment(
+      params.id,
+    );
+
+    this.commentsGateway?.server?.emit('comment:reaction:removed', {
+      commentId: params.id,
+      emoji: params.emoji,
+      userId: user.userId,
+      reactions: reactionsSummary,
+    });
+
+    return ApiRes.success(null, this.i18n.translate('comments.reaction_removed'));
+  }
+
+  @Auth()
+  @ApiOperation({ summary: 'Get all reactions for a comment' })
+  @ApiParam({ name: 'id', type: 'string', description: 'Comment MongoDB ObjectId' })
+  @ApiResponse({ status: 200, description: 'Reactions summary', type: ReactionResponseDto })
+  @Get(':id/reactions')
+  async getReactions(
+    @Param() findOneDto: FindOneDto,
+    @CurrentUser() user?: CurrentUserPayload,
+  ) {
+    const reactionData = await this.reactionsService.getReactionsByComment(
+      findOneDto.id,
+    );
+
+    const userReaction = user
+      ? await this.reactionsService.getUserReaction(findOneDto.id, user.userId)
+      : null;
+
+    const response: ReactionResponseDto = {
+      commentId: findOneDto.id,
+      reactions: reactionData,
+      total: reactionData.reduce((sum, r) => sum + r.count, 0),
+      userReacted: !!userReaction,
+      userReaction,
+    };
+
+    return ApiRes.success(response);
   }
 }

@@ -44,6 +44,6 @@ export class DashboardComponent implements OnInit {
   }
 
   isOverviewRoute(): boolean {
-    return this.router.url === '/dashboard' || this.router.url.endsWith('/dashboard/overview');
+    return this.router.url === '/dashboard';
   }
 }

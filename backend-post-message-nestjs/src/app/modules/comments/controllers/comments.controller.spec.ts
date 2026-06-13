@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommentsController } from './comments.controller';
 import { CommentsService } from '../services/comments.service';
+import { ReactionsService } from '../services/reactions.service';
+import { CommentsGateway } from '../gateways/comments.gateway';
 import { CreateCommentDto } from '../dto/create-comment.dto';
 import { UpdateCommentDto } from '../dto/update-comment.dto';
 import { FindCommentsByPostDto } from '../dto/find-comments-by-post.dto';
@@ -27,10 +29,24 @@ describe('CommentsController', () => {
       getCommentWithMedia: jest.fn((c) => ({ ...c, media: [] })),
     } as any;
 
+    const mockReactionsService = {
+      addReaction: jest.fn(),
+      removeReaction: jest.fn(),
+      getReactionsByComment: jest.fn().mockResolvedValue([]),
+      getUserReaction: jest.fn().mockResolvedValue(null),
+      removeAllUserReactions: jest.fn(),
+    };
+
+    const mockGateway = {
+      server: { emit: jest.fn() },
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CommentsController],
       providers: [
         { provide: CommentsService, useValue: mockCommentsService },
+        { provide: ReactionsService, useValue: mockReactionsService },
+        { provide: CommentsGateway, useValue: mockGateway },
         {
           provide: TranslationService,
           useValue: { translate: jest.fn((key: string) => key) },

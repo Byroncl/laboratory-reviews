@@ -146,7 +146,7 @@ export class SidebarComponent {
       id: 'dashboard',
       label: 'sidebar.dashboard',
       icon: 'dashboard',
-      route: '/dashboard'
+      route: '/dashboard/'
     },
     {
       id: 'posts',

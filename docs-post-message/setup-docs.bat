@@ -29,26 +29,44 @@ echo ✅ Node.js found: && node --version
 echo ✅ npm found: && npm --version
 echo.
 
-REM Check if node_modules exists
+REM Check if node_modules exists and handle installation
 if not exist "node_modules" (
-    echo 📦 Installing dependencies...
+    echo 📦 Installing dependencies (first time)...
     echo.
-    call npm install
+    call npm install --legacy-peer-deps
     if errorlevel 1 (
-        echo ❌ npm install failed
-        pause
-        exit /b 1
+        echo.
+        echo ⚠️  Installation had issues. Trying clean install...
+        echo.
+        call npm cache clean --force
+        call npm install --legacy-peer-deps
+        if errorlevel 1 (
+            echo ❌ npm install failed
+            pause
+            exit /b 1
+        )
     )
+    echo.
     echo ✅ Dependencies installed
 ) else (
     echo ✅ node_modules already exists
     echo.
-    echo Do you want to reinstall dependencies? (y/n)
-    set /p reinstall=">>> "
-    if /i "!reinstall!"=="y" (
+    echo Do you want to:
+    echo 1) Continue with current installation
+    echo 2) Clean reinstall (fix dependency issues)
+    echo 3) Exit
+    echo.
+    set /p action="Choose (1-3): "
+    if "!action!"=="2" (
+        echo.
+        echo 🧹 Cleaning npm cache...
+        call npm cache clean --force
+        echo ✅ Cache cleaned
         echo.
         echo 📦 Reinstalling dependencies...
-        call npm install
+        call npm install --legacy-peer-deps
+    ) else if "!action!"=="3" (
+        exit /b 0
     )
 )
 

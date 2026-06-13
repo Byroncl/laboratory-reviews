@@ -30,7 +30,10 @@
     "updated": "Comment updated successfully",
     "deleted": "Comment deleted successfully",
     "not_found": "Comment not found",
-    "user_joined": "{0} joined the comments"
+    "user_joined": "{0} joined the comments",
+    "reaction_added": "Reaction added successfully",
+    "reaction_removed": "Reaction removed successfully",
+    "invalid_emoji": "Invalid emoji. Allowed: 👍, ❤️, 😂, 😮, 😢, 😡"
   },
   "socket": {
     "connected": "Socket connected",

@@ -44,3 +44,27 @@ export interface UserConnectedEvent {
   clientId: string;
   totalConnected: number;
 }
+
+export interface ReactionAddedEvent {
+  commentId: string;
+  emoji: string;
+  userId: string;
+  username: string;
+  reactions: Array<{
+    emoji: string;
+    count: number;
+    users: string[];
+  }>;
+}
+
+export interface ReactionRemovedEvent {
+  commentId: string;
+  emoji: string;
+  userId: string;
+  username: string;
+  reactions: Array<{
+    emoji: string;
+    count: number;
+    users: string[];
+  }>;
+}
