@@ -18,13 +18,21 @@ export class RolesService {
     return createdRole.save();
   }
 
+  async findAll(): Promise<Role[]> {
+    return this.roleModel.find().populate('permissions').exec();
+  }
+
+  async findOne(id: string): Promise<Role> {
+    return this.roleModel.findById(id).populate('permissions').exec();
+  }
+
   async update(id: string, updateRoleDto: UpdateRoleDto): Promise<Role> {
     return this.roleModel
       .findByIdAndUpdate(id, updateRoleDto, { new: true })
       .exec();
   }
 
-  async findAll(): Promise<Role[]> {
-    return this.roleModel.find().populate('permissions').exec();
+  async remove(id: string): Promise<Role> {
+    return this.roleModel.findByIdAndDelete(id).exec();
   }
 }

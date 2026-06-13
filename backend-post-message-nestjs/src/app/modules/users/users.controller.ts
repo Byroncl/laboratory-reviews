@@ -2,10 +2,10 @@ import {
   Controller,
   Post,
   Body,
-  ValidationPipe,
   Get,
   UseGuards,
   Put,
+  Delete,
   Param,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -33,6 +33,13 @@ export class UsersController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get(':id')
+  async findOne(@Param() findOneDto: FindOneDto) {
+    const user = await this.usersService.findOne(findOneDto.id);
+    return ApiResponse.success(user);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Put(':id')
   async update(
     @Param() findOneDto: FindOneDto,
@@ -40,5 +47,12 @@ export class UsersController {
   ) {
     const user = await this.usersService.update(findOneDto.id, updateUserDto);
     return ApiResponse.success(user, 'User updated successfully');
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(':id')
+  async remove(@Param() findOneDto: FindOneDto) {
+    await this.usersService.remove(findOneDto.id);
+    return ApiResponse.success(null, 'User deleted successfully');
   }
 }

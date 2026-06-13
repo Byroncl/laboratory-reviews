@@ -22,6 +22,14 @@ export class PermissionsService {
     return createdPermission.save();
   }
 
+  async findAll(): Promise<Permission[]> {
+    return this.permissionModel.find().exec();
+  }
+
+  async findOne(id: string): Promise<Permission> {
+    return this.permissionModel.findById(id).exec();
+  }
+
   async update(
     id: string,
     updatePermissionDto: UpdatePermissionDto,
@@ -31,7 +39,7 @@ export class PermissionsService {
       .exec();
   }
 
-  async findAll(): Promise<Permission[]> {
-    return this.permissionModel.find().exec();
+  async remove(id: string): Promise<Permission> {
+    return this.permissionModel.findByIdAndDelete(id).exec();
   }
 }
