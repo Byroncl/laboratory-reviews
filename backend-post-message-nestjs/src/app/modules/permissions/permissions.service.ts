@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Permission } from '../schemas/permission.schema';
-import { CreatePermissionDto } from '../dto/create-permission.dto';
-import { UpdatePermissionDto } from '../dto/update-permission.dto';
+import { Permission } from './schemas/permission.schema';
+import { CreatePermissionDto } from './dto/create-permission.dto';
+import { UpdatePermissionDto } from './dto/update-permission.dto';
 
 @Injectable()
 export class PermissionsService {
@@ -26,20 +26,20 @@ export class PermissionsService {
     return this.permissionModel.find().exec();
   }
 
-  async findOne(id: string): Promise<Permission> {
+  async findOne(id: string): Promise<Permission | null> {
     return this.permissionModel.findById(id).exec();
   }
 
   async update(
     id: string,
     updatePermissionDto: UpdatePermissionDto,
-  ): Promise<Permission> {
+  ): Promise<Permission | null> {
     return this.permissionModel
       .findByIdAndUpdate(id, updatePermissionDto, { new: true })
       .exec();
   }
 
-  async remove(id: string): Promise<Permission> {
+  async remove(id: string): Promise<Permission | null> {
     return this.permissionModel.findByIdAndDelete(id).exec();
   }
 }

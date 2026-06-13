@@ -28,19 +28,19 @@ export class UsersService {
     return this.findAllUsersUseCase.execute();
   }
 
-  async findOne(id: string): Promise<User | undefined> {
+  async findOne(id: string): Promise<User | null> {
     return this.findUserByIdUseCase.execute(id);
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
     return this.updateUserUseCase.execute(id, updateUserDto);
   }
 
-  async remove(id: string): Promise<User> {
+  async remove(id: string): Promise<User | null> {
     return this.removeUserUseCase.execute(id);
   }
 
-  async findOneByUsername(username: string): Promise<User | undefined> {
+  async findOneByUsername(username: string): Promise<User | null> {
     return this.findUserByUsernameUseCase.execute(username);
   }
 }

@@ -13,7 +13,7 @@ async function bootstrap() {
   loadEnv();
   const app = await NestFactory.create(AppModule);
   const host = process.env.HOST ?? 'localhost';
-  const port = parseInt(process.env.PORT, 10) ?? 3000;
+  const port = parseInt(process.env.PORT ?? '3000', 10);
   const name = process.env.APP_NAME ?? 'My App';
   const env = process.env.NODE_ENV ?? 'development';
 
@@ -24,7 +24,7 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter(app.get(TranslationService)));
   await app.listen(port, host);
 
-  const dbOk = await checkDatabase(process.env.MONGODB_URI);
+  const dbOk = await checkDatabase(process.env.MONGODB_URI ?? 'mongodb://localhost:27017');
   const url = `http://${host}:${port}`;
 
   printBanner({

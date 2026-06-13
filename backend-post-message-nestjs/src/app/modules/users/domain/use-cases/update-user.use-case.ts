@@ -7,7 +7,7 @@ import { UserRepository } from '../repositories/user.repository';
 export class UpdateUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async execute(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
     return this.userRepository.update(id, updateUserDto);
   }
 }

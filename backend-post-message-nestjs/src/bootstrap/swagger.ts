@@ -10,8 +10,10 @@ import {
 
 export const setupSwagger = (app: INestApplication, name: string): void => {
   const config = new DocumentBuilder()
-    .setTitle(name)
+    .setTitle('Post Message API')
+    .setDescription('REST API for managing posts, comments, users, clients, roles, and permissions')
     .setVersion(`v${API_VERSION.V1}`)
+    .addServer('http://localhost:3000', 'Local development')
     .addBearerAuth()
     .build();
 
