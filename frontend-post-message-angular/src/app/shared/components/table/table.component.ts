@@ -34,6 +34,11 @@ export interface SortEvent {
   sortOrder: 'asc' | 'desc';
 }
 
+export interface PaginationEvent {
+  currentPage: number;
+  pageSize: number;
+}
+
 @Component({
   selector: 'app-table',
   standalone: true,
@@ -225,6 +230,7 @@ export class TableComponent implements OnInit, OnDestroy {
   }>();
   @Output() sorted = new EventEmitter<SortEvent>();
   @Output() filtered = new EventEmitter<FilterEvent[]>();
+  @Output() paginated = new EventEmitter<PaginationEvent>();
 
   sortBy: string | null = null;
   sortOrder: 'asc' | 'desc' = 'asc';

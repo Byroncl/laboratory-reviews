@@ -35,7 +35,7 @@ import { CommonModule } from '@angular/common';
             <span class="font-medium">{{ to }}</span>
             de
             <span class="font-medium">{{ total }}</span>
-            resultados
+            resultados (página {{ currentPage }} de {{ totalPages }})
           </p>
         </div>
 
