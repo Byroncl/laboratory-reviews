@@ -37,6 +37,19 @@ export class CommentsService {
     );
   }
 
+  updateComment(id: string, content: string): Observable<{ data: Comment; message: string }> {
+    return this.api.put<{ data: Comment; message: string }>(`/comments/${id}`, { content }).pipe(
+      tap(response => {
+        const index = this.comments().findIndex(c => this.commentId(c) === id);
+        if (index !== -1) {
+          const updated = [...this.comments()];
+          updated[index] = response.data;
+          this.comments.set(updated);
+        }
+      })
+    );
+  }
+
   deleteComment(id: string): Observable<{ message: string }> {
     return this.api.delete<{ message: string }>(`/comments/${id}`).pipe(
       tap(() => {

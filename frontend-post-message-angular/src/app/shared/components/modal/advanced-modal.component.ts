@@ -241,15 +241,26 @@ export class AdvancedModalComponent implements OnInit, OnDestroy {
   }
 
   onMinimize(event: { id: string; title: string }): void {
+    if (!this.currentModal) return;
+
+    // Agregar a lista de minimizados
     this.minimizedModalService.addMinimized({
       id: event.id,
       title: event.title
     });
+
+    // Ocultar el modal actual
+    this.isMinimized = true;
   }
 
   onRestore(modalId: string): void {
+    if (this.currentModal?.id === modalId) {
+      // Mostrar el modal actual
+      this.isMinimized = false;
+    }
+
+    // Remover de lista de minimizados
     this.minimizedModalService.removeMinimized(modalId);
-    this.isMinimized = false;
   }
 
   onConfirm(): void {

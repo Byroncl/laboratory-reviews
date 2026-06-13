@@ -48,7 +48,7 @@ services:
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
       - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
 
-  # Documentación (Docusaurus)
+  # Documentación (HTTP Server)
   docs:
     build:
       context: ./docs-post-message
@@ -59,9 +59,7 @@ services:
       - "3001:3000"
     volumes:
       - ./docs-post-message:/app
-      - /app/node_modules
     working_dir: /app
-    command: npm start
 
 volumes:
   mongo_data:

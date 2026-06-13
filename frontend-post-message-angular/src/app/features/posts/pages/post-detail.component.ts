@@ -34,7 +34,7 @@ import { ErrorAlertComponent } from '../../../shared/components/error-alert/erro
 
       @if (!loading() && post()) {
         <div class="bg-white rounded-lg shadow p-6">
-          <h1 class="text-3xl font-bold text-primary mb-2">{{ post()?.title }}</h1>
+          <h1 [attr.data-cy]="'post-title'" class="text-3xl font-bold text-primary mb-2">{{ post()?.title }}</h1>
           <p class="text-sm text-gray-500 mb-4">
             By <strong>{{ post()?.author }}</strong> &bull; {{ post()?.createdAt | date: 'medium' }}
           </p>
@@ -49,6 +49,7 @@ import { ErrorAlertComponent } from '../../../shared/components/error-alert/erro
           <form [formGroup]="commentForm" (ngSubmit)="submitComment()" class="mb-6">
             <textarea
               formControlName="content"
+              [attr.data-cy]="'comment-textarea'"
               placeholder="Write a comment..."
               rows="3"
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition resize-none"
@@ -58,6 +59,7 @@ import { ErrorAlertComponent } from '../../../shared/components/error-alert/erro
             }
             <button
               type="submit"
+              [attr.data-cy]="'post-comment-button'"
               [disabled]="commentForm.invalid || submitting()"
               class="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm disabled:opacity-50"
             >
@@ -70,37 +72,78 @@ import { ErrorAlertComponent } from '../../../shared/components/error-alert/erro
           } @else {
             <div class="space-y-4">
               @for (comment of comments(); track comment._id ?? comment.id) {
-                <div class="border border-gray-200 rounded-lg p-4">
+                <div [attr.data-cy]="'comment-item'" class="border border-gray-200 rounded-lg p-4 group relative">
                   <div class="flex justify-between items-start mb-2">
                     <strong class="text-sm text-primary">{{ comment.userId }}</strong>
-                    <span class="text-xs text-gray-400">{{ comment.createdAt | date: 'short' }}</span>
-                  </div>
-                  <p class="text-gray-700 text-sm mb-3">{{ comment.content }}</p>
-
-                  @if (comment.media && comment.media.length > 0) {
-                    <div class="mb-3 space-y-2">
-                      @for (media of comment.media; track media.url) {
-                        @if (isImage(media.type)) {
-                          <img [src]="media.url" [alt]="media.filename" class="max-h-48 rounded-lg" />
-                        }
-                        @if (isAudio(media.type)) {
-                          <audio [src]="media.url" controls class="w-full"></audio>
-                        }
-                      }
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs text-gray-400">{{ comment.createdAt | date: 'short' }}</span>
+                      <!-- Edit/Delete actions (visible on hover) -->
+                      <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          (click)="editComment(comment._id ?? comment.id)"
+                          [attr.data-cy]="'edit-comment-button'"
+                          class="text-blue-500 hover:text-blue-700 text-sm px-1"
+                          title="Edit comment"
+                        >&#9998;</button>
+                        <button
+                          (click)="deleteComment(comment._id ?? comment.id)"
+                          [attr.data-cy]="'delete-comment-button'"
+                          class="text-red-500 hover:text-red-700 text-sm px-1"
+                          title="Delete comment"
+                        >&#128465;</button>
+                      </div>
                     </div>
-                  }
+                  </div>
 
-                  <button
-                    (click)="toggleReply(comment._id ?? comment.id)"
-                    class="text-xs text-blue-600 hover:underline"
-                  >
-                    Reply
-                  </button>
+                  <!-- Inline edit mode -->
+                  @if (editingCommentId() === (comment._id ?? comment.id)) {
+                    <div class="mt-2">
+                      <textarea
+                        [(ngModel)]="editingContent"
+                        rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
+                      ></textarea>
+                      <div class="flex gap-2 mt-2">
+                        <button
+                          (click)="saveEditedComment(comment._id ?? comment.id)"
+                          class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition"
+                        >Save</button>
+                        <button
+                          (click)="cancelEdit()"
+                          class="px-3 py-1 bg-gray-400 text-white text-sm rounded hover:bg-gray-500 transition"
+                        >Cancel</button>
+                      </div>
+                    </div>
+                  } @else {
+                    <p class="text-gray-700 text-sm mb-3">{{ comment.content }}</p>
+
+                    @if (comment.media && comment.media.length > 0) {
+                      <div class="mb-3 space-y-2">
+                        @for (media of comment.media; track media.url) {
+                          @if (isImage(media.type)) {
+                            <img [src]="media.url" [alt]="media.filename" class="max-h-48 rounded-lg" />
+                          }
+                          @if (isAudio(media.type)) {
+                            <audio [src]="media.url" controls class="w-full"></audio>
+                          }
+                        }
+                      </div>
+                    }
+
+                    <button
+                      (click)="toggleReply(comment._id ?? comment.id)"
+                      [attr.data-cy]="'reply-button'"
+                      class="text-xs text-blue-600 hover:underline"
+                    >
+                      Reply
+                    </button>
+                  }
 
                   @if (replyingTo() === (comment._id ?? comment.id)) {
                     <div class="mt-3 pl-4 border-l-2 border-blue-300">
                       <textarea
                         [(ngModel)]="replyContent"
+                        [attr.data-cy]="'reply-textarea'"
                         placeholder="Write a reply..."
                         rows="2"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
@@ -108,6 +151,7 @@ import { ErrorAlertComponent } from '../../../shared/components/error-alert/erro
                       <div class="flex gap-2 mt-2">
                         <button
                           (click)="submitReply(comment._id ?? comment.id)"
+                          [attr.data-cy]="'post-reply-button'"
                           class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition"
                         >Post Reply</button>
                         <button
@@ -121,7 +165,7 @@ import { ErrorAlertComponent } from '../../../shared/components/error-alert/erro
                   @if (comment.replies && comment.replies.length > 0) {
                     <div class="mt-4 pl-4 space-y-2 border-l-2 border-gray-100">
                       @for (reply of comment.replies; track reply._id ?? reply.id) {
-                        <div class="bg-gray-50 p-3 rounded-lg">
+                        <div [attr.data-cy]="'reply-item'" class="bg-gray-50 p-3 rounded-lg">
                           <div class="flex justify-between items-start mb-1">
                             <strong class="text-xs text-primary">{{ reply.userId }}</strong>
                             <span class="text-xs text-gray-400">{{ reply.createdAt | date: 'short' }}</span>
@@ -162,7 +206,9 @@ export class PostDetailComponent implements OnInit {
 
   readonly submitting = signal(false);
   readonly replyingTo = signal<string | undefined>(undefined);
+  readonly editingCommentId = signal<string | null>(null);
   replyContent = '';
+  editingContent = '';
 
   readonly commentForm: FormGroup = this.fb.group({
     content: ['', [Validators.required, Validators.minLength(3)]],
@@ -242,6 +288,48 @@ export class PostDetailComponent implements OnInit {
       this.replyContent = '';
       this.replyingTo.set(undefined);
       this.notif.toast('Reply posted', 'success');
+    });
+  }
+
+  editComment(id: string | undefined): void {
+    if (!id) return;
+    const comment = this.comments().find(c => (c._id ?? c.id) === id);
+    if (comment) {
+      this.editingCommentId.set(id);
+      this.editingContent = comment.content;
+    }
+  }
+
+  cancelEdit(): void {
+    this.editingCommentId.set(null);
+    this.editingContent = '';
+  }
+
+  saveEditedComment(id: string | undefined): void {
+    if (!id || !this.editingContent.trim()) return;
+
+    this.commentsService.updateComment(id, this.editingContent).pipe(
+      catchError(err => {
+        this.notif.error('Error', err?.message ?? 'Could not update comment');
+        return of(null);
+      })
+    ).subscribe(() => {
+      this.cancelEdit();
+      this.notif.toast('Comment updated', 'success');
+    });
+  }
+
+  deleteComment(id: string | undefined): void {
+    if (!id) return;
+    if (!confirm('Delete this comment?')) return;
+
+    this.commentsService.deleteComment(id).pipe(
+      catchError(err => {
+        this.notif.error('Error', err?.message ?? 'Could not delete comment');
+        return of(null);
+      })
+    ).subscribe(() => {
+      this.notif.toast('Comment deleted', 'success');
     });
   }
 

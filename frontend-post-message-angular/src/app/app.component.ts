@@ -51,11 +51,6 @@ export class AppComponent implements OnInit, OnDestroy {
     );
   }
 
-  onRestoreModal(modalId: string): void {
-    // This will be handled by the modal service/component
-    // Modals can subscribe to restore events if needed
-  }
-
   ngOnDestroy(): void {
     this.subs.unsubscribe();
     this.wsService.disconnect();

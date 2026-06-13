@@ -1,0 +1,237 @@
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from '../app/app.module';
+import { getModelToken } from '@nestjs/mongoose';
+import { Connection } from 'mongoose';
+import { getConnectionToken } from '@nestjs/mongoose';
+
+interface SeedConfig {
+  enabled: boolean;
+  clearBefore: boolean;
+  usersCount: number;
+  postsPerUser: number;
+  commentsPerPost: number;
+  reactionsPerComment: number;
+}
+
+export async function seedDatabase(): Promise<void> {
+  const config: SeedConfig = {
+    enabled: process.env.SEED_ENABLED === 'true',
+    clearBefore: process.env.SEED_CLEAR === 'true',
+    usersCount: parseInt(process.env.SEED_USERS ?? '5', 10),
+    postsPerUser: parseInt(process.env.SEED_POSTS ?? '3', 10),
+    commentsPerPost: parseInt(process.env.SEED_COMMENTS ?? '5', 10),
+    reactionsPerComment: parseInt(process.env.SEED_REACTIONS ?? '3', 10),
+  };
+
+  if (!config.enabled) {
+    console.log('Seed disabled (set SEED_ENABLED=true to enable)');
+    return;
+  }
+
+  const app = await NestFactory.createApplicationContext(AppModule, {
+    logger: false,
+  });
+
+  try {
+    console.log('Starting database seed...');
+
+    if (config.clearBefore) {
+      console.log('Clearing existing data...');
+      await clearCollections(app);
+    }
+
+    const users = await seedUsers(app, config.usersCount);
+    const posts = await seedPosts(app, users, config.postsPerUser);
+    await seedComments(app, posts, users, config.commentsPerPost, config.reactionsPerComment);
+
+    console.log('Seed completed successfully!');
+    console.log(`   - Users: ${users.length}`);
+    console.log(`   - Posts: ${posts.length}`);
+  } catch (error) {
+    console.error('Seed failed:', error);
+    throw error;
+  } finally {
+    await app.close();
+  }
+}
+
+async function clearCollections(app: { get: (token: unknown) => unknown }): Promise<void> {
+  const connection = app.get(getConnectionToken()) as Connection;
+  const collections = connection.collections;
+
+  for (const [name, collection] of Object.entries(collections)) {
+    if (!name.startsWith('system')) {
+      await collection.deleteMany({});
+      console.log(`   - Cleared ${name}`);
+    }
+  }
+}
+
+const SEED_USERS = [
+  { firstName: 'Alice', type: 'user' },
+  { firstName: 'Bob', type: 'user' },
+  { firstName: 'Charlie', type: 'admin' },
+  { firstName: 'Diana', type: 'user' },
+  { firstName: 'Eve', type: 'user' },
+  { firstName: 'Frank', type: 'user' },
+  { firstName: 'Grace', type: 'admin' },
+  { firstName: 'Henry', type: 'user' },
+];
+
+const POST_TITLES = [
+  'Getting Started with NestJS',
+  'Angular 18 Best Practices',
+  'MongoDB Indexing Guide',
+  'WebSocket Real-time Updates',
+  'Clean Architecture in Backend',
+  'Testing Strategies',
+  'Performance Optimization',
+  'Security Best Practices',
+];
+
+const POST_BODIES = [
+  'Learn how to build scalable backend applications with NestJS and TypeScript.',
+  'Discover modern Angular patterns for building reactive applications.',
+  'Optimize your MongoDB queries with proper indexing strategies.',
+  'Implement real-time features using WebSocket technology.',
+  'Structure your backend following clean architecture principles.',
+  'Write reliable tests for your NestJS and Angular applications.',
+  'Improve application performance through caching and optimization.',
+  'Secure your API with authentication and authorization.',
+];
+
+async function seedUsers(
+  app: { get: (token: unknown) => unknown },
+  count: number,
+): Promise<Array<{ _id: unknown; username: string }>> {
+  const UserModel = app.get(getModelToken('User')) as {
+    create: (data: unknown) => Promise<{ _id: unknown; username: string }>;
+  };
+  const users: Array<{ _id: unknown; username: string }> = [];
+
+  const limit = Math.min(count, SEED_USERS.length);
+  for (let i = 0; i < limit; i++) {
+    const { firstName, type } = SEED_USERS[i];
+    const user = await UserModel.create({
+      name: firstName,
+      lastname: 'Seed',
+      username: firstName.toLowerCase(),
+      email: `${firstName.toLowerCase()}@example.com`,
+      password_hash: `$2b$10$seed.hash.for.${firstName.toLowerCase()}`,
+      type,
+      isActive: true,
+      preferredLanguage: i % 2 === 0 ? 'en' : 'es',
+    });
+    users.push(user);
+    console.log(`   Created user: ${firstName}`);
+  }
+
+  return users;
+}
+
+async function seedPosts(
+  app: { get: (token: unknown) => unknown },
+  users: Array<{ _id: unknown; username: string }>,
+  postsPerUser: number,
+): Promise<Array<{ _id: unknown }>> {
+  const PostModel = app.get(getModelToken('Post')) as {
+    create: (data: unknown) => Promise<{ _id: unknown }>;
+  };
+  const posts: Array<{ _id: unknown }> = [];
+
+  for (let i = 0; i < postsPerUser * users.length; i++) {
+    const user = users[i % users.length];
+    const post = await PostModel.create({
+      title: POST_TITLES[i % POST_TITLES.length],
+      body: POST_BODIES[i % POST_BODIES.length],
+      author: user.username,
+      isActive: true,
+      isDeleted: false,
+    });
+    posts.push(post);
+  }
+
+  console.log(`   Created ${posts.length} posts`);
+  return posts;
+}
+
+async function seedComments(
+  app: { get: (token: unknown) => unknown },
+  posts: Array<{ _id: unknown }>,
+  users: Array<{ _id: unknown; username: string }>,
+  commentsPerPost: number,
+  reactionsPerComment: number,
+): Promise<void> {
+  const CommentModel = app.get(getModelToken('Comment')) as {
+    create: (data: unknown) => Promise<{ _id: unknown }>;
+    updateOne: (filter: unknown, update: unknown) => Promise<unknown>;
+  };
+  const ReactionModel = app.get(getModelToken('Reaction')) as {
+    create: (data: unknown) => Promise<unknown>;
+  };
+
+  const emojis = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+  let totalComments = 0;
+  let totalReactions = 0;
+
+  for (const post of posts) {
+    const postComments: Array<{ _id: unknown }> = [];
+
+    for (let i = 0; i < commentsPerPost; i++) {
+      const user = users[Math.floor(Math.random() * users.length)];
+      const comment = await CommentModel.create({
+        content: `Great ${i % 2 === 0 ? 'post' : 'article'}! Very informative content here.`,
+        userId: String(user._id),
+        postId: String(post._id),
+        parentCommentId: null,
+        childCommentIds: [],
+        isActive: true,
+        isDeleted: false,
+      });
+      postComments.push(comment);
+      totalComments++;
+
+      // Add a reply for every 3rd comment
+      if (i % 3 === 0) {
+        const replyUser = users[Math.floor(Math.random() * users.length)];
+        const reply = await CommentModel.create({
+          content: 'I agree completely! Great insight.',
+          userId: String(replyUser._id),
+          postId: String(post._id),
+          parentCommentId: String(comment._id),
+          childCommentIds: [],
+          isActive: true,
+          isDeleted: false,
+        });
+
+        await CommentModel.updateOne(
+          { _id: comment._id },
+          { $push: { childCommentIds: String(reply._id) } },
+        );
+        totalComments++;
+      }
+    }
+
+    // Add reactions to comments
+    for (const comment of postComments) {
+      for (let r = 0; r < reactionsPerComment; r++) {
+        const user = users[Math.floor(Math.random() * users.length)];
+        const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+        try {
+          await ReactionModel.create({
+            commentId: String(comment._id),
+            userId: String(user._id),
+            emoji,
+          });
+          totalReactions++;
+        } catch {
+          // Duplicate reaction (unique index), skip silently
+        }
+      }
+    }
+  }
+
+  console.log(`   Created ${totalComments} comments`);
+  console.log(`   Created ${totalReactions} reactions`);
+}
