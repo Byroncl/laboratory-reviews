@@ -63,19 +63,10 @@ export class RegisterComponent implements OnInit {
       this.isLoading = true;
       this.error = null;
 
-      const { name, email, password } = this.registerForm.value;
-
-      setTimeout(() => {
-        const mockUser = {
-          id: Math.random().toString(),
-          email,
-          name
-        };
-
-        this.store.dispatch(AuthActions.registerSuccess({ user: mockUser }));
-        this.isLoading = false;
-        this.router.navigate(['/auth/login']);
-      }, 1500);
+      const { name, password } = this.registerForm.value as { name: string; password: string };
+      // Register dispatches login action with username; register endpoint is out of scope for this change
+      this.store.dispatch(AuthActions.register({ username: name, password }));
+      this.isLoading = false;
     }
   }
 

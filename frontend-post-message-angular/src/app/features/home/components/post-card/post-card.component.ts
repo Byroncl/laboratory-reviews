@@ -1,0 +1,56 @@
+import { Component, Input } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
+import { PostViewModel } from '../../../../shared/models/post.model';
+
+@Component({
+  selector: 'app-post-card',
+  standalone: true,
+  imports: [CommonModule],
+  providers: [DatePipe],
+  template: `
+    <div
+      data-cy="post-card"
+      class="bg-white rounded-lg shadow hover:shadow-md transition cursor-pointer p-5 border border-gray-100 hover:border-primary"
+      (click)="navigate()"
+      (keydown.enter)="navigate()"
+      (keydown.space)="navigate()"
+      tabindex="0"
+      role="article"
+    >
+      <!-- Optional thumbnail -->
+      @if (post.imageUrl) {
+        <img
+          [src]="post.imageUrl"
+          [alt]="post.title"
+          class="w-full h-40 object-cover rounded-md mb-3"
+        />
+      }
+
+      <h2 class="text-lg font-semibold text-primary mb-1 line-clamp-2">{{ post.title }}</h2>
+      <p class="text-sm text-gray-600 mb-3 line-clamp-3">{{ post.preview }}</p>
+
+      <div class="flex items-center justify-between text-xs text-gray-400">
+        <span>by <strong class="text-gray-600">{{ post.authorUsername }}</strong></span>
+        <span>{{ post.createdAt | date:'mediumDate' }}</span>
+      </div>
+
+      @if (post.commentCount != null && post.commentCount > 0) {
+        <div class="mt-2">
+          <span class="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+            💬 {{ post.commentCount }}
+          </span>
+        </div>
+      }
+    </div>
+  `,
+})
+export class PostCardComponent {
+  @Input() post!: PostViewModel;
+
+  constructor(private router: Router) {}
+
+  navigate(): void {
+    this.router.navigate(['/posts', this.post.id]);
+  }
+}

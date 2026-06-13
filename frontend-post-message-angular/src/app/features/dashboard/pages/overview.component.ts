@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { User } from '../../../features/auth/models/auth.model';
+import { AuthUser as User } from '../../../features/auth/models/auth.model';
 import { Store } from '@ngrx/store';
 import { selectUser } from '../../../features/auth/store/auth.selectors';
 import { Observable } from 'rxjs';
@@ -81,7 +81,7 @@ import { Observable } from 'rxjs';
       <!-- Welcome Message -->
       <div class="bg-gradient-to-r from-primary to-gray-900 rounded-xl shadow p-8 text-white">
         @if (user$ | async; as user) {
-          <h3 class="text-2xl font-bold mb-2">¡Bienvenido, {{ user.name }}!</h3>
+          <h3 class="text-2xl font-bold mb-2">¡Bienvenido, {{ user.username }}!</h3>
           <p class="text-gray-200">
             Este es tu panel de gestión integral. Puedes administrar posts, usuarios, roles, permisos, comentarios y archivos desde un único lugar de manera segura y eficiente.
           </p>

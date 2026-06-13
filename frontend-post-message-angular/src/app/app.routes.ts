@@ -8,14 +8,25 @@ import { RolesComponent } from './features/dashboard/pages/roles.component';
 import { PermissionsComponent } from './features/dashboard/pages/permissions.component';
 import { CommentsComponent } from './features/dashboard/pages/comments.component';
 import { FilesComponent } from './features/dashboard/pages/files.component';
+import { HomeComponent } from './features/home/pages/home.component';
+import { PostDetailComponent } from './features/posts/pages/post-detail.component';
 import { authGuard } from './core/guards/auth.guard';
 import { postsRoutes } from './features/posts/posts.routes';
 
 export const routes: Routes = [
+  // Public routes (no authGuard)
+  {
+    path: '',
+    component: HomeComponent,
+  },
+  {
+    path: 'posts/:id',
+    component: PostDetailComponent,
+  },
   {
     path: 'auth',
     component: AuthComponent,
-    children: authRoutes
+    children: authRoutes,
   },
   {
     path: 'dashboard',
@@ -28,9 +39,8 @@ export const routes: Routes = [
       { path: 'roles', component: RolesComponent },
       { path: 'permissions', component: PermissionsComponent },
       { path: 'comments', component: CommentsComponent },
-      { path: 'files', component: FilesComponent }
-    ]
+      { path: 'files', component: FilesComponent },
+    ],
   },
-  { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
-  { path: '**', redirectTo: 'auth/login' }
+  { path: '**', redirectTo: '' },
 ];

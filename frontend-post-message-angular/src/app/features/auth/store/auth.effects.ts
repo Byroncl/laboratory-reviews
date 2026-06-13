@@ -5,6 +5,8 @@ import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 import * as AuthActions from './auth.actions';
 import { Router } from '@angular/router';
+import { decodeJwt } from '../utils/jwt.util';
+import { AuthUser } from '../models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthEffects {
@@ -15,18 +17,23 @@ export class AuthEffects {
   login$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.login),
-      switchMap(({ email, password }) =>
-        this.authService.login(email, password).pipe(
-          map(({ user, token }) => {
+      switchMap(({ username, password }) =>
+        this.authService.login(username, password).pipe(
+          map(({ access_token }) => {
+            const claims = decodeJwt(access_token);
+            if (!claims) {
+              return AuthActions.loginFailure({ error: 'Invalid token' });
+            }
+            const user: AuthUser = { id: claims.sub, username: claims.username, role: claims.type };
             if (typeof window !== 'undefined') {
-              localStorage.setItem('auth_token', token);
+              localStorage.setItem('auth_token', access_token);
               localStorage.setItem('auth_user', JSON.stringify(user));
             }
-            return AuthActions.loginSuccess({ user, token });
+            return AuthActions.loginSuccess({ user, token: access_token });
           }),
           catchError((error) =>
             of(AuthActions.loginFailure({
-              error: error.error?.message || 'Credenciales inválidas'
+              error: error.error?.message || 'Invalid credentials'
             }))
           )
         )
@@ -38,7 +45,14 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
-        tap(() => this.router.navigate(['/dashboard']))
+        tap(() => {
+          // Read returnUrl from the current URL's query params if we were redirected here
+          const urlParams = new URLSearchParams(
+            typeof window !== 'undefined' ? window.location.search : ''
+          );
+          const returnUrl = urlParams.get('returnUrl') ?? '/dashboard';
+          this.router.navigate([returnUrl]);
+        })
       ),
     { dispatch: false }
   );
@@ -46,18 +60,23 @@ export class AuthEffects {
   register$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.register),
-      switchMap(({ email, password, name }) =>
-        this.authService.register(email, password, name).pipe(
-          map(({ user, token }) => {
+      switchMap(({ username, password }) =>
+        this.authService.login(username, password).pipe(
+          map(({ access_token }) => {
+            const claims = decodeJwt(access_token);
+            if (!claims) {
+              return AuthActions.registerFailure({ error: 'Invalid token' });
+            }
+            const user: AuthUser = { id: claims.sub, username: claims.username, role: claims.type };
             if (typeof window !== 'undefined') {
-              localStorage.setItem('auth_token', token);
+              localStorage.setItem('auth_token', access_token);
               localStorage.setItem('auth_user', JSON.stringify(user));
             }
             return AuthActions.registerSuccess({ user });
           }),
           catchError((error) =>
             of(AuthActions.registerFailure({
-              error: error.error?.message || 'El registro falló'
+              error: error.error?.message || 'Registration failed'
             }))
           )
         )
@@ -94,8 +113,7 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.loadAuthFromStorage),
         tap(() => {
-          // La acción solo dispara la carga, el reducer maneja el estado
-          // No devolvemos nada para evitar loops infinitos
+          // Reducer handles state hydration; this effect exists as a hook point only
         })
       ),
     { dispatch: false }

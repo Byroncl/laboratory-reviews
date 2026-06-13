@@ -1,13 +1,16 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { catchError, of, switchMap } from 'rxjs';
+import { Store } from '@ngrx/store';
 import { PostsService } from '../services/posts.service';
 import { CommentsService } from '../services/comments.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { LoadingSkeletonComponent } from '../../../shared/components/loading-skeleton/loading-skeleton.component';
 import { ErrorAlertComponent } from '../../../shared/components/error-alert/error-alert.component';
+import { selectIsAuthenticated } from '../../auth/store/auth.selectors';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-post-detail',
@@ -23,7 +26,7 @@ import { ErrorAlertComponent } from '../../../shared/components/error-alert/erro
   template: `
     <div class="space-y-6">
       <div class="flex items-center gap-4">
-        <a routerLink="/dashboard/posts" class="text-gray-500 hover:text-primary text-sm">
+        <a routerLink="/" class="text-gray-500 hover:text-primary text-sm">
           &larr; Back to Posts
         </a>
       </div>
@@ -46,26 +49,28 @@ import { ErrorAlertComponent } from '../../../shared/components/error-alert/erro
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="text-xl font-bold mb-4">Comments ({{ comments().length }})</h2>
 
-          <form [formGroup]="commentForm" (ngSubmit)="submitComment()" class="mb-6">
-            <textarea
-              formControlName="content"
-              [attr.data-cy]="'comment-textarea'"
-              placeholder="Write a comment..."
-              rows="3"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition resize-none"
-            ></textarea>
-            @if (commentForm.get('content')?.invalid && commentForm.get('content')?.touched) {
-              <p class="text-red-500 text-sm mt-1">Content is required (min 3 characters)</p>
-            }
-            <button
-              type="submit"
-              [attr.data-cy]="'post-comment-button'"
-              [disabled]="commentForm.invalid || submitting()"
-              class="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm disabled:opacity-50"
-            >
-              {{ submitting() ? 'Posting...' : 'Post Comment' }}
-            </button>
-          </form>
+          @if (isAuthenticated$ | async) {
+            <form data-cy="comment-form" [formGroup]="commentForm" (ngSubmit)="submitComment()" class="mb-6">
+              <textarea
+                formControlName="content"
+                [attr.data-cy]="'comment-textarea'"
+                placeholder="Write a comment..."
+                rows="3"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition resize-none"
+              ></textarea>
+              @if (commentForm.get('content')?.invalid && commentForm.get('content')?.touched) {
+                <p class="text-red-500 text-sm mt-1">Content is required (min 3 characters)</p>
+              }
+              <button
+                type="submit"
+                [attr.data-cy]="'post-comment-button'"
+                [disabled]="commentForm.invalid || submitting()"
+                class="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm disabled:opacity-50"
+              >
+                {{ submitting() ? 'Posting...' : 'Post Comment' }}
+              </button>
+            </form>
+          }
 
           @if (commentsLoading()) {
             <app-loading-skeleton [count]="3" />
@@ -77,21 +82,22 @@ import { ErrorAlertComponent } from '../../../shared/components/error-alert/erro
                     <strong class="text-sm text-primary">{{ comment.userId }}</strong>
                     <div class="flex items-center gap-2">
                       <span class="text-xs text-gray-400">{{ comment.createdAt | date: 'short' }}</span>
-                      <!-- Edit/Delete actions (visible on hover) -->
-                      <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          (click)="editComment(comment._id ?? comment.id)"
-                          [attr.data-cy]="'edit-comment-button'"
-                          class="text-blue-500 hover:text-blue-700 text-sm px-1"
-                          title="Edit comment"
-                        >&#9998;</button>
-                        <button
-                          (click)="deleteComment(comment._id ?? comment.id)"
-                          [attr.data-cy]="'delete-comment-button'"
-                          class="text-red-500 hover:text-red-700 text-sm px-1"
-                          title="Delete comment"
-                        >&#128465;</button>
-                      </div>
+                      @if (isAuthenticated$ | async) {
+                        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            (click)="editComment(comment._id ?? comment.id)"
+                            [attr.data-cy]="'edit-comment-button'"
+                            class="text-blue-500 hover:text-blue-700 text-sm px-1"
+                            title="Edit comment"
+                          >&#9998;</button>
+                          <button
+                            (click)="deleteComment(comment._id ?? comment.id)"
+                            [attr.data-cy]="'delete-comment-button'"
+                            class="text-red-500 hover:text-red-700 text-sm px-1"
+                            title="Delete comment"
+                          >&#128465;</button>
+                        </div>
+                      }
                     </div>
                   </div>
 
@@ -130,13 +136,15 @@ import { ErrorAlertComponent } from '../../../shared/components/error-alert/erro
                       </div>
                     }
 
-                    <button
-                      (click)="toggleReply(comment._id ?? comment.id)"
-                      [attr.data-cy]="'reply-button'"
-                      class="text-xs text-blue-600 hover:underline"
-                    >
-                      Reply
-                    </button>
+                    @if (isAuthenticated$ | async) {
+                      <button
+                        (click)="toggleReply(comment._id ?? comment.id)"
+                        [attr.data-cy]="'reply-button'"
+                        class="text-xs text-blue-600 hover:underline"
+                      >
+                        Reply
+                      </button>
+                    }
                   }
 
                   @if (replyingTo() === (comment._id ?? comment.id)) {
@@ -186,10 +194,14 @@ import { ErrorAlertComponent } from '../../../shared/components/error-alert/erro
 })
 export class PostDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly postsService = inject(PostsService);
   private readonly commentsService = inject(CommentsService);
   private readonly notif = inject(NotificationService);
   private readonly fb = inject(FormBuilder);
+  private readonly store = inject(Store);
+
+  isAuthenticated$: Observable<boolean> = this.store.select(selectIsAuthenticated);
 
   get post() {
     return this.postsService.selectedPost;

@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { Observable } from 'rxjs';
-import { User } from '../../features/auth/models/auth.model';
+import { AuthUser as User } from '../../features/auth/models/auth.model';
 import { TranslatePipe } from '../pipes/translate.pipe';
 import { I18nService } from '../services/i18n.service';
 
@@ -73,11 +73,11 @@ export interface MenuItem {
           <div class="space-y-4">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <span class="text-white font-bold text-sm">{{ user.name.charAt(0).toUpperCase() }}</span>
+                <span class="text-white font-bold text-sm">{{ user.username.charAt(0).toUpperCase() }}</span>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-primary truncate">{{ user.name }}</p>
-                <p class="text-xs text-secondary truncate">{{ user.email }}</p>
+                <p class="text-sm font-medium text-primary truncate">{{ user.username }}</p>
+                <p class="text-xs text-secondary truncate">{{ user.role }}</p>
               </div>
             </div>
 
