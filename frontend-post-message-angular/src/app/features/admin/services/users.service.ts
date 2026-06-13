@@ -2,13 +2,14 @@ import { Injectable, signal, computed } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
-import { User, CreateUserDto, UpdateUserDto, UsersPaginatedResponse } from '../../../shared/models/user.model';
+import { User, CreateUserDto, UpdateUserDto, ChangePasswordDto, UserStats, UsersPaginatedResponse } from '../../../shared/models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class UsersService {
   readonly users$ = signal<User[]>([]);
   readonly loading$ = signal<boolean>(false);
   readonly error$ = signal<string | null>(null);
+  readonly stats$ = signal<UserStats | null>(null);
 
   readonly pagination = signal<{ skip: number; limit: number; total: number }>({
     skip: 0,
@@ -36,12 +37,21 @@ export class UsersService {
     return (user._id ?? user.id) as string;
   }
 
-  loadUsers(skip: number = 0, limit: number = 10): Observable<UsersPaginatedResponse> {
-    console.log('[UsersService] loadUsers', { skip, limit });
+  loadUsers(
+    skip: number = 0,
+    limit: number = 10,
+    filters?: { role?: string; status?: string; email?: string }
+  ): Observable<UsersPaginatedResponse> {
+    console.log('[UsersService] loadUsers', { skip, limit, filters });
     this.loading$.set(true);
     this.error$.set(null);
 
-    return this.api.get<UsersPaginatedResponse>('/users', { skip, limit }).pipe(
+    const params: Record<string, unknown> = { skip, limit };
+    if (filters?.role) params.role = filters.role;
+    if (filters?.status) params.status = filters.status;
+    if (filters?.email) params.email = filters.email;
+
+    return this.api.get<UsersPaginatedResponse>('/users', params).pipe(
       tap(response => {
         const { items, total, skip: responseSkip, limit: responseLimit } = response.data;
         this.users$.set(items ?? []);
@@ -130,6 +140,104 @@ export class UsersService {
         return throwError(() => err);
       })
     );
+  }
+
+  assignRole(userId: string, roleId: string): Observable<{ data: User; message: string }> {
+    console.log('[UsersService] assignRole', { userId, roleId });
+    return this.api.put<{ data: User; message: string }>(`/users/${userId}/role`, { roleId }).pipe(
+      tap(response => {
+        const updated = response.data;
+        const index = this.users$().findIndex(u => this.userId(u) === userId);
+        if (index !== -1) {
+          const users = [...this.users$()];
+          users[index] = updated;
+          this.users$.set(users);
+        }
+        console.log('[UsersService] assignRole success', updated);
+      }),
+      catchError(err => {
+        const errorMsg = err?.message || 'Failed to assign role';
+        this.error$.set(errorMsg);
+        console.error('[UsersService] assignRole error', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  changePassword(userId: string, dto: ChangePasswordDto): Observable<{ data: null; message: string }> {
+    console.log('[UsersService] changePassword', { userId });
+    return this.api.put<{ data: null; message: string }>(`/users/${userId}/password`, dto).pipe(
+      catchError(err => {
+        const errorMsg = err?.message || 'Failed to change password';
+        this.error$.set(errorMsg);
+        console.error('[UsersService] changePassword error', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  activateUser(id: string): Observable<{ data: User; message: string }> {
+    console.log('[UsersService] activateUser', { id });
+    return this.api.put<{ data: User; message: string }>(`/users/${id}/activate`, {}).pipe(
+      tap(response => {
+        const updated = response.data;
+        const index = this.users$().findIndex(u => this.userId(u) === id);
+        if (index !== -1) {
+          const users = [...this.users$()];
+          users[index] = updated;
+          this.users$.set(users);
+        }
+        console.log('[UsersService] activateUser success', updated);
+      }),
+      catchError(err => {
+        const errorMsg = err?.message || 'Failed to activate user';
+        this.error$.set(errorMsg);
+        console.error('[UsersService] activateUser error', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  deactivateUser(id: string): Observable<{ data: User; message: string }> {
+    console.log('[UsersService] deactivateUser', { id });
+    return this.api.put<{ data: User; message: string }>(`/users/${id}/deactivate`, {}).pipe(
+      tap(response => {
+        const updated = response.data;
+        const index = this.users$().findIndex(u => this.userId(u) === id);
+        if (index !== -1) {
+          const users = [...this.users$()];
+          users[index] = updated;
+          this.users$.set(users);
+        }
+        console.log('[UsersService] deactivateUser success', updated);
+      }),
+      catchError(err => {
+        const errorMsg = err?.message || 'Failed to deactivate user';
+        this.error$.set(errorMsg);
+        console.error('[UsersService] deactivateUser error', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  loadStats(): Observable<{ data: UserStats; message: string }> {
+    console.log('[UsersService] loadStats');
+    return this.api.get<{ data: UserStats; message: string }>('/users/stats/overview').pipe(
+      tap(response => {
+        this.stats$.set(response.data);
+        console.log('[UsersService] loadStats success', response.data);
+      }),
+      catchError(err => {
+        const errorMsg = err?.message || 'Failed to load stats';
+        this.error$.set(errorMsg);
+        console.error('[UsersService] loadStats error', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  getProfile(): Observable<{ data: User; message: string }> {
+    return this.api.get<{ data: User; message: string }>('/users/me/profile');
   }
 
   nextPage(): void {

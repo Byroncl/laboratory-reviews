@@ -44,18 +44,20 @@ export class PostsController {
   }
 
   @Auth()
-  @ApiOperation({ summary: 'Get all posts (paginated)' })
+  @ApiOperation({ summary: 'Get all posts (paginated with filters)' })
   @ApiResponse({ status: 200, description: 'Paginated list of posts' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get()
   async findAll(
     @Query() paginationDto: PaginationQueryDto,
-    @Query('categoryId') categoryId?: string
+    @Query('categoryId') categoryId?: string,
+    @Query('status') status?: string,
+    @Query('author') author?: string
   ) {
     const result = await this.postsService.findAllPaginated(
       paginationDto.skip,
       paginationDto.limit,
-      categoryId
+      { categoryId, status, author }
     );
     return ApiRes.success(result);
   }

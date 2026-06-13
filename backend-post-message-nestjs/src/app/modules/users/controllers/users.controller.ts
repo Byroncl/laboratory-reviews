@@ -8,6 +8,7 @@ import {
   Param,
   Query,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -29,6 +30,9 @@ import { PaginationQueryDto } from '../../../core/dto/pagination.dto';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { CurrentUser } from '../../../core/decorators/current-user.decorator';
 import type { CurrentUserPayload } from '../../../core/decorators/current-user.decorator';
+import { ChangePasswordDto } from '../dto/change-password.dto';
+import { PermissionsGuard } from '../../../core/guards/permissions.guard';
+import { HasPermission } from '../../../core/decorators/has-permission.decorator';
 
 @ApiTags('users')
 @ApiHeader({
@@ -55,14 +59,20 @@ export class UsersController {
   }
 
   @Auth()
-  @ApiOperation({ summary: 'Get all users (paginated)' })
+  @ApiOperation({ summary: 'Get all users (paginated with filters)' })
   @ApiResponse({ status: 200, description: 'Paginated list of users' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get()
-  async findAll(@Query() paginationDto: PaginationQueryDto) {
+  async findAll(
+    @Query() paginationDto: PaginationQueryDto,
+    @Query('role') role?: string,
+    @Query('status') status?: string,
+    @Query('email') email?: string
+  ) {
     const result = await this.usersService.findAllPaginated(
       paginationDto.skip,
       paginationDto.limit,
+      { role, status, email }
     );
     return ApiRes.success(result);
   }
@@ -148,5 +158,75 @@ export class UsersController {
       updated,
       this.i18n.translate('users.language_updated'),
     );
+  }
+
+  @Auth()
+  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiResponse({ status: 200, description: 'Current user profile', type: UserResponseDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Get('me/profile')
+  async getProfile(@CurrentUser() currentUser: CurrentUserPayload) {
+    const user = await this.usersService.findOne(currentUser.userId);
+    return ApiRes.success(user);
+  }
+
+  @Auth()
+  @ApiOperation({ summary: 'Change password for a user' })
+  @ApiParam({ name: 'id', type: 'string', description: 'User MongoDB ObjectId' })
+  @ApiBody({ type: ChangePasswordDto })
+  @ApiResponse({ status: 200, description: 'Password changed successfully' })
+  @ApiResponse({ status: 400, description: 'Passwords do not match or current password is invalid' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Put(':id/password')
+  async changePassword(
+    @Param() findOneDto: FindOneDto,
+    @Body() changePasswordDto: ChangePasswordDto,
+    @CurrentUser() currentUser: CurrentUserPayload,
+  ) {
+    if (findOneDto.id !== currentUser.userId) {
+      throw new BadRequestException('Cannot change another user password');
+    }
+    await this.usersService.changePassword(findOneDto.id, changePasswordDto);
+    return ApiRes.success(null, this.i18n.translate('users.password_changed'));
+  }
+
+  @Auth()
+  @UseGuards(PermissionsGuard)
+  @HasPermission('users:manage')
+  @ApiOperation({ summary: 'Activate a user (admin only)' })
+  @ApiParam({ name: 'id', type: 'string', description: 'User MongoDB ObjectId' })
+  @ApiResponse({ status: 200, description: 'User activated', type: UserResponseDto })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Put(':id/activate')
+  async activate(@Param() findOneDto: FindOneDto) {
+    const user = await this.usersService.activate(findOneDto.id);
+    return ApiRes.success(user, this.i18n.translate('users.activated'));
+  }
+
+  @Auth()
+  @UseGuards(PermissionsGuard)
+  @HasPermission('users:manage')
+  @ApiOperation({ summary: 'Deactivate a user (admin only)' })
+  @ApiParam({ name: 'id', type: 'string', description: 'User MongoDB ObjectId' })
+  @ApiResponse({ status: 200, description: 'User deactivated', type: UserResponseDto })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Put(':id/deactivate')
+  async deactivate(@Param() findOneDto: FindOneDto) {
+    const user = await this.usersService.deactivate(findOneDto.id);
+    return ApiRes.success(user, this.i18n.translate('users.deactivated'));
+  }
+
+  @Auth()
+  @UseGuards(PermissionsGuard)
+  @HasPermission('users:manage')
+  @ApiOperation({ summary: 'Get user statistics (admin only)' })
+  @ApiResponse({ status: 200, description: 'User statistics' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Get('stats/overview')
+  async getStats() {
+    const stats = await this.usersService.getStats();
+    return ApiRes.success(stats);
   }
 }

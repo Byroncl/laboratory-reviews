@@ -7,6 +7,7 @@ import { Role, CreateRoleDto, UpdateRoleDto, RolesPaginatedResponse } from '../.
 @Injectable({ providedIn: 'root' })
 export class RolesService {
   readonly roles$ = signal<Role[]>([]);
+  readonly roles = this.roles$; // Alias for consistency
   readonly loading$ = signal<boolean>(false);
   readonly error$ = signal<string | null>(null);
 
@@ -36,12 +37,15 @@ export class RolesService {
     return (role._id ?? role.id) as string;
   }
 
-  loadRoles(skip: number = 0, limit: number = 10): Observable<RolesPaginatedResponse> {
-    console.log('[RolesService] loadRoles', { skip, limit });
+  loadRoles(skip: number = 0, limit: number = 10, name?: string): Observable<RolesPaginatedResponse> {
+    console.log('[RolesService] loadRoles', { skip, limit, name });
     this.loading$.set(true);
     this.error$.set(null);
 
-    return this.api.get<RolesPaginatedResponse>('/roles', { skip, limit }).pipe(
+    const params: Record<string, unknown> = { skip, limit };
+    if (name) params.name = name;
+
+    return this.api.get<RolesPaginatedResponse>('/roles', params).pipe(
       tap(response => {
         const data = response.data;
         if (data && 'items' in data) {

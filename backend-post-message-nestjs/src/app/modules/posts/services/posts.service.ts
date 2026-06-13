@@ -32,8 +32,23 @@ export class PostsService {
     return this.postModel.find(filter).exec();
   }
 
-  async findAllPaginated(skip: number, limit: number, categoryId?: string): Promise<PaginatedResponse<Post>> {
-    const filter = categoryId ? { categoryId } : {};
+  async findAllPaginated(
+    skip: number,
+    limit: number,
+    filters?: { categoryId?: string; status?: string; author?: string }
+  ): Promise<PaginatedResponse<Post>> {
+    const filter: Record<string, unknown> = {};
+
+    if (filters?.categoryId) {
+      filter.categoryId = filters.categoryId;
+    }
+    if (filters?.status) {
+      filter.status = filters.status;
+    }
+    if (filters?.author) {
+      filter.author = { $regex: filters.author, $options: 'i' };
+    }
+
     const [items, total] = await Promise.all([
       this.postModel.find(filter).skip(skip).limit(limit).exec(),
       this.postModel.countDocuments(filter).exec(),

@@ -7,7 +7,11 @@ import { PaginatedResponse } from 'src/app/core/dto/pagination.dto';
 export class FindAllUsersPaginatedUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(skip: number, limit: number): Promise<PaginatedResponse<User>> {
-    return this.userRepository.findAllPaginated(skip, limit);
+  async execute(
+    skip: number,
+    limit: number,
+    filters?: { role?: string; status?: string; email?: string }
+  ): Promise<PaginatedResponse<User>> {
+    return this.userRepository.findAllPaginated(skip, limit, filters);
   }
 }

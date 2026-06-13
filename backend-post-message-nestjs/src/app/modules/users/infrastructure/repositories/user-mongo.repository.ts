@@ -35,10 +35,26 @@ export class UserMongoRepository implements UserRepository {
     return this.userModel.find().exec();
   }
 
-  async findAllPaginated(skip: number, limit: number): Promise<PaginatedResponse<User>> {
+  async findAllPaginated(
+    skip: number,
+    limit: number,
+    filters?: { role?: string; status?: string; email?: string }
+  ): Promise<PaginatedResponse<User>> {
+    const query: Record<string, unknown> = {};
+
+    if (filters?.role) {
+      query.role = filters.role;
+    }
+    if (filters?.status) {
+      query.status = filters.status;
+    }
+    if (filters?.email) {
+      query.email = { $regex: filters.email, $options: 'i' };
+    }
+
     const [items, total] = await Promise.all([
-      this.userModel.find().skip(skip).limit(limit).exec(),
-      this.userModel.countDocuments().exec(),
+      this.userModel.find(query).skip(skip).limit(limit).exec(),
+      this.userModel.countDocuments(query).exec(),
     ]);
 
     return {

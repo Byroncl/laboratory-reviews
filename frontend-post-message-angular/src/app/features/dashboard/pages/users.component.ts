@@ -349,19 +349,22 @@ export class UsersComponent implements OnInit, OnDestroy {
 
   onPageChange(page: number): void {
     const skip = (page - 1) * this.pageSize;
-    this.usersService.loadUsers(skip, this.pageSize).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.updateStats();
-      },
-      error: () => {
-        this.notificationService.toast('Error al cargar usuarios', 'error');
-      }
-    });
+    this.loadUsersWithFilters(skip);
   }
 
   private loadCurrentPage(): void {
     const { skip } = this.usersService.pagination();
-    this.usersService.loadUsers(skip, this.pageSize).pipe(takeUntil(this.destroy$)).subscribe({
+    this.loadUsersWithFilters(skip);
+  }
+
+  private loadUsersWithFilters(skip: number): void {
+    const filters = {
+      role: this.roleFilter || undefined,
+      status: this.statusFilter || undefined,
+      email: this.globalSearch || undefined
+    };
+
+    this.usersService.loadUsers(skip, this.pageSize, filters).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
         this.updateStats();
       },

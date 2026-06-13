@@ -74,9 +74,17 @@ export class PostsService {
     return (post._id ?? post.id) as string;
   }
 
-  loadPosts(skip: number = 0, limit: number = 10): Observable<{ data: Post[] | { items: Post[]; total: number }; message: string }> {
+  loadPosts(
+    skip: number = 0,
+    limit: number = 10,
+    filters?: { status?: string; author?: string }
+  ): Observable<{ data: Post[] | { items: Post[]; total: number }; message: string }> {
     this.loading.set(true);
-    return this.api.get<{ data: Post[] | { items: Post[]; total: number }; message: string }>('/posts', { skip, limit }).pipe(
+    const params: Record<string, unknown> = { skip, limit };
+    if (filters?.status) params.status = filters.status;
+    if (filters?.author) params.author = filters.author;
+
+    return this.api.get<{ data: Post[] | { items: Post[]; total: number }; message: string }>('/posts', params).pipe(
       delay(300),
       tap(response => {
         const data = response.data;
@@ -100,7 +108,11 @@ export class PostsService {
     const { skip, limit, total } = this.pagination();
     const nextSkip = skip + limit;
     if (nextSkip < total) {
-      this.loadPosts(nextSkip, limit).subscribe();
+      const filters = {
+        status: this.selectedPost()?.status,
+        author: this.filterAuthor() || undefined
+      };
+      this.loadPosts(nextSkip, limit, filters).subscribe();
     }
   }
 
@@ -108,7 +120,11 @@ export class PostsService {
     const { skip, limit } = this.pagination();
     const prevSkip = Math.max(0, skip - limit);
     if (prevSkip !== skip) {
-      this.loadPosts(prevSkip, limit).subscribe();
+      const filters = {
+        status: this.selectedPost()?.status,
+        author: this.filterAuthor() || undefined
+      };
+      this.loadPosts(prevSkip, limit, filters).subscribe();
     }
   }
 

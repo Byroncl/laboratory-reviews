@@ -16,6 +16,7 @@ import {
 import { ModalService, NotificationService } from '../../../shared/services/index';
 import { RolesService } from '../../admin/services/roles.service';
 import { Role } from '../../../shared/models/role.model';
+import { RoleFormComponent } from '../components/role-form.component';
 
 @Component({
   selector: 'app-roles',
@@ -28,16 +29,40 @@ import { Role } from '../../../shared/models/role.model';
     PaginationComponent,
     BadgeComponent,
     SpinnerComponent,
-    SkeletonComponent
+    SkeletonComponent,
+    RoleFormComponent
   ],
   template: `
     <div class="space-y-6">
+      <!-- Form Modal -->
+      @if (showRoleForm) {
+        <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-900">
+              {{ editingRoleId ? 'Editar Rol' : 'Crear Nuevo Rol' }}
+            </h2>
+            <button
+              (click)="closeForm()"
+              class="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+          <app-role-form
+            [editingRoleId]="editingRoleId"
+            (formSubmitted)="onFormSubmitted()"
+            (formCancelled)="closeForm()"
+          ></app-role-form>
+        </div>
+      }
+
       <!-- Header -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 class="text-3xl font-bold text-primary">{{ 'sidebar.roles' | t }}</h1>
         <button
           (click)="onCreateRole()"
-          class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap"
+          [disabled]="showRoleForm"
+          class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
         >
           + Nuevo Rol
         </button>
@@ -109,6 +134,8 @@ export class RolesComponent implements OnInit, OnDestroy {
   globalSearch = '';
   hasActiveFilters = false;
   totalRolesCount = 0;
+  showRoleForm = false;
+  editingRoleId: string | null = null;
   private columnFilters: Record<string, string> = {};
   private destroy$ = new Subject<void>();
 
@@ -146,7 +173,11 @@ export class RolesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.rolesService.loadRoles().pipe(takeUntil(this.destroy$)).subscribe({
+    this.loadRolesWithFilter();
+  }
+
+  private loadRolesWithFilter(): void {
+    this.rolesService.loadRoles(0, 10, this.globalSearch || undefined).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
         this.updateStats();
       },
@@ -166,17 +197,18 @@ export class RolesComponent implements OnInit, OnDestroy {
   }
 
   onCreateRole(): void {
-    this.modalService
-      .openConfirm(
-        'Nuevo Rol',
-        'Funcionalidad de crear roles próximamente disponible.'
-      )
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(result => {
-        if (result.confirmed) {
-          this.notificationService.success('Rol creado', 'El rol se creó correctamente');
-        }
-      });
+    this.showRoleForm = true;
+    this.editingRoleId = null;
+  }
+
+  closeForm(): void {
+    this.showRoleForm = false;
+    this.editingRoleId = null;
+  }
+
+  onFormSubmitted(): void {
+    this.closeForm();
+    this.updateStats();
   }
 
   onTableAction(event: { action: string; row: Record<string, unknown> }): void {
@@ -206,13 +238,8 @@ export class RolesComponent implements OnInit, OnDestroy {
   }
 
   editRole(role: Role): void {
-    this.modalService
-      .openConfirm(
-        `Editar: ${role.name}`,
-        'Funcionalidad de edición próximamente disponible.'
-      )
-      .pipe(takeUntil(this.destroy$))
-      .subscribe();
+    this.editingRoleId = (role._id ?? role.id) as string;
+    this.showRoleForm = true;
   }
 
   deleteRole(role: Role): void {
@@ -242,6 +269,7 @@ export class RolesComponent implements OnInit, OnDestroy {
   onGlobalSearch(): void {
     this.currentPage = 1;
     this.updateActiveFilters();
+    this.loadRolesWithFilter();
   }
 
   onColumnFilter(filters: Array<{ column: string; value: string }>): void {
@@ -281,6 +309,7 @@ export class RolesComponent implements OnInit, OnDestroy {
     this.columnFilters = {};
     this.currentPage = 1;
     this.updateActiveFilters();
+    this.loadRolesWithFilter();
   }
 
   private matchesAllFilters(role: Role): boolean {

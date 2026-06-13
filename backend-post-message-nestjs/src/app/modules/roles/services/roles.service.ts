@@ -18,8 +18,9 @@ export class RolesService {
     return createdRole.save();
   }
 
-  async findAll(): Promise<Role[]> {
-    return this.roleModel.find().populate('permissions').exec();
+  async findAll(name?: string): Promise<Role[]> {
+    const filter = name ? { name: { $regex: name, $options: 'i' } } : {};
+    return this.roleModel.find(filter).populate('permissions').exec();
   }
 
   async findOne(id: string): Promise<Role | null> {

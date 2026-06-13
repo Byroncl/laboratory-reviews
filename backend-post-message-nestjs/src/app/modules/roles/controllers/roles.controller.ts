@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -45,12 +46,12 @@ export class RolesController {
   }
 
   @Auth()
-  @ApiOperation({ summary: 'Get all roles' })
+  @ApiOperation({ summary: 'Get all roles with optional name filter' })
   @ApiResponse({ status: 200, description: 'List of roles', type: [RoleResponseDto] })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get()
-  async findAll() {
-    const roles = await this.rolesService.findAll();
+  async findAll(@Query('name') name?: string) {
+    const roles = await this.rolesService.findAll(name);
     return ApiRes.success(roles);
   }
 

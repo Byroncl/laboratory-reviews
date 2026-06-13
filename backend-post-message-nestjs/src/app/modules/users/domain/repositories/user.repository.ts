@@ -8,7 +8,11 @@ export abstract class UserRepository {
   abstract findOneByUsername(username: string): Promise<User | null>;
   abstract findOneById(id: string): Promise<User | null>;
   abstract findAll(): Promise<User[]>;
-  abstract findAllPaginated(skip: number, limit: number): Promise<PaginatedResponse<User>>;
+  abstract findAllPaginated(
+    skip: number,
+    limit: number,
+    filters?: { role?: string; status?: string; email?: string }
+  ): Promise<PaginatedResponse<User>>;
   abstract update(id: string, updateUserDto: UpdateUserDto): Promise<User | null>;
   abstract remove(id: string): Promise<User | null>;
   abstract updateLanguagePreference(
