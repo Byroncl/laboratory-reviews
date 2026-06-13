@@ -3,6 +3,7 @@ import { CommentsGateway } from './comments.gateway';
 import { CommentsService } from '../services/comments.service';
 import { ReactionsService } from '../services/reactions.service';
 import { TranslationService } from '../../../core/utils/translation.service';
+import { NotificationsService } from '../../notifications/services/notifications.service';
 
 describe('CommentsGateway — reaction events', () => {
   let gateway: CommentsGateway;
@@ -41,6 +42,7 @@ describe('CommentsGateway — reaction events', () => {
             update: jest.fn(),
             remove: jest.fn(),
             findAll: jest.fn(),
+            findOne: jest.fn().mockResolvedValue(null),
             getCommentWithMedia: jest.fn((c) => ({ ...c, media: [] })),
           },
         },
@@ -48,6 +50,10 @@ describe('CommentsGateway — reaction events', () => {
         {
           provide: TranslationService,
           useValue: { translate: jest.fn((key: string) => key) },
+        },
+        {
+          provide: NotificationsService,
+          useValue: { create: jest.fn(), markAsRead: jest.fn() },
         },
       ],
     }).compile();

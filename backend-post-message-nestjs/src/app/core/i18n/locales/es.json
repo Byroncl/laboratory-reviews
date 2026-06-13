@@ -80,6 +80,15 @@
     "already_exists": "Este recurso ya existe",
     "invalid_type": "Tipo de archivo inválido"
   },
+  "notifications": {
+    "comment_created": "{0} comentó en tu post",
+    "reply_created": "{0} respondió a tu comentario",
+    "reaction_added": "{0} reaccionó con {1} a tu comentario",
+    "user_joined": "{0} se unió a los comentarios",
+    "marked_read": "Notificación marcada como leída",
+    "all_marked_read": "Todas las notificaciones marcadas como leídas",
+    "deleted": "Notificación eliminada exitosamente"
+  },
   "common": {
     "success": "Éxito",
     "error": "Un error inesperado ocurrió",

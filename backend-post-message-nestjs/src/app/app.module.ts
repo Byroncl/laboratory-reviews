@@ -15,6 +15,7 @@ import { AuthGuard } from './core/guards/auth.guard';
 import { I18nMiddleware } from './core/middleware/i18n.middleware';
 import { I18nModule } from './modules/i18n/i18n.module';
 import { TransformInterceptor } from './core/interceptors/transform.interceptor';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { TransformInterceptor } from './core/interceptors/transform.interceptor'
     FilesModule,
     AuthModule,
     I18nModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [

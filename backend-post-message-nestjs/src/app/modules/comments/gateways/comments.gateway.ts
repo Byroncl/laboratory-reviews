@@ -10,6 +10,8 @@ import { Logger } from '@nestjs/common';
 import { CommentsService } from '../services/comments.service';
 import { ReactionsService } from '../services/reactions.service';
 import { TranslationService } from '../../../core/utils/translation.service';
+import { NotificationsService } from '../../notifications/services/notifications.service';
+import { NotificationType } from '../../notifications/schemas/notification.schema';
 
 @WebSocketGateway({
   namespace: 'comments',
@@ -34,6 +36,7 @@ export class CommentsGateway
     private readonly commentsService: CommentsService,
     private readonly reactionsService: ReactionsService,
     private readonly i18n: TranslationService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   handleConnection(client: Socket): void {
@@ -98,6 +101,24 @@ export class CommentsGateway
         createdAt: (comment as any).createdAt,
         message: this.i18n.translate('comments.created'),
       });
+
+      // Notify post owner if provided and different from actor
+      if (data.postOwnerId && data.postOwnerId !== user.userId) {
+        const notification = await this.notificationsService.create({
+          userId: data.postOwnerId,
+          type: NotificationType.COMMENT_CREATED,
+          actorId: user.userId,
+          actorName: user.username,
+          postId: data.postId,
+          commentId: (comment as any)._id?.toString(),
+          message: `${user.username} commented on your post`,
+        });
+
+        this.server.emit('notification:received', {
+          userId: data.postOwnerId,
+          notification,
+        });
+      }
 
       client.emit('comment:created:success', {
         id: (comment as any)._id,
@@ -255,6 +276,28 @@ export class CommentsGateway
         username: user.username,
       });
 
+      // Notify parent comment owner if parentCommentId is present
+      if (data.parentCommentId) {
+        const parentComment = await this.commentsService.findOne(data.parentCommentId);
+        if (parentComment && (parentComment as any).userId !== user.userId) {
+          const notification = await this.notificationsService.create({
+            userId: (parentComment as any).userId,
+            type: NotificationType.REPLY_CREATED,
+            actorId: user.userId,
+            actorName: user.username,
+            postId: data.postId ?? (parentComment as any).postId,
+            commentId: data.parentCommentId,
+            parentCommentId: (reply as any)._id?.toString(),
+            message: `${user.username} replied to your comment`,
+          });
+
+          this.server.emit('notification:received', {
+            userId: (parentComment as any).userId,
+            notification,
+          });
+        }
+      }
+
       client.emit('reply:create:success', {
         replyId: (reply as any)._id,
       });
@@ -310,6 +353,28 @@ export class CommentsGateway
         reactions: reactionsSummary,
       });
 
+      // Notify comment owner — skip self-reactions
+      if (data.commentId) {
+        const comment = await this.commentsService.findOne(data.commentId);
+        if (comment && (comment as any).userId !== user.userId) {
+          const notification = await this.notificationsService.create({
+            userId: (comment as any).userId,
+            type: NotificationType.REACTION_ADDED,
+            actorId: user.userId,
+            actorName: user.username,
+            postId: (comment as any).postId,
+            commentId: data.commentId,
+            emoji: reaction.emoji,
+            message: `${user.username} reacted with ${reaction.emoji} to your comment`,
+          });
+
+          this.server.emit('notification:received', {
+            userId: (comment as any).userId,
+            notification,
+          });
+        }
+      }
+
       client.emit('reaction:add:success', {
         emoji: reaction.emoji,
       });
@@ -357,6 +422,26 @@ export class CommentsGateway
       client.emit('error', {
         message: this.i18n.translate('common.error'),
         error: error.message,
+      });
+    }
+  }
+
+  // ─── Notification handlers ─────────────────────────────────────────────────
+
+  @SubscribeMessage('notification:mark-read')
+  async handleMarkNotificationAsRead(
+    client: Socket,
+    data: { notificationId: string },
+  ): Promise<void> {
+    try {
+      const notification = await this.notificationsService.markAsRead(data.notificationId);
+
+      client.emit('notification:marked-read', {
+        notificationId: (notification as any)._id,
+      });
+    } catch (error: any) {
+      client.emit('error', {
+        message: this.i18n.translate('common.error'),
       });
     }
   }

@@ -3,11 +3,14 @@ import { CommentsGateway } from './comments.gateway';
 import { CommentsService } from '../services/comments.service';
 import { ReactionsService } from '../services/reactions.service';
 import { TranslationService } from '../../../core/utils/translation.service';
+import { NotificationsService } from '../../notifications/services/notifications.service';
+import { NotificationType } from '../../notifications/schemas/notification.schema';
 
 describe('CommentsGateway', () => {
   let gateway: CommentsGateway;
   let mockService: jest.Mocked<CommentsService>;
   let mockI18n: jest.Mocked<TranslationService>;
+  let mockNotificationsService: jest.Mocked<NotificationsService>;
   let mockServer: { emit: jest.Mock };
   let mockClient: {
     id: string;
@@ -25,11 +28,17 @@ describe('CommentsGateway', () => {
       getCommentWithMedia: jest.fn((c) => ({ ...c, media: [] })),
       createReply: jest.fn(),
       getCommentThread: jest.fn(),
+      findOne: jest.fn(),
     } as unknown as jest.Mocked<CommentsService>;
 
     mockI18n = {
       translate: jest.fn((key: string) => key),
     } as unknown as jest.Mocked<TranslationService>;
+
+    mockNotificationsService = {
+      create: jest.fn().mockResolvedValue({ _id: 'notif-1', read: false }),
+      markAsRead: jest.fn(),
+    } as unknown as jest.Mocked<NotificationsService>;
 
     mockServer = { emit: jest.fn() };
 
@@ -54,6 +63,7 @@ describe('CommentsGateway', () => {
         { provide: CommentsService, useValue: mockService },
         { provide: ReactionsService, useValue: mockReactionsService },
         { provide: TranslationService, useValue: mockI18n },
+        { provide: NotificationsService, useValue: mockNotificationsService },
       ],
     }).compile();
 
@@ -445,6 +455,200 @@ describe('CommentsGateway', () => {
         count: 0,
         users: [],
       });
+    });
+  });
+
+  // ─── Notification integration ─────────────────────────────────────────────
+
+  describe('notification: comment:create triggers notification', () => {
+    beforeEach(() => {
+      gateway['connectedUsers'].set('socket-1', {
+        userId: 'user-1',
+        username: 'alice',
+      });
+    });
+
+    it('should create a notification when comment is created with postOwnerId', async () => {
+      const commentData = {
+        postId: 'post-1',
+        postOwnerId: 'owner-1',
+        content: 'Test comment',
+      };
+      const createdComment = { _id: 'c1', ...commentData, createdAt: new Date() };
+      mockService.create.mockResolvedValue(createdComment as any);
+
+      await gateway.handleCommentCreate(mockClient as any, commentData);
+
+      expect(mockNotificationsService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'owner-1',
+          type: NotificationType.COMMENT_CREATED,
+          actorId: 'user-1',
+          actorName: 'alice',
+          postId: 'post-1',
+        }),
+      );
+    });
+
+    it('should broadcast notification:received after creating comment notification', async () => {
+      const commentData = {
+        postId: 'post-1',
+        postOwnerId: 'owner-1',
+        content: 'Great post!',
+      };
+      const createdComment = { _id: 'c1', ...commentData, createdAt: new Date() };
+      mockService.create.mockResolvedValue(createdComment as any);
+
+      await gateway.handleCommentCreate(mockClient as any, commentData);
+
+      expect(mockServer.emit).toHaveBeenCalledWith(
+        'notification:received',
+        expect.objectContaining({ userId: 'owner-1' }),
+      );
+    });
+
+    it('should not create notification when postOwnerId is missing', async () => {
+      const commentData = { postId: 'post-1', content: 'No owner' };
+      const createdComment = { _id: 'c1', ...commentData, createdAt: new Date() };
+      mockService.create.mockResolvedValue(createdComment as any);
+
+      await gateway.handleCommentCreate(mockClient as any, commentData);
+
+      expect(mockNotificationsService.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('notification: comment:reply:create triggers notification', () => {
+    beforeEach(() => {
+      gateway['connectedUsers'].set('socket-1', {
+        userId: 'user-1',
+        username: 'alice',
+      });
+    });
+
+    it('should notify parent comment owner when a reply is created', async () => {
+      const replyData = {
+        postId: 'post-1',
+        parentCommentId: 'parent-comment-1',
+        content: 'I agree!',
+      };
+      const createdReply = { _id: 'reply-1', ...replyData };
+      const parentComment = { _id: 'parent-comment-1', userId: 'parent-owner-1', postId: 'post-1' };
+
+      (mockService.createReply as jest.Mock).mockResolvedValue(createdReply);
+      (mockService.findOne as jest.Mock).mockResolvedValue(parentComment);
+
+      await gateway.handleReplyCreate(mockClient as any, replyData);
+
+      expect(mockNotificationsService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'parent-owner-1',
+          type: NotificationType.REPLY_CREATED,
+          actorId: 'user-1',
+        }),
+      );
+    });
+
+    it('should broadcast notification:received for reply', async () => {
+      const replyData = {
+        postId: 'post-1',
+        parentCommentId: 'parent-comment-1',
+        content: 'Replied!',
+      };
+      const createdReply = { _id: 'reply-1', ...replyData };
+      const parentComment = { _id: 'parent-comment-1', userId: 'parent-owner-1', postId: 'post-1' };
+
+      (mockService.createReply as jest.Mock).mockResolvedValue(createdReply);
+      (mockService.findOne as jest.Mock).mockResolvedValue(parentComment);
+
+      await gateway.handleReplyCreate(mockClient as any, replyData);
+
+      expect(mockServer.emit).toHaveBeenCalledWith(
+        'notification:received',
+        expect.objectContaining({ userId: 'parent-owner-1' }),
+      );
+    });
+  });
+
+  describe('notification: reaction:add triggers notification', () => {
+    beforeEach(() => {
+      gateway['connectedUsers'].set('socket-1', {
+        userId: 'reactor-1',
+        username: 'alice',
+      });
+    });
+
+    it('should notify comment owner when a reaction is added by another user', async () => {
+      const reactionData = { commentId: 'comment-1', emoji: '👍' };
+      const reaction = { emoji: '👍' };
+      const comment = { _id: 'comment-1', userId: 'comment-owner-1', postId: 'post-1' };
+
+      const mockReactionsServiceInstance = (gateway as any).reactionsService;
+      mockReactionsServiceInstance.addReaction.mockResolvedValue(reaction);
+      mockReactionsServiceInstance.getReactionsByComment.mockResolvedValue([]);
+      (mockService.findOne as jest.Mock).mockResolvedValue(comment);
+
+      await gateway.handleReactionAdd(mockClient as any, reactionData);
+
+      expect(mockNotificationsService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'comment-owner-1',
+          type: NotificationType.REACTION_ADDED,
+          actorId: 'reactor-1',
+          emoji: '👍',
+        }),
+      );
+    });
+
+    it('should NOT notify user when they react to their own comment', async () => {
+      // Same userId as the comment owner
+      gateway['connectedUsers'].set('socket-1', {
+        userId: 'comment-owner-1',
+        username: 'alice',
+      });
+
+      const reactionData = { commentId: 'comment-1', emoji: '👍' };
+      const reaction = { emoji: '👍' };
+      const comment = { _id: 'comment-1', userId: 'comment-owner-1', postId: 'post-1' };
+
+      const mockReactionsServiceInstance = (gateway as any).reactionsService;
+      mockReactionsServiceInstance.addReaction.mockResolvedValue(reaction);
+      mockReactionsServiceInstance.getReactionsByComment.mockResolvedValue([]);
+      (mockService.findOne as jest.Mock).mockResolvedValue(comment);
+
+      await gateway.handleReactionAdd(mockClient as any, reactionData);
+
+      expect(mockNotificationsService.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('notification:mark-read WebSocket handler', () => {
+    it('should mark notification as read and emit confirmation to client', async () => {
+      const readNotif = { _id: 'notif-1', read: true };
+      mockNotificationsService.markAsRead.mockResolvedValue(readNotif as any);
+
+      await gateway.handleMarkNotificationAsRead(mockClient as any, {
+        notificationId: 'notif-1',
+      });
+
+      expect(mockNotificationsService.markAsRead).toHaveBeenCalledWith('notif-1');
+      expect(mockClient.emit).toHaveBeenCalledWith(
+        'notification:marked-read',
+        expect.objectContaining({ notificationId: 'notif-1' }),
+      );
+    });
+
+    it('should emit error to client when markAsRead throws', async () => {
+      mockNotificationsService.markAsRead.mockRejectedValue(new Error('Not found'));
+
+      await gateway.handleMarkNotificationAsRead(mockClient as any, {
+        notificationId: 'ghost-id',
+      });
+
+      expect(mockClient.emit).toHaveBeenCalledWith(
+        'error',
+        expect.objectContaining({ message: expect.any(String) }),
+      );
     });
   });
 });

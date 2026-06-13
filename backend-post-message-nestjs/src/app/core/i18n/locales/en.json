@@ -80,6 +80,15 @@
     "already_exists": "This resource already exists",
     "invalid_type": "Invalid file type"
   },
+  "notifications": {
+    "comment_created": "{0} commented on your post",
+    "reply_created": "{0} replied to your comment",
+    "reaction_added": "{0} reacted with {1} to your comment",
+    "user_joined": "{0} joined the comments",
+    "marked_read": "Notification marked as read",
+    "all_marked_read": "All notifications marked as read",
+    "deleted": "Notification deleted successfully"
+  },
   "common": {
     "success": "Success",
     "error": "An unexpected error occurred",
