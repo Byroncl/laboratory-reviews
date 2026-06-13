@@ -10,7 +10,22 @@ services:
     volumes:
       - mongo_data:/data/db
 
-  # Servidor de Aplicación (Express) 
+  # Servidor de almacenamiento de objetos (MinIO)
+  minio:
+    image: minio/minio:latest
+    container_name: mi_minio
+    restart: always
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+
+  # Servidor de Aplicación (Express)
   express-app:
     image: node:18-alpine
     container_name: mi_express
@@ -24,9 +39,15 @@ services:
     command: sh -c "npm install && npm run dev"
     depends_on:
       - mongodb
+      - minio
     environment:
       - MONGO_URI=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DB_NAME}?authSource=admin
       - PORT=${NODE_PORT}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
 
 volumes:
   mongo_data:
+  minio_data:
