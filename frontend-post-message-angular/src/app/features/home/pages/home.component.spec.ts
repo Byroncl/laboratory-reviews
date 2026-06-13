@@ -5,6 +5,8 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { Post } from '../../../shared/models/post.model';
+import { provideMockStore, MockStore } from '@ngrx/store/testing';
+import { selectIsAuthenticated } from '../../auth/store/auth.selectors';
 
 const mockPosts: Post[] = [
   { _id: '1', title: 'Post One', content: 'Body one', author: 'alice', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
@@ -40,7 +42,12 @@ describe('HomeComponent', () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
         imports: [HomeComponent, RouterTestingModule],
-        providers: [{ provide: PostsService, useClass: MockPostsService }],
+        providers: [
+          { provide: PostsService, useClass: MockPostsService },
+          provideMockStore({
+            selectors: [{ selector: selectIsAuthenticated, value: false }],
+          }),
+        ],
       }).compileComponents();
 
       fixture = TestBed.createComponent(HomeComponent);
@@ -56,13 +63,38 @@ describe('HomeComponent', () => {
       expect(postCards.length).toBeGreaterThanOrEqual(0); // component renders a list
       expect(component.posts().length).toBe(2);
     }));
+
+    // TEST-FE-003: hero section present in DOM
+    it('renders hero section with title "Discover" (TEST-FE-003)', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      const hero = fixture.nativeElement.querySelector('[data-cy="hero-section"]');
+      expect(hero).toBeTruthy();
+      expect(fixture.nativeElement.textContent).toContain('Discover');
+    }));
+
+    // TEST-FE-004: PostCard list renders
+    it('renders PostCard components for loaded posts (TEST-FE-004)', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      expect(component.posts().length).toBe(2);
+    }));
   });
 
   describe('error state', () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
         imports: [HomeComponent, RouterTestingModule],
-        providers: [{ provide: PostsService, useClass: MockPostsServiceWithError }],
+        providers: [
+          { provide: PostsService, useClass: MockPostsServiceWithError },
+          provideMockStore({
+            selectors: [{ selector: selectIsAuthenticated, value: false }],
+          }),
+        ],
       }).compileComponents();
 
       fixture = TestBed.createComponent(HomeComponent);
