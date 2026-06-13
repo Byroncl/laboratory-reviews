@@ -6,6 +6,7 @@ import { UpdateUserDto } from '../../dto/update-user.dto';
 import { User, UserDocument } from '../../schemas/user.schema';
 import { UserRepository } from '../../domain/repositories/user.repository';
 import { CryptoUtils } from '../../../../../app/core/utils/crypto.utils';
+import { PaginatedResponse } from 'src/app/core/dto/pagination.dto';
 
 @Injectable()
 export class UserMongoRepository implements UserRepository {
@@ -32,6 +33,20 @@ export class UserMongoRepository implements UserRepository {
 
   async findAll(): Promise<User[]> {
     return this.userModel.find().exec();
+  }
+
+  async findAllPaginated(skip: number, limit: number): Promise<PaginatedResponse<User>> {
+    const [items, total] = await Promise.all([
+      this.userModel.find().skip(skip).limit(limit).exec(),
+      this.userModel.countDocuments().exec(),
+    ]);
+
+    return {
+      items,
+      total,
+      skip,
+      limit,
+    };
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
@@ -61,6 +76,43 @@ export class UserMongoRepository implements UserRepository {
         { new: true },
       )
       .populate('role')
+      .exec();
+  }
+
+  async changePassword(id: string, newPasswordHash: string): Promise<User | null> {
+    return this.userModel
+      .findByIdAndUpdate(id, { password_hash: newPasswordHash }, { new: true })
+      .exec();
+  }
+
+  async findOneByEmail(email: string): Promise<User | null> {
+    return this.userModel.findOne({ email }).exec();
+  }
+
+  async activate(id: string): Promise<User | null> {
+    return this.userModel
+      .findByIdAndUpdate(id, { isActive: true }, { new: true })
+      .exec();
+  }
+
+  async deactivate(id: string): Promise<User | null> {
+    return this.userModel
+      .findByIdAndUpdate(id, { isActive: false }, { new: true })
+      .exec();
+  }
+
+  async getStats(): Promise<{ total: number; active: number; verified: number }> {
+    const [total, active, verified] = await Promise.all([
+      this.userModel.countDocuments().exec(),
+      this.userModel.countDocuments({ isActive: true }).exec(),
+      this.userModel.countDocuments({ isVerified: true }).exec(),
+    ]);
+    return { total, active, verified };
+  }
+
+  async updateLastLogin(id: string): Promise<void> {
+    await this.userModel
+      .findByIdAndUpdate(id, { lastLoginAt: new Date() })
       .exec();
   }
 }

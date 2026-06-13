@@ -3,12 +3,12 @@ import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class PaginationQueryDto {
-  @ApiPropertyOptional({ example: 1, description: 'Page number (starts at 1)', minimum: 1 })
+  @ApiPropertyOptional({ example: 0, description: 'Number of items to skip (offset)', minimum: 0 })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(1)
-  page: number = 1;
+  @Min(0)
+  skip: number = 0;
 
   @ApiPropertyOptional({ example: 10, description: 'Items per page (max 100)', minimum: 1, maximum: 100 })
   @IsOptional()
@@ -20,13 +20,15 @@ export class PaginationQueryDto {
 }
 
 export interface PaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
+  items: T[];
+  total: number;
+  skip: number;
+  limit: number;
+}
+
+export interface PageInfo {
+  current: number;
+  total: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }

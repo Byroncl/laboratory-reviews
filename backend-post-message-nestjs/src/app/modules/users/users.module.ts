@@ -7,6 +7,7 @@ import { UserRepository } from './domain/repositories/user.repository';
 import { UserMongoRepository } from './infrastructure/repositories/user-mongo.repository';
 import { CreateUserUseCase } from './domain/use-cases/create-user.use-case';
 import { FindAllUsersUseCase } from './domain/use-cases/find-all-users.use-case';
+import { FindAllUsersPaginatedUseCase } from './domain/use-cases/find-all-users-paginated.use-case';
 import { FindUserByUsernameUseCase } from './domain/use-cases/find-user-by-username.use-case';
 import { FindUserByIdUseCase } from './domain/use-cases/find-user-by-id.use-case';
 import { UpdateUserUseCase } from './domain/use-cases/update-user.use-case';
@@ -24,6 +25,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
     UsersService,
     CreateUserUseCase,
     FindAllUsersUseCase,
+    FindAllUsersPaginatedUseCase,
     FindUserByUsernameUseCase,
     FindUserByIdUseCase,
     UpdateUserUseCase,

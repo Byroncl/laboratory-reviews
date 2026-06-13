@@ -6,6 +6,7 @@ import {
   Put,
   Delete,
   Param,
+  Query,
   BadRequestException,
 } from '@nestjs/common';
 import {
@@ -24,6 +25,7 @@ import { UserResponseDto } from '../dto/user-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { PaginationQueryDto } from '../../../core/dto/pagination.dto';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { CurrentUser } from '../../../core/decorators/current-user.decorator';
 import type { CurrentUserPayload } from '../../../core/decorators/current-user.decorator';
@@ -53,13 +55,16 @@ export class UsersController {
   }
 
   @Auth()
-  @ApiOperation({ summary: 'Get all users' })
-  @ApiResponse({ status: 200, description: 'List of users', type: [UserResponseDto] })
+  @ApiOperation({ summary: 'Get all users (paginated)' })
+  @ApiResponse({ status: 200, description: 'Paginated list of users' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get()
-  async findAll() {
-    const users = await this.usersService.findAll();
-    return ApiRes.success(users);
+  async findAll(@Query() paginationDto: PaginationQueryDto) {
+    const result = await this.usersService.findAllPaginated(
+      paginationDto.skip,
+      paginationDto.limit,
+    );
+    return ApiRes.success(result);
   }
 
   @Auth()
