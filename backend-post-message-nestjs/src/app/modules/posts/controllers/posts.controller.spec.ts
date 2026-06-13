@@ -15,6 +15,12 @@ describe('PostsController', () => {
     content: 'Test content',
   } as any;
 
+  const mockPostWithImage = {
+    ...mockPost,
+    imageUrl: 'http://localhost:9000/posts/photo.jpg',
+    imageFilename: 'photo.jpg',
+  } as any;
+
   beforeEach(async () => {
     mockPostsService = {
       create: jest.fn(),
@@ -47,6 +53,32 @@ describe('PostsController', () => {
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockPost);
       expect(mockPostsService.create).toHaveBeenCalledWith(dto);
+    });
+
+    it('should create a post with imageUrl', async () => {
+      const dto: CreatePostDto = {
+        title: 'Test Post',
+        content: 'Test content',
+        imageUrl: 'http://localhost:9000/posts/photo.jpg',
+        imageFilename: 'photo.jpg',
+      };
+      mockPostsService.create.mockResolvedValue(mockPostWithImage);
+
+      const response = await controller.create(dto);
+
+      expect(response.success).toBe(true);
+      expect(response.data).toEqual(mockPostWithImage);
+      expect(mockPostsService.create).toHaveBeenCalledWith(dto);
+    });
+
+    it('should create a post without image', async () => {
+      const dto: CreatePostDto = { title: 'No Image Post', content: 'Content' };
+      mockPostsService.create.mockResolvedValue(mockPost);
+
+      const response = await controller.create(dto);
+
+      expect(response.success).toBe(true);
+      expect(response.data).not.toHaveProperty('imageUrl');
     });
   });
 
@@ -108,6 +140,21 @@ describe('PostsController', () => {
         '507f1f77bcf86cd799439011',
         dto,
       );
+    });
+
+    it('should replace image when updating with new imageUrl', async () => {
+      const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439011' };
+      const dto: UpdatePostDto = {
+        imageUrl: 'http://localhost:9000/posts/new.jpg',
+        imageFilename: 'new.jpg',
+      };
+      const updated = { ...mockPost, ...dto };
+      mockPostsService.update.mockResolvedValue(updated);
+
+      const response = await controller.update(findOneDto, dto);
+
+      expect(response.success).toBe(true);
+      expect(response.data.imageUrl).toBe('http://localhost:9000/posts/new.jpg');
     });
   });
 

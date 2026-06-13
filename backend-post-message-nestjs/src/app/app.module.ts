@@ -6,6 +6,7 @@ import { CommentsModule } from './modules/comments/comments.module';
 import { PostsModule } from './modules/posts/posts.module';
 import { UsersModule } from './modules/users/users.module';
 import { ClientsModule } from './modules/clients/clients.module';
+import { FilesModule } from './modules/files/files.module';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './modules/auth/auth.module';
@@ -22,6 +23,7 @@ import { AuthGuard } from './core/guards/auth.guard';
     CommentsModule,
     UsersModule,
     ClientsModule,
+    FilesModule,
     AuthModule,
   ],
   controllers: [AppController],

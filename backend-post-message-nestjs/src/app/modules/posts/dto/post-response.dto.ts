@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class PostResponseDto {
   @ApiProperty({ example: '507f1f77bcf86cd799439011', description: 'Post ID' })
@@ -12,4 +12,16 @@ export class PostResponseDto {
 
   @ApiProperty({ example: true, description: 'Whether the post is active' })
   isActive: boolean;
+
+  @ApiPropertyOptional({
+    example: 'http://localhost:9000/posts/1718000000000-photo.jpg',
+    description: 'URL of the post image',
+  })
+  imageUrl?: string;
+
+  @ApiPropertyOptional({
+    example: '1718000000000-photo.jpg',
+    description: 'MinIO filename of the post image',
+  })
+  imageFilename?: string;
 }

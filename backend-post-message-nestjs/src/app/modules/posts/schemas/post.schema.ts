@@ -16,6 +16,12 @@ export class Post {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({ required: false })
+  imageUrl?: string;
+
+  @Prop({ required: false })
+  imageFilename?: string;
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);
