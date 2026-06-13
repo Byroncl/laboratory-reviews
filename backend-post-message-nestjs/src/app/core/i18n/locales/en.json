@@ -102,6 +102,19 @@
     "deleted": "Category deleted successfully",
     "not_found": "Category not found"
   },
+  "audit": {
+    "logged": "Audit entry recorded",
+    "not_found": "Audit log entry not found",
+    "action_create": "Resource created",
+    "action_update": "Resource updated",
+    "action_delete": "Resource deleted",
+    "action_login": "User logged in",
+    "action_logout": "User logged out",
+    "action_assign": "Assignment performed",
+    "action_activate": "Resource activated",
+    "action_deactivate": "Resource deactivated",
+    "permission_name": "Read Audits"
+  },
   "common": {
     "success": "Success",
     "error": "An unexpected error occurred",

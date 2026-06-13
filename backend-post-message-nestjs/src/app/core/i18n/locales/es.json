@@ -102,6 +102,19 @@
     "deleted": "Categoría eliminada exitosamente",
     "not_found": "Categoría no encontrada"
   },
+  "audit": {
+    "logged": "Entrada de auditoría registrada",
+    "not_found": "Entrada de auditoría no encontrada",
+    "action_create": "Recurso creado",
+    "action_update": "Recurso actualizado",
+    "action_delete": "Recurso eliminado",
+    "action_login": "Usuario inició sesión",
+    "action_logout": "Usuario cerró sesión",
+    "action_assign": "Asignación realizada",
+    "action_activate": "Recurso activado",
+    "action_deactivate": "Recurso desactivado",
+    "permission_name": "Ver Auditorías"
+  },
   "common": {
     "success": "Éxito",
     "error": "Un error inesperado ocurrió",

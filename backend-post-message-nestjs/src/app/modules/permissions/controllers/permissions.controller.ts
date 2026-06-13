@@ -38,6 +38,7 @@ export class PermissionsController {
   ) {}
 
   @Auth()
+  @AuditActionDecorator(AuditAction.CREATE, EntityType.PERMISSION)
   @ApiOperation({ summary: 'Create a new permission' })
   @ApiBody({ type: CreatePermissionDto })
   @ApiResponse({ status: 201, description: 'Permission created successfully', type: PermissionResponseDto })
@@ -73,6 +74,7 @@ export class PermissionsController {
   }
 
   @Auth()
+  @AuditActionDecorator(AuditAction.UPDATE, EntityType.PERMISSION, { captureSnapshot: true })
   @ApiOperation({ summary: 'Update a permission' })
   @ApiParam({ name: 'id', type: 'string', description: 'Permission MongoDB ObjectId' })
   @ApiBody({ type: UpdatePermissionDto })
@@ -94,6 +96,7 @@ export class PermissionsController {
   }
 
   @Auth()
+  @AuditActionDecorator(AuditAction.DELETE, EntityType.PERMISSION)
   @ApiOperation({ summary: 'Delete a permission' })
   @ApiParam({ name: 'id', type: 'string', description: 'Permission MongoDB ObjectId' })
   @ApiResponse({ status: 200, description: 'Permission deleted successfully' })

@@ -32,6 +32,8 @@ import { Auth } from '../../../core/decorators/auth.decorator';
 import { CurrentUser, CurrentUserPayload } from '../../../core/decorators/current-user.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
 import { TranslationService } from '../../../core/utils/translation.service';
+import { AuditActionDecorator } from '../../../core/decorators/audit-action.decorator';
+import { AuditAction, EntityType } from '../../audit/schemas/audit-log.schema';
 
 @ApiTags('comments')
 @Controller('comments')
@@ -43,6 +45,7 @@ export class CommentsController {
     private readonly i18n: TranslationService,
   ) {}
 
+  @AuditActionDecorator(AuditAction.CREATE, EntityType.COMMENT)
   @ApiOperation({ summary: 'Create a new comment' })
   @ApiBody({ type: CreateCommentDto })
   @ApiResponse({ status: 201, description: 'Comment created successfully', type: CommentResponseDto })
@@ -79,6 +82,7 @@ export class CommentsController {
   }
 
   @Auth()
+  @AuditActionDecorator(AuditAction.UPDATE, EntityType.COMMENT, { captureSnapshot: true })
   @ApiOperation({ summary: 'Update a comment' })
   @ApiParam({ name: 'id', type: 'string', description: 'Comment MongoDB ObjectId' })
   @ApiBody({ type: UpdateCommentDto })
@@ -98,6 +102,7 @@ export class CommentsController {
   }
 
   @Auth()
+  @AuditActionDecorator(AuditAction.DELETE, EntityType.COMMENT)
   @ApiOperation({ summary: 'Delete a comment' })
   @ApiParam({ name: 'id', type: 'string', description: 'Comment MongoDB ObjectId' })
   @ApiResponse({ status: 200, description: 'Comment deleted successfully' })

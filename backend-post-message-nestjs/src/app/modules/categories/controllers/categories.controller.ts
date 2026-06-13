@@ -21,6 +21,8 @@ import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
 import { TranslationService } from '../../../core/utils/translation.service';
+import { AuditActionDecorator } from '../../../core/decorators/audit-action.decorator';
+import { AuditAction, EntityType } from '../../audit/schemas/audit-log.schema';
 
 @ApiTags('categories')
 @Controller('categories')
@@ -30,6 +32,7 @@ export class CategoriesController {
     private readonly i18n: TranslationService,
   ) {}
 
+  @AuditActionDecorator(AuditAction.CREATE, EntityType.CATEGORY)
   @ApiOperation({ summary: 'Create a new category' })
   @ApiBody({ type: CreateCategoryDto })
   @ApiResponse({ status: 201, description: 'Category created successfully', type: CategoryResponseDto })
@@ -70,6 +73,7 @@ export class CategoriesController {
   }
 
   @Auth()
+  @AuditActionDecorator(AuditAction.UPDATE, EntityType.CATEGORY, { captureSnapshot: true })
   @ApiOperation({ summary: 'Update category' })
   @ApiParam({ name: 'id', type: 'string', description: 'Category MongoDB ObjectId' })
   @ApiBody({ type: UpdateCategoryDto })
@@ -89,6 +93,7 @@ export class CategoriesController {
   }
 
   @Auth()
+  @AuditActionDecorator(AuditAction.DELETE, EntityType.CATEGORY)
   @ApiOperation({ summary: 'Delete category' })
   @ApiParam({ name: 'id', type: 'string', description: 'Category MongoDB ObjectId' })
   @ApiResponse({ status: 200, description: 'Category deleted successfully' })

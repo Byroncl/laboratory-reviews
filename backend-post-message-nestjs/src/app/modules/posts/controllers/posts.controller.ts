@@ -27,6 +27,8 @@ import { FindOneDto } from 'src/app/core/dto/find-one.dto';
 import { TranslationService } from '../../../core/utils/translation.service';
 import { CurrentUser } from '../../../core/decorators/current-user.decorator';
 import type { CurrentUserPayload } from '../../../core/decorators/current-user.decorator';
+import { AuditActionDecorator } from '../../../core/decorators/audit-action.decorator';
+import { AuditAction, EntityType } from '../../audit/schemas/audit-log.schema';
 
 @ApiTags('posts')
 @Controller('posts')
@@ -37,6 +39,7 @@ export class PostsController {
     private readonly i18n: TranslationService,
   ) {}
 
+  @AuditActionDecorator(AuditAction.CREATE, EntityType.POST)
   @ApiOperation({ summary: 'Create a new post' })
   @ApiBody({ type: CreatePostDto })
   @ApiResponse({ status: 201, description: 'Post created successfully', type: PostResponseDto })
@@ -80,6 +83,7 @@ export class PostsController {
   }
 
   @Auth()
+  @AuditActionDecorator(AuditAction.UPDATE, EntityType.POST, { captureSnapshot: true })
   @ApiOperation({ summary: 'Update a post' })
   @ApiParam({ name: 'id', type: 'string', description: 'Post MongoDB ObjectId' })
   @ApiBody({ type: UpdatePostDto })
@@ -98,6 +102,7 @@ export class PostsController {
   }
 
   @Auth()
+  @AuditActionDecorator(AuditAction.DELETE, EntityType.POST)
   @ApiOperation({ summary: 'Delete a post' })
   @ApiParam({ name: 'id', type: 'string', description: 'Post MongoDB ObjectId' })
   @ApiResponse({ status: 200, description: 'Post deleted successfully' })

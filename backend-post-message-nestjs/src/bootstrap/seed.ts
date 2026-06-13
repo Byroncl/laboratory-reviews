@@ -72,6 +72,7 @@ const SEED_PERMISSIONS = [
   { name: 'Manage Users', identifier: 'users:manage', type: 'user' as const },
   { name: 'Manage Roles', identifier: 'roles:manage', type: 'roles' as const },
   { name: 'Manage Permissions', identifier: 'permissions:manage', type: 'permissions' as const },
+  { name: 'Read Audits', identifier: 'audits:read', type: 'audits' as const },
 ];
 
 async function seedPermissions(
