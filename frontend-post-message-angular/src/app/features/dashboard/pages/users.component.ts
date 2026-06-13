@@ -191,6 +191,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   actions: TableAction[] = [
     { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
     { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
+    { id: 'toggle-status', label: 'Activar/Desactivar', icon: 'edit', class: 'text-orange-600 hover:text-orange-700' },
     {
       id: 'delete',
       label: 'Eliminar',
@@ -213,6 +214,13 @@ export class UsersComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCurrentPage();
+    this.usersService.loadStats().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response) => {
+        this.totalUsersCount = response.data.total;
+        this.activeCount = response.data.active;
+      },
+      error: () => { /* stats are non-critical, fail silently */ }
+    });
   }
 
   ngOnDestroy(): void {
@@ -253,10 +261,32 @@ export class UsersComponent implements OnInit, OnDestroy {
       case 'edit':
         this.editUser(user);
         break;
+      case 'toggle-status':
+        this.toggleUserStatus(user);
+        break;
       case 'delete':
         this.deleteUser(user);
         break;
     }
+  }
+
+  toggleUserStatus(user: User): void {
+    const userId = (user._id ?? user.id) as string;
+    const isActive = user.isActive ?? user.status === 'active';
+    const action$ = isActive
+      ? this.usersService.deactivateUser(userId)
+      : this.usersService.activateUser(userId);
+
+    action$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        const statusMsg = isActive ? 'desactivado' : 'activado';
+        this.notificationService.toast(`Usuario ${statusMsg} correctamente`, 'success');
+        this.updateStats();
+      },
+      error: () => {
+        this.notificationService.toast('Error al cambiar el estado del usuario', 'error');
+      }
+    });
   }
 
   viewUser(user: User): void {

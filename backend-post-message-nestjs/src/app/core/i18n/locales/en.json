@@ -18,7 +18,12 @@
     "username_already_exists": "Username already exists",
     "language_updated": "Language preference updated successfully",
     "language_invalid": "Invalid language. Supported: en, es",
-    "role_assigned": "Role assigned to user successfully"
+    "role_assigned": "Role assigned to user successfully",
+    "password_changed": "Password changed successfully",
+    "activated": "User activated successfully",
+    "deactivated": "User deactivated successfully",
+    "invalid_password": "Invalid password",
+    "passwords_do_not_match": "Passwords do not match"
   },
   "posts": {
     "created": "Post created successfully",

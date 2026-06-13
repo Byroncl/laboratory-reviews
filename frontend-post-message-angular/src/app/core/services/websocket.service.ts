@@ -2,10 +2,11 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Notification } from '../../shared/models/notification.model';
+import { io, Socket } from 'socket.io-client';
 
 @Injectable({ providedIn: 'root' })
 export class WebSocketService implements OnDestroy {
-  private ws: WebSocket | null = null;
+  private sockets: Map<string, Socket> = new Map();
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private maxRetries = 5;
   private retryCount = 0;
@@ -13,6 +14,7 @@ export class WebSocketService implements OnDestroy {
   private isConnected$ = new BehaviorSubject<boolean>(false);
   readonly isConnected = this.isConnected$.asObservable();
 
+  // Comments
   private commentCreated$ = new BehaviorSubject<unknown>(null);
   readonly commentCreated = this.commentCreated$.asObservable();
 
@@ -22,79 +24,154 @@ export class WebSocketService implements OnDestroy {
   private reactionAdded$ = new BehaviorSubject<unknown>(null);
   readonly reactionAdded = this.reactionAdded$.asObservable();
 
+  // Users
+  private userCreated$ = new BehaviorSubject<any>(null);
+  readonly userCreated = this.userCreated$.asObservable();
+
+  private userUpdated$ = new BehaviorSubject<any>(null);
+  readonly userUpdated = this.userUpdated$.asObservable();
+
+  private userDeleted$ = new BehaviorSubject<any>(null);
+  readonly userDeleted = this.userDeleted$.asObservable();
+
+  private userActivated$ = new BehaviorSubject<any>(null);
+  readonly userActivated = this.userActivated$.asObservable();
+
+  private userDeactivated$ = new BehaviorSubject<any>(null);
+  readonly userDeactivated = this.userDeactivated$.asObservable();
+
+  // Posts
+  private postCreated$ = new BehaviorSubject<any>(null);
+  readonly postCreated = this.postCreated$.asObservable();
+
+  private postUpdated$ = new BehaviorSubject<any>(null);
+  readonly postUpdated = this.postUpdated$.asObservable();
+
+  private postDeleted$ = new BehaviorSubject<any>(null);
+  readonly postDeleted = this.postDeleted$.asObservable();
+
+  private postPublished$ = new BehaviorSubject<any>(null);
+  readonly postPublished = this.postPublished$.asObservable();
+
+  // Roles
+  private roleCreated$ = new BehaviorSubject<any>(null);
+  readonly roleCreated = this.roleCreated$.asObservable();
+
+  private roleUpdated$ = new BehaviorSubject<any>(null);
+  readonly roleUpdated = this.roleUpdated$.asObservable();
+
+  private roleDeleted$ = new BehaviorSubject<any>(null);
+  readonly roleDeleted = this.roleDeleted$.asObservable();
+
+  // Permissions
+  private permissionCreated$ = new BehaviorSubject<any>(null);
+  readonly permissionCreated = this.permissionCreated$.asObservable();
+
+  private permissionUpdated$ = new BehaviorSubject<any>(null);
+  readonly permissionUpdated = this.permissionUpdated$.asObservable();
+
+  private permissionDeleted$ = new BehaviorSubject<any>(null);
+  readonly permissionDeleted = this.permissionDeleted$.asObservable();
+
   private notificationReceived$ = new BehaviorSubject<Notification | null>(null);
   readonly notificationReceived = this.notificationReceived$.asObservable();
 
   connect(token: string): void {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) return;
+    const apiUrl = environment.apiUrl || 'http://localhost:3000';
+    const namespaces = ['comments', 'users', 'posts', 'roles', 'permissions'];
 
-    const wsUrl = (environment.socketUrl ?? environment.apiUrl)
-      .replace(/^http/, 'ws') + `?token=${token}`;
+    for (const namespace of namespaces) {
+      if (this.sockets.has(namespace)) continue;
 
-    try {
-      this.ws = new WebSocket(wsUrl);
+      try {
+        const socket = io(`${apiUrl}/${namespace}`, {
+          auth: { token },
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          reconnectionAttempts: this.maxRetries,
+        });
 
-      this.ws.onopen = () => {
-        this.isConnected$.next(true);
-        this.retryCount = 0;
-        console.log('[WS] Connected');
-      };
+        socket.on('connect', () => {
+          console.log(`[WS] Connected to ${namespace}`);
+          this.isConnected$.next(true);
+          this.retryCount = 0;
+        });
 
-      this.ws.onclose = () => {
-        this.isConnected$.next(false);
-        console.log('[WS] Disconnected');
-        this.scheduleReconnect(token);
-      };
+        socket.on('disconnect', () => {
+          console.log(`[WS] Disconnected from ${namespace}`);
+          if (this.sockets.size === 0) {
+            this.isConnected$.next(false);
+          }
+        });
 
-      this.ws.onerror = (err) => {
-        console.error('[WS] Error', err);
-        this.isConnected$.next(false);
-      };
+        socket.on('error', (err) => {
+          console.error(`[WS] Error on ${namespace}:`, err);
+        });
 
-      this.ws.onmessage = (event) => {
-        try {
-          const msg = JSON.parse(event.data as string) as { event: string; data: unknown };
-          this.dispatch(msg.event, msg.data);
-        } catch {
-          // non-JSON frame — ignore
-        }
-      };
-    } catch (err) {
-      console.error('[WS] Could not create WebSocket:', err);
+        // Register user for real-time updates
+        socket.emit('user:register', { userId: 'current', username: 'unknown' });
+
+        // Setup listeners based on namespace
+        this.setupNamespaceListeners(socket, namespace);
+
+        this.sockets.set(namespace, socket);
+      } catch (err) {
+        console.error(`[WS] Could not connect to ${namespace}:`, err);
+      }
+    }
+  }
+
+  private setupNamespaceListeners(socket: Socket, namespace: string): void {
+    if (namespace === 'comments') {
+      socket.on('comment:created', (data) => this.commentCreated$.next(data));
+      socket.on('reply:created', (data) => this.replyCreated$.next(data));
+      socket.on('reaction:added', (data) => this.reactionAdded$.next(data));
+      socket.on('notification:received', (data) => {
+        this.notificationReceived$.next(
+          (data as { notification: Notification }).notification || data
+        );
+      });
+    } else if (namespace === 'users') {
+      socket.on('user:created', (data) => this.userCreated$.next(data));
+      socket.on('user:updated', (data) => this.userUpdated$.next(data));
+      socket.on('user:deleted', (data) => this.userDeleted$.next(data));
+      socket.on('user:activated', (data) => this.userActivated$.next(data));
+      socket.on('user:deactivated', (data) => this.userDeactivated$.next(data));
+    } else if (namespace === 'posts') {
+      socket.on('post:created', (data) => this.postCreated$.next(data));
+      socket.on('post:updated', (data) => this.postUpdated$.next(data));
+      socket.on('post:deleted', (data) => this.postDeleted$.next(data));
+      socket.on('post:published', (data) => this.postPublished$.next(data));
+    } else if (namespace === 'roles') {
+      socket.on('role:created', (data) => this.roleCreated$.next(data));
+      socket.on('role:updated', (data) => this.roleUpdated$.next(data));
+      socket.on('role:deleted', (data) => this.roleDeleted$.next(data));
+    } else if (namespace === 'permissions') {
+      socket.on('permission:created', (data) => this.permissionCreated$.next(data));
+      socket.on('permission:updated', (data) => this.permissionUpdated$.next(data));
+      socket.on('permission:deleted', (data) => this.permissionDeleted$.next(data));
     }
   }
 
   disconnect(): void {
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
-    this.ws?.close();
+    for (const socket of this.sockets.values()) {
+      socket.close();
+    }
+    this.sockets.clear();
     this.isConnected$.next(false);
   }
 
-  emit(event: string, data: unknown): void {
-    if (this.ws?.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({ event, data }));
+  emit(event: string, data: unknown, namespace: string = 'comments'): void {
+    const socket = this.sockets.get(namespace);
+    if (socket?.connected) {
+      socket.emit(event, data);
     }
   }
 
   ngOnDestroy(): void {
     this.disconnect();
-  }
-
-  private dispatch(event: string, data: unknown): void {
-    switch (event) {
-      case 'comment:created':
-        this.commentCreated$.next(data);
-        break;
-      case 'reply:created':
-        this.replyCreated$.next(data);
-        break;
-      case 'reaction:added':
-        this.reactionAdded$.next(data);
-        break;
-      case 'notification:received':
-        this.notificationReceived$.next((data as { notification: Notification }).notification);
-        break;
-    }
   }
 
   private scheduleReconnect(token: string): void {

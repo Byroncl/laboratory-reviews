@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PermissionsController } from './controllers/permissions.controller';
 import { PermissionsService } from './services/permissions.service';
+import { PermissionsGateway } from './gateways/permissions.gateway';
 import { Permission, PermissionSchema } from './schemas/permission.schema';
 import { TranslationService } from '../../core/utils/translation.service';
 
@@ -12,7 +13,7 @@ import { TranslationService } from '../../core/utils/translation.service';
     ]),
   ],
   controllers: [PermissionsController],
-  providers: [PermissionsService, TranslationService],
-  exports: [PermissionsService],
+  providers: [PermissionsService, PermissionsGateway, TranslationService],
+  exports: [PermissionsService, PermissionsGateway],
 })
 export class PermissionsModule {}

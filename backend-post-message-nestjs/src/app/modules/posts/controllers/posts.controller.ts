@@ -17,6 +17,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { PostsService } from '../services/posts.service';
+import { PostsGateway } from '../gateways/posts.gateway';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { PostResponseDto } from '../dto/post-response.dto';
@@ -24,12 +25,15 @@ import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
 import { TranslationService } from '../../../core/utils/translation.service';
+import { CurrentUser } from '../../../core/decorators/current-user.decorator';
+import type { CurrentUserPayload } from '../../../core/decorators/current-user.decorator';
 
 @ApiTags('posts')
 @Controller('posts')
 export class PostsController {
   constructor(
     private readonly postsService: PostsService,
+    private readonly postsGateway: PostsGateway,
     private readonly i18n: TranslationService,
   ) {}
 
@@ -40,6 +44,7 @@ export class PostsController {
   @Post()
   async create(@Body() createPostDto: CreatePostDto) {
     const post = await this.postsService.create(createPostDto);
+    this.postsGateway.notifyPostCreated(post, 'System');
     return ApiRes.success(post, this.i18n.translate('posts.created'));
   }
 
@@ -85,8 +90,10 @@ export class PostsController {
   async update(
     @Param() findOneDto: FindOneDto,
     @Body() updatePostDto: UpdatePostDto,
+    @CurrentUser() currentUser: CurrentUserPayload,
   ) {
     const post = await this.postsService.update(findOneDto.id, updatePostDto);
+    this.postsGateway.notifyPostUpdated(post, currentUser.username);
     return ApiRes.success(post, this.i18n.translate('posts.updated'));
   }
 
@@ -97,8 +104,12 @@ export class PostsController {
   @ApiResponse({ status: 404, description: 'Post not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Delete(':id')
-  async remove(@Param() findOneDto: FindOneDto) {
+  async remove(
+    @Param() findOneDto: FindOneDto,
+    @CurrentUser() currentUser: CurrentUserPayload,
+  ) {
     await this.postsService.remove(findOneDto.id);
+    this.postsGateway.notifyPostDeleted(findOneDto.id, currentUser.username);
     return ApiRes.success(null, this.i18n.translate('posts.deleted'));
   }
 

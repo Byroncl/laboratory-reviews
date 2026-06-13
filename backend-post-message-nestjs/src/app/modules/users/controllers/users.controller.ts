@@ -19,6 +19,7 @@ import {
   ApiHeader,
 } from '@nestjs/swagger';
 import { UsersService } from '../services/users.service';
+import { UsersGateway } from '../gateways/users.gateway';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { AssignRoleDto } from '../dto/assign-role.dto';
@@ -33,6 +34,8 @@ import type { CurrentUserPayload } from '../../../core/decorators/current-user.d
 import { ChangePasswordDto } from '../dto/change-password.dto';
 import { PermissionsGuard } from '../../../core/guards/permissions.guard';
 import { HasPermission } from '../../../core/decorators/has-permission.decorator';
+import { AuditActionDecorator } from '../../../core/decorators/audit-action.decorator';
+import { AuditAction, EntityType } from '../../audit/schemas/audit-log.schema';
 
 @ApiTags('users')
 @ApiHeader({
@@ -45,9 +48,11 @@ import { HasPermission } from '../../../core/decorators/has-permission.decorator
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
+    private readonly usersGateway: UsersGateway,
     private readonly i18n: I18nService,
   ) {}
 
+  @AuditActionDecorator(AuditAction.CREATE, EntityType.USER)
   @ApiOperation({ summary: 'Create a new user' })
   @ApiBody({ type: CreateUserDto })
   @ApiResponse({ status: 201, description: 'User created successfully', type: UserResponseDto })
@@ -55,6 +60,7 @@ export class UsersController {
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
     const user = await this.usersService.create(createUserDto);
+    this.usersGateway.notifyUserCreated(user, 'System');
     return ApiRes.success(user, this.i18n.translate('users.created'));
   }
 
@@ -90,6 +96,7 @@ export class UsersController {
   }
 
   @Auth()
+  @AuditActionDecorator(AuditAction.UPDATE, EntityType.USER, { captureSnapshot: true })
   @ApiOperation({ summary: 'Update a user' })
   @ApiParam({ name: 'id', type: 'string', description: 'User MongoDB ObjectId' })
   @ApiBody({ type: UpdateUserDto })
@@ -100,24 +107,32 @@ export class UsersController {
   async update(
     @Param() findOneDto: FindOneDto,
     @Body() updateUserDto: UpdateUserDto,
+    @CurrentUser() currentUser: CurrentUserPayload,
   ) {
     const user = await this.usersService.update(findOneDto.id, updateUserDto);
+    this.usersGateway.notifyUserUpdated(user, currentUser.username);
     return ApiRes.success(user, this.i18n.translate('users.updated'));
   }
 
   @Auth()
+  @AuditActionDecorator(AuditAction.DELETE, EntityType.USER)
   @ApiOperation({ summary: 'Delete a user' })
   @ApiParam({ name: 'id', type: 'string', description: 'User MongoDB ObjectId' })
   @ApiResponse({ status: 200, description: 'User deleted successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Delete(':id')
-  async remove(@Param() findOneDto: FindOneDto) {
+  async remove(
+    @Param() findOneDto: FindOneDto,
+    @CurrentUser() currentUser: CurrentUserPayload,
+  ) {
     await this.usersService.remove(findOneDto.id);
+    this.usersGateway.notifyUserDeleted(findOneDto.id, currentUser.username);
     return ApiRes.success(null, this.i18n.translate('users.deleted'));
   }
 
   @Auth()
+  @AuditActionDecorator(AuditAction.ASSIGN, EntityType.USER)
   @ApiOperation({ summary: 'Assign a role to a user' })
   @ApiParam({ name: 'id', type: 'string', description: 'User MongoDB ObjectId' })
   @ApiBody({ type: AssignRoleDto })
@@ -193,28 +208,38 @@ export class UsersController {
   @Auth()
   @UseGuards(PermissionsGuard)
   @HasPermission('users:manage')
+  @AuditActionDecorator(AuditAction.ACTIVATE, EntityType.USER)
   @ApiOperation({ summary: 'Activate a user (admin only)' })
   @ApiParam({ name: 'id', type: 'string', description: 'User MongoDB ObjectId' })
   @ApiResponse({ status: 200, description: 'User activated', type: UserResponseDto })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Put(':id/activate')
-  async activate(@Param() findOneDto: FindOneDto) {
+  async activate(
+    @Param() findOneDto: FindOneDto,
+    @CurrentUser() currentUser: CurrentUserPayload,
+  ) {
     const user = await this.usersService.activate(findOneDto.id);
+    this.usersGateway.notifyUserActivated(user, currentUser.username);
     return ApiRes.success(user, this.i18n.translate('users.activated'));
   }
 
   @Auth()
   @UseGuards(PermissionsGuard)
   @HasPermission('users:manage')
+  @AuditActionDecorator(AuditAction.DEACTIVATE, EntityType.USER)
   @ApiOperation({ summary: 'Deactivate a user (admin only)' })
   @ApiParam({ name: 'id', type: 'string', description: 'User MongoDB ObjectId' })
   @ApiResponse({ status: 200, description: 'User deactivated', type: UserResponseDto })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Put(':id/deactivate')
-  async deactivate(@Param() findOneDto: FindOneDto) {
+  async deactivate(
+    @Param() findOneDto: FindOneDto,
+    @CurrentUser() currentUser: CurrentUserPayload,
+  ) {
     const user = await this.usersService.deactivate(findOneDto.id);
+    this.usersGateway.notifyUserDeactivated(user, currentUser.username);
     return ApiRes.success(user, this.i18n.translate('users.deactivated'));
   }
 

@@ -8,6 +8,7 @@ import { AdvancedModalComponent } from './shared/components/modal/advanced-modal
 import { MinimizedModalsTrayComponent } from './shared/components/modal/minimized-modals-tray.component';
 import { WebSocketService } from './core/services/websocket.service';
 import { NotificationsService } from './core/services/notifications.service';
+import { RealtimeNotifierService } from './core/services/realtime-notifier.service';
 
 @Component({
   selector: 'app-root',
@@ -24,6 +25,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private store: Store,
     private wsService: WebSocketService,
     private notificationsService: NotificationsService,
+    private realtimeNotifier: RealtimeNotifierService,
   ) {}
 
   ngOnInit(): void {

@@ -16,6 +16,7 @@ import {
 import { ModalService, NotificationService } from '../../../shared/services/index';
 import { PostsService } from '../../posts/services/posts.service';
 import { Post } from '../../../shared/models/post.model';
+import { PostFormComponent } from '../components/post-form.component';
 
 @Component({
   selector: 'app-posts',
@@ -28,16 +29,40 @@ import { Post } from '../../../shared/models/post.model';
     PaginationComponent,
     BadgeComponent,
     SpinnerComponent,
-    SkeletonComponent
+    SkeletonComponent,
+    PostFormComponent
   ],
   template: `
     <div class="space-y-6">
+      <!-- Form Modal -->
+      @if (showPostForm) {
+        <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-900">
+              {{ editingPostId ? 'Editar Post' : 'Crear Nuevo Post' }}
+            </h2>
+            <button
+              (click)="closeForm()"
+              class="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+          <app-post-form
+            [editingPostId]="editingPostId"
+            (formSubmitted)="onFormSubmitted()"
+            (formCancelled)="closeForm()"
+          ></app-post-form>
+        </div>
+      }
+
       <!-- Header -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 class="text-3xl font-bold text-primary">{{ 'sidebar.posts' | t }}</h1>
         <button
           (click)="onCreatePost()"
-          class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap"
+          [disabled]="showPostForm"
+          class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
         >
           + Nuevo Post
         </button>
@@ -131,6 +156,8 @@ export class PostsComponent implements OnInit, OnDestroy {
   totalPostsCount = 0;
   publishedCount = 0;
   draftCount = 0;
+  showPostForm = false;
+  editingPostId: string | null = null;
   private columnFilters: Record<string, string> = {};
   private destroy$ = new Subject<void>();
 
@@ -193,17 +220,18 @@ export class PostsComponent implements OnInit, OnDestroy {
   }
 
   onCreatePost(): void {
-    this.modalService
-      .openConfirm(
-        'Nuevo Post',
-        'Funcionalidad de crear posts próximamente disponible.'
-      )
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(result => {
-        if (result.confirmed) {
-          this.notificationService.success('Post creado', 'El post se creó correctamente');
-        }
-      });
+    this.showPostForm = true;
+    this.editingPostId = null;
+  }
+
+  closeForm(): void {
+    this.showPostForm = false;
+    this.editingPostId = null;
+  }
+
+  onFormSubmitted(): void {
+    this.closeForm();
+    this.updateStats();
   }
 
   onTableAction(event: { action: string; row: Record<string, unknown> }): void {
@@ -234,13 +262,8 @@ export class PostsComponent implements OnInit, OnDestroy {
   }
 
   editPost(post: Post): void {
-    this.modalService
-      .openConfirm(
-        `Editar: ${post.title}`,
-        'Funcionalidad de edición próximamente disponible.'
-      )
-      .pipe(takeUntil(this.destroy$))
-      .subscribe();
+    this.editingPostId = (post._id ?? post.id) as string;
+    this.showPostForm = true;
   }
 
   deletePost(post: Post): void {

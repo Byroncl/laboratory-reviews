@@ -15,10 +15,12 @@ import { AuthGuard } from './core/guards/auth.guard';
 import { I18nMiddleware } from './core/middleware/i18n.middleware';
 import { I18nModule } from './modules/i18n/i18n.module';
 import { TransformInterceptor } from './core/interceptors/transform.interceptor';
+import { AuditInterceptor } from './core/interceptors/audit.interceptor';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
@@ -37,6 +39,7 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
     CategoriesModule,
     RolesModule,
     PermissionsModule,
+    AuditModule,
   ],
   controllers: [AppController],
   providers: [
@@ -49,6 +52,10 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
     },
   ],
 })

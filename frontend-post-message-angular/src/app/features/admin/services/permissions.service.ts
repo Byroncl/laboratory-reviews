@@ -7,6 +7,7 @@ import { Permission, CreatePermissionDto, UpdatePermissionDto, PermissionsPagina
 @Injectable({ providedIn: 'root' })
 export class PermissionsService {
   readonly permissions$ = signal<Permission[]>([]);
+  readonly permissions = this.permissions$; // Alias for consistency
   readonly loading$ = signal<boolean>(false);
   readonly error$ = signal<string | null>(null);
 

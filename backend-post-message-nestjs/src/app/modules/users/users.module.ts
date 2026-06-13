@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UsersController } from './controllers/users.controller';
 import { UsersService } from './services/users.service';
+import { UsersGateway } from './gateways/users.gateway';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schemas/user.schema';
 import { UserRepository } from './domain/repositories/user.repository';
@@ -14,6 +15,10 @@ import { UpdateUserUseCase } from './domain/use-cases/update-user.use-case';
 import { RemoveUserUseCase } from './domain/use-cases/remove-user.use-case';
 import { UpdateLanguagePreferenceUseCase } from './domain/use-cases/update-language-preference.use-case';
 import { AssignRoleUseCase } from './domain/use-cases/assign-role.use-case';
+import { ChangePasswordUseCase } from './domain/use-cases/change-password.use-case';
+import { ActivateUserUseCase } from './domain/use-cases/activate-user.use-case';
+import { DeactivateUserUseCase } from './domain/use-cases/deactivate-user.use-case';
+import { GetUserStatsUseCase } from './domain/use-cases/get-user-stats.use-case';
 import { I18nService } from '../../core/i18n/i18n.service';
 
 @Module({
@@ -23,6 +28,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
   controllers: [UsersController],
   providers: [
     UsersService,
+    UsersGateway,
     CreateUserUseCase,
     FindAllUsersUseCase,
     FindAllUsersPaginatedUseCase,
@@ -32,12 +38,16 @@ import { I18nService } from '../../core/i18n/i18n.service';
     RemoveUserUseCase,
     UpdateLanguagePreferenceUseCase,
     AssignRoleUseCase,
+    ChangePasswordUseCase,
+    ActivateUserUseCase,
+    DeactivateUserUseCase,
+    GetUserStatsUseCase,
     I18nService,
     {
       provide: UserRepository,
       useClass: UserMongoRepository,
     },
   ],
-  exports: [UsersService],
+  exports: [UsersService, UsersGateway],
 })
 export class UsersModule {}

@@ -2,26 +2,37 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { CreateUserUseCase } from '../domain/use-cases/create-user.use-case';
 import { FindAllUsersUseCase } from '../domain/use-cases/find-all-users.use-case';
+import { FindAllUsersPaginatedUseCase } from '../domain/use-cases/find-all-users-paginated.use-case';
 import { FindUserByUsernameUseCase } from '../domain/use-cases/find-user-by-username.use-case';
 import { FindUserByIdUseCase } from '../domain/use-cases/find-user-by-id.use-case';
 import { UpdateUserUseCase } from '../domain/use-cases/update-user.use-case';
 import { RemoveUserUseCase } from '../domain/use-cases/remove-user.use-case';
 import { UpdateLanguagePreferenceUseCase } from '../domain/use-cases/update-language-preference.use-case';
 import { AssignRoleUseCase } from '../domain/use-cases/assign-role.use-case';
+import { ChangePasswordUseCase } from '../domain/use-cases/change-password.use-case';
+import { ActivateUserUseCase } from '../domain/use-cases/activate-user.use-case';
+import { DeactivateUserUseCase } from '../domain/use-cases/deactivate-user.use-case';
+import { GetUserStatsUseCase } from '../domain/use-cases/get-user-stats.use-case';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { ChangePasswordDto } from '../dto/change-password.dto';
 
 describe('UsersService', () => {
   let service: UsersService;
 
   const mockCreateUserUseCase = { execute: jest.fn() };
   const mockFindAllUsersUseCase = { execute: jest.fn() };
+  const mockFindAllUsersPaginatedUseCase = { execute: jest.fn() };
   const mockFindUserByUsernameUseCase = { execute: jest.fn() };
   const mockFindUserByIdUseCase = { execute: jest.fn() };
   const mockUpdateUserUseCase = { execute: jest.fn() };
   const mockRemoveUserUseCase = { execute: jest.fn() };
   const mockUpdateLanguagePreferenceUseCase = { execute: jest.fn() };
   const mockAssignRoleUseCase = { execute: jest.fn() };
+  const mockChangePasswordUseCase = { execute: jest.fn() };
+  const mockActivateUserUseCase = { execute: jest.fn() };
+  const mockDeactivateUserUseCase = { execute: jest.fn() };
+  const mockGetUserStatsUseCase = { execute: jest.fn() };
 
   const mockUser = {
     _id: '507f1f77bcf86cd799439011',
@@ -42,6 +53,7 @@ describe('UsersService', () => {
         UsersService,
         { provide: CreateUserUseCase, useValue: mockCreateUserUseCase },
         { provide: FindAllUsersUseCase, useValue: mockFindAllUsersUseCase },
+        { provide: FindAllUsersPaginatedUseCase, useValue: mockFindAllUsersPaginatedUseCase },
         {
           provide: FindUserByUsernameUseCase,
           useValue: mockFindUserByUsernameUseCase,
@@ -54,6 +66,10 @@ describe('UsersService', () => {
           useValue: mockUpdateLanguagePreferenceUseCase,
         },
         { provide: AssignRoleUseCase, useValue: mockAssignRoleUseCase },
+        { provide: ChangePasswordUseCase, useValue: mockChangePasswordUseCase },
+        { provide: ActivateUserUseCase, useValue: mockActivateUserUseCase },
+        { provide: DeactivateUserUseCase, useValue: mockDeactivateUserUseCase },
+        { provide: GetUserStatsUseCase, useValue: mockGetUserStatsUseCase },
       ],
     }).compile();
 
@@ -246,6 +262,63 @@ describe('UsersService', () => {
       const result = await service.assignRole('ghost-id', '507f1f77bcf86cd799439022');
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('changePassword', () => {
+    it('should delegate to ChangePasswordUseCase', async () => {
+      const dto: ChangePasswordDto = {
+        currentPassword: 'OldPass123!',
+        newPassword: 'NewPass123!',
+        confirmPassword: 'NewPass123!',
+      };
+      mockChangePasswordUseCase.execute.mockResolvedValue(undefined);
+
+      await service.changePassword('507f1f77bcf86cd799439011', dto);
+
+      expect(mockChangePasswordUseCase.execute).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011',
+        dto,
+      );
+    });
+  });
+
+  describe('activate', () => {
+    it('should delegate to ActivateUserUseCase and return activated user', async () => {
+      const activatedUser = { ...mockUser, isActive: true };
+      mockActivateUserUseCase.execute.mockResolvedValue(activatedUser);
+
+      const result = await service.activate('507f1f77bcf86cd799439011');
+
+      expect(result).toEqual(activatedUser);
+      expect(result.isActive).toBe(true);
+      expect(mockActivateUserUseCase.execute).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+    });
+  });
+
+  describe('deactivate', () => {
+    it('should delegate to DeactivateUserUseCase and return deactivated user', async () => {
+      const deactivatedUser = { ...mockUser, isActive: false };
+      mockDeactivateUserUseCase.execute.mockResolvedValue(deactivatedUser);
+
+      const result = await service.deactivate('507f1f77bcf86cd799439011');
+
+      expect(result).toEqual(deactivatedUser);
+      expect(result.isActive).toBe(false);
+      expect(mockDeactivateUserUseCase.execute).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+    });
+  });
+
+  describe('getStats', () => {
+    it('should delegate to GetUserStatsUseCase and return stats', async () => {
+      const stats = { total: 100, active: 80, verified: 50 };
+      mockGetUserStatsUseCase.execute.mockResolvedValue(stats);
+
+      const result = await service.getStats();
+
+      expect(result).toEqual(stats);
+      expect(result.total).toBe(100);
+      expect(mockGetUserStatsUseCase.execute).toHaveBeenCalledTimes(1);
     });
   });
 });

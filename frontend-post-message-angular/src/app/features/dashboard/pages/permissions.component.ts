@@ -16,6 +16,7 @@ import {
 import { ModalService, NotificationService } from '../../../shared/services/index';
 import { PermissionsService } from '../../admin/services/permissions.service';
 import { Permission } from '../../../shared/models/permission.model';
+import { PermissionFormComponent } from '../components/permission-form.component';
 
 @Component({
   selector: 'app-permissions',
@@ -28,16 +29,40 @@ import { Permission } from '../../../shared/models/permission.model';
     PaginationComponent,
     BadgeComponent,
     SpinnerComponent,
-    SkeletonComponent
+    SkeletonComponent,
+    PermissionFormComponent
   ],
   template: `
     <div class="space-y-6">
+      <!-- Form Modal -->
+      @if (showPermissionForm) {
+        <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-900">
+              {{ editingPermissionId ? 'Editar Permiso' : 'Crear Nuevo Permiso' }}
+            </h2>
+            <button
+              (click)="closeForm()"
+              class="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+          <app-permission-form
+            [editingPermissionId]="editingPermissionId"
+            (formSubmitted)="onFormSubmitted()"
+            (formCancelled)="closeForm()"
+          ></app-permission-form>
+        </div>
+      }
+
       <!-- Header -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 class="text-3xl font-bold text-primary">{{ 'sidebar.permissions' | t }}</h1>
         <button
           (click)="onCreatePermission()"
-          class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap"
+          [disabled]="showPermissionForm"
+          class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
         >
           + Nuevo Permiso
         </button>
@@ -109,6 +134,8 @@ export class PermissionsComponent implements OnInit, OnDestroy {
   globalSearch = '';
   hasActiveFilters = false;
   totalPermissionsCount = 0;
+  showPermissionForm = false;
+  editingPermissionId: string | null = null;
   private columnFilters: Record<string, string> = {};
   private destroy$ = new Subject<void>();
 
@@ -166,17 +193,18 @@ export class PermissionsComponent implements OnInit, OnDestroy {
   }
 
   onCreatePermission(): void {
-    this.modalService
-      .openConfirm(
-        'Nuevo Permiso',
-        'Funcionalidad de crear permisos próximamente disponible.'
-      )
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(result => {
-        if (result.confirmed) {
-          this.notificationService.success('Permiso creado', 'El permiso se creó correctamente');
-        }
-      });
+    this.showPermissionForm = true;
+    this.editingPermissionId = null;
+  }
+
+  closeForm(): void {
+    this.showPermissionForm = false;
+    this.editingPermissionId = null;
+  }
+
+  onFormSubmitted(): void {
+    this.closeForm();
+    this.updateStats();
   }
 
   onTableAction(event: { action: string; row: Record<string, unknown> }): void {
@@ -206,13 +234,8 @@ export class PermissionsComponent implements OnInit, OnDestroy {
   }
 
   editPermission(permission: Permission): void {
-    this.modalService
-      .openConfirm(
-        `Editar: ${permission.name}`,
-        'Funcionalidad de edición próximamente disponible.'
-      )
-      .pipe(takeUntil(this.destroy$))
-      .subscribe();
+    this.editingPermissionId = (permission._id ?? permission.id) as string;
+    this.showPermissionForm = true;
   }
 
   deletePermission(permission: Permission): void {
