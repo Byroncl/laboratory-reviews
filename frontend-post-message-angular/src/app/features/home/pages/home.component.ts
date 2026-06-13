@@ -1,6 +1,7 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule, AsyncPipe } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { catchError, of } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { PostsService } from '../../posts/services/posts.service';
@@ -12,7 +13,7 @@ import { selectIsAuthenticated } from '../../auth/store/auth.selectors';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, AsyncPipe, PostCardComponent, HeaderComponent],
+  imports: [CommonModule, RouterModule, AsyncPipe, FormsModule, PostCardComponent, HeaderComponent],
   template: `
     <app-header />
 
@@ -42,6 +43,17 @@ import { selectIsAuthenticated } from '../../auth/store/auth.selectors';
         }
       </section>
 
+      <!-- Search filter -->
+      <div class="mb-8">
+        <input
+          type="text"
+          placeholder="Search posts..."
+          [(ngModel)]="searchQuery"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          data-cy="search-input"
+        />
+      </div>
+
       <!-- Posts feed -->
       @if (loading()) {
         <div class="space-y-4">
@@ -64,15 +76,15 @@ import { selectIsAuthenticated } from '../../auth/store/auth.selectors';
         </div>
       }
 
-      @if (!loading() && !loadError() && postViewModels().length === 0) {
+      @if (!loading() && !loadError() && filteredPosts().length === 0) {
         <div class="text-center py-16 text-gray-400">
-          <p class="text-lg">No posts yet.</p>
+          <p class="text-lg">{{ searchQuery() ? 'No posts match your search.' : 'No posts yet.' }}</p>
         </div>
       }
 
-      @if (!loading() && !loadError() && postViewModels().length > 0) {
+      @if (!loading() && !loadError() && filteredPosts().length > 0) {
         <div class="grid gap-4">
-          @for (post of postViewModels(); track post.id) {
+          @for (post of filteredPosts(); track post.id) {
             <app-post-card [post]="post" />
           }
         </div>
@@ -89,6 +101,16 @@ export class HomeComponent implements OnInit {
   readonly loading = signal(false);
   readonly loadError = signal<string | null>(null);
   readonly postViewModels = signal<PostViewModel[]>([]);
+  readonly searchQuery = signal('');
+
+  readonly filteredPosts = computed(() => {
+    const query = this.searchQuery().toLowerCase();
+    if (!query) return this.postViewModels();
+    return this.postViewModels().filter(post =>
+      post.title.toLowerCase().includes(query) ||
+      (post.content && post.content.toLowerCase().includes(query))
+    );
+  });
 
   /** Expose raw posts signal for tests */
   get posts() {
