@@ -7,6 +7,7 @@ import { setupCors } from './bootstrap/cors';
 import { getDocsUrl, setupSwagger } from './bootstrap/swagger';
 import { checkDatabase } from './bootstrap/check-database';
 import { printBanner } from './bootstrap/banner';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   loadEnv();
@@ -19,6 +20,7 @@ async function bootstrap() {
   setupCors(app);
   setupSwagger(app, name);
 
+  app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new GlobalExceptionFilter(app.get(TranslationService)));
   await app.listen(port, host);
 
