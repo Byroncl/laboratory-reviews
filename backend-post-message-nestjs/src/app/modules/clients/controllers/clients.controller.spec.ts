@@ -4,6 +4,7 @@ import { ClientsService } from '../services/clients.service';
 import { CreateClientDto } from '../dto/create-client.dto';
 import { UpdateClientDto } from '../dto/update-client.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 describe('ClientsController', () => {
   let controller: ClientsController;
@@ -26,7 +27,13 @@ describe('ClientsController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ClientsController],
-      providers: [{ provide: ClientsService, useValue: mockClientsService }],
+      providers: [
+        { provide: ClientsService, useValue: mockClientsService },
+        {
+          provide: TranslationService,
+          useValue: { translate: jest.fn((key: string) => key) },
+        },
+      ],
     }).compile();
 
     controller = module.get<ClientsController>(ClientsController);

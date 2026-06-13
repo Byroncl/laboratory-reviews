@@ -5,6 +5,7 @@ import { CreateCommentDto } from '../dto/create-comment.dto';
 import { UpdateCommentDto } from '../dto/update-comment.dto';
 import { FindCommentsByPostDto } from '../dto/find-comments-by-post.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 describe('CommentsController', () => {
   let controller: CommentsController;
@@ -27,7 +28,13 @@ describe('CommentsController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CommentsController],
-      providers: [{ provide: CommentsService, useValue: mockCommentsService }],
+      providers: [
+        { provide: CommentsService, useValue: mockCommentsService },
+        {
+          provide: TranslationService,
+          useValue: { translate: jest.fn((key: string) => key) },
+        },
+      ],
     }).compile();
 
     controller = module.get<CommentsController>(CommentsController);

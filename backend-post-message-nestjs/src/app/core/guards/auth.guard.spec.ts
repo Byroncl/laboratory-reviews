@@ -7,6 +7,7 @@ import {
   UnauthorizedException,
   ForbiddenException,
 } from '@nestjs/common';
+import { TranslationService } from '../utils/translation.service';
 
 function createMockExecutionContext(authHeader = ''): ExecutionContext {
   return {
@@ -24,6 +25,7 @@ describe('AuthGuard', () => {
   let guard: AuthGuard;
   let mockJwtService: jest.Mocked<JwtService>;
   let mockReflector: jest.Mocked<Reflector>;
+  let mockTranslationService: jest.Mocked<TranslationService>;
 
   beforeEach(async () => {
     mockJwtService = {
@@ -34,11 +36,17 @@ describe('AuthGuard', () => {
       getAllAndOverride: jest.fn(),
     } as any;
 
+    mockTranslationService = {
+      translate: jest.fn((key: string) => key),
+      setLanguage: jest.fn(),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthGuard,
         { provide: JwtService, useValue: mockJwtService },
         { provide: Reflector, useValue: mockReflector },
+        { provide: TranslationService, useValue: mockTranslationService },
       ],
     }).compile();
 

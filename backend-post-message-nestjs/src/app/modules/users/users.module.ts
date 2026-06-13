@@ -11,6 +11,7 @@ import { FindUserByUsernameUseCase } from './domain/use-cases/find-user-by-usern
 import { FindUserByIdUseCase } from './domain/use-cases/find-user-by-id.use-case';
 import { UpdateUserUseCase } from './domain/use-cases/update-user.use-case';
 import { RemoveUserUseCase } from './domain/use-cases/remove-user.use-case';
+import { TranslationService } from '../../core/utils/translation.service';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { RemoveUserUseCase } from './domain/use-cases/remove-user.use-case';
     FindUserByIdUseCase,
     UpdateUserUseCase,
     RemoveUserUseCase,
+    TranslationService,
     {
       provide: UserRepository,
       useClass: UserMongoRepository,

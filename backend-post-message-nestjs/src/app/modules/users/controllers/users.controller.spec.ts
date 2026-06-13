@@ -4,6 +4,7 @@ import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -32,7 +33,13 @@ describe('UsersController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
-      providers: [{ provide: UsersService, useValue: mockUsersService }],
+      providers: [
+        { provide: UsersService, useValue: mockUsersService },
+        {
+          provide: TranslationService,
+          useValue: { translate: jest.fn((key: string) => key) },
+        },
+      ],
     }).compile();
 
     controller = module.get<UsersController>(UsersController);

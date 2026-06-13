@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { InternalServerErrorException } from '@nestjs/common';
 import { FilesService } from './files.service';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 jest.mock('../../../core/config/minio.config', () => ({
   createMinioClient: jest.fn(),
@@ -42,7 +43,13 @@ describe('FilesService', () => {
     (createMinioClient as jest.Mock).mockReturnValue(mockMinioClient);
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [FilesService],
+      providers: [
+        FilesService,
+        {
+          provide: TranslationService,
+          useValue: { translate: jest.fn((key: string) => key) },
+        },
+      ],
     }).compile();
 
     service = module.get<FilesService>(FilesService);

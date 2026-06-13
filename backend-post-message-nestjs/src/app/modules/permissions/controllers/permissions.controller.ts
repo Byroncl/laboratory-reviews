@@ -21,11 +21,15 @@ import { PermissionResponseDto } from '../dto/permission-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 @ApiTags('permissions')
 @Controller('permissions')
 export class PermissionsController {
-  constructor(private readonly permissionsService: PermissionsService) {}
+  constructor(
+    private readonly permissionsService: PermissionsService,
+    private readonly i18n: TranslationService,
+  ) {}
 
   @Auth()
   @ApiOperation({ summary: 'Create a new permission' })
@@ -36,7 +40,7 @@ export class PermissionsController {
   @Post()
   async create(@Body() createPermissionDto: CreatePermissionDto) {
     const permission = await this.permissionsService.create(createPermissionDto);
-    return ApiRes.success(permission, 'Permission created successfully');
+    return ApiRes.success(permission, this.i18n.translate('permissions.created'));
   }
 
   @Auth()
@@ -77,7 +81,7 @@ export class PermissionsController {
       findOneDto.id,
       updatePermissionDto,
     );
-    return ApiRes.success(permission, 'Permission updated successfully');
+    return ApiRes.success(permission, this.i18n.translate('permissions.updated'));
   }
 
   @Auth()
@@ -89,6 +93,6 @@ export class PermissionsController {
   @Delete(':id')
   async remove(@Param() findOneDto: FindOneDto) {
     await this.permissionsService.remove(findOneDto.id);
-    return ApiRes.success(null, 'Permission deleted successfully');
+    return ApiRes.success(null, this.i18n.translate('permissions.deleted'));
   }
 }

@@ -21,11 +21,15 @@ import { RoleResponseDto } from '../dto/role-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 @ApiTags('roles')
 @Controller('roles')
 export class RolesController {
-  constructor(private readonly rolesService: RolesService) {}
+  constructor(
+    private readonly rolesService: RolesService,
+    private readonly i18n: TranslationService,
+  ) {}
 
   @Auth()
   @ApiOperation({ summary: 'Create a new role' })
@@ -36,7 +40,7 @@ export class RolesController {
   @Post()
   async create(@Body() createRoleDto: CreateRoleDto) {
     const role = await this.rolesService.create(createRoleDto);
-    return ApiRes.success(role, 'Role created successfully');
+    return ApiRes.success(role, this.i18n.translate('roles.created'));
   }
 
   @Auth()
@@ -74,7 +78,7 @@ export class RolesController {
     @Body() updateRoleDto: UpdateRoleDto,
   ) {
     const role = await this.rolesService.update(findOneDto.id, updateRoleDto);
-    return ApiRes.success(role, 'Role updated successfully');
+    return ApiRes.success(role, this.i18n.translate('roles.updated'));
   }
 
   @Auth()
@@ -86,6 +90,6 @@ export class RolesController {
   @Delete(':id')
   async remove(@Param() findOneDto: FindOneDto) {
     await this.rolesService.remove(findOneDto.id);
-    return ApiRes.success(null, 'Role deleted successfully');
+    return ApiRes.success(null, this.i18n.translate('roles.deleted'));
   }
 }

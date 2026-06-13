@@ -21,11 +21,15 @@ import { UserResponseDto } from '../dto/user-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly i18n: TranslationService,
+  ) {}
 
   @ApiOperation({ summary: 'Create a new user' })
   @ApiBody({ type: CreateUserDto })
@@ -34,7 +38,7 @@ export class UsersController {
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
     const user = await this.usersService.create(createUserDto);
-    return ApiRes.success(user, 'User created successfully');
+    return ApiRes.success(user, this.i18n.translate('users.created'));
   }
 
   @Auth()
@@ -72,7 +76,7 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
   ) {
     const user = await this.usersService.update(findOneDto.id, updateUserDto);
-    return ApiRes.success(user, 'User updated successfully');
+    return ApiRes.success(user, this.i18n.translate('users.updated'));
   }
 
   @Auth()
@@ -84,6 +88,6 @@ export class UsersController {
   @Delete(':id')
   async remove(@Param() findOneDto: FindOneDto) {
     await this.usersService.remove(findOneDto.id);
-    return ApiRes.success(null, 'User deleted successfully');
+    return ApiRes.success(null, this.i18n.translate('users.deleted'));
   }
 }

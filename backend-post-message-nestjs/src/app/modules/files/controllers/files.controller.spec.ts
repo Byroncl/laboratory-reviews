@@ -3,6 +3,7 @@ import { BadRequestException } from '@nestjs/common';
 import { FilesController } from './files.controller';
 import { FilesService } from '../services/files.service';
 import { FileValidationPipe } from '../../../core/pipes/file-validation.pipe';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 describe('FilesController', () => {
   let controller: FilesController;
@@ -33,7 +34,13 @@ describe('FilesController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [FilesController],
-      providers: [{ provide: FilesService, useValue: mockFilesService }],
+      providers: [
+        { provide: FilesService, useValue: mockFilesService },
+        {
+          provide: TranslationService,
+          useValue: { translate: jest.fn((key: string) => key) },
+        },
+      ],
     }).compile();
 
     controller = module.get<FilesController>(FilesController);
@@ -76,21 +83,24 @@ describe('FilesController', () => {
     });
 
     it('should throw BadRequestException for non-image files via FileValidationPipe', () => {
-      const pipe = new FileValidationPipe();
+      const i18n = new TranslationService();
+      const pipe = new FileValidationPipe(i18n);
       const file = buildFile({ mimetype: 'application/pdf', originalname: 'doc.pdf' });
 
       expect(() => pipe.transform(file)).toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException for files exceeding 5MB via FileValidationPipe', () => {
-      const pipe = new FileValidationPipe();
+      const i18n = new TranslationService();
+      const pipe = new FileValidationPipe(i18n);
       const file = buildFile({ size: 6 * 1024 * 1024 }); // 6MB
 
       expect(() => pipe.transform(file)).toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException when no file is provided via FileValidationPipe', () => {
-      const pipe = new FileValidationPipe();
+      const i18n = new TranslationService();
+      const pipe = new FileValidationPipe(i18n);
 
       expect(() => pipe.transform(undefined as any)).toThrow(BadRequestException);
     });

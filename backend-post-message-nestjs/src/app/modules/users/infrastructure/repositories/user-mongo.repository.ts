@@ -5,14 +5,16 @@ import { CreateUserDto } from '../../dto/create-user.dto';
 import { UpdateUserDto } from '../../dto/update-user.dto';
 import { User, UserDocument } from '../../schemas/user.schema';
 import { UserRepository } from '../../domain/repositories/user.repository';
-import * as bcrypt from 'bcrypt';
+import { CryptoUtils } from '../../../../../app/core/utils/crypto.utils';
 
 @Injectable()
 export class UserMongoRepository implements UserRepository {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const hashedPassword = await bcrypt.hash(createUserDto.password_hash, 10);
+    const hashedPassword = await CryptoUtils.hashPassword(
+      createUserDto.password_hash,
+    );
     const createdUser = new this.userModel({
       ...createUserDto,
       password_hash: hashedPassword,

@@ -21,11 +21,15 @@ import { PostResponseDto } from '../dto/post-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 @ApiTags('posts')
 @Controller('posts')
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(
+    private readonly postsService: PostsService,
+    private readonly i18n: TranslationService,
+  ) {}
 
   @ApiOperation({ summary: 'Create a new post' })
   @ApiBody({ type: CreatePostDto })
@@ -34,7 +38,7 @@ export class PostsController {
   @Post()
   async create(@Body() createPostDto: CreatePostDto) {
     const post = await this.postsService.create(createPostDto);
-    return ApiRes.success(post, 'Post created successfully');
+    return ApiRes.success(post, this.i18n.translate('posts.created'));
   }
 
   @Auth()
@@ -72,7 +76,7 @@ export class PostsController {
     @Body() updatePostDto: UpdatePostDto,
   ) {
     const post = await this.postsService.update(findOneDto.id, updatePostDto);
-    return ApiRes.success(post, 'Post updated successfully');
+    return ApiRes.success(post, this.i18n.translate('posts.updated'));
   }
 
   @Auth()
@@ -84,7 +88,7 @@ export class PostsController {
   @Delete(':id')
   async remove(@Param() findOneDto: FindOneDto) {
     await this.postsService.remove(findOneDto.id);
-    return ApiRes.success(null, 'Post deleted successfully');
+    return ApiRes.success(null, this.i18n.translate('posts.deleted'));
   }
 
   @ApiOperation({ summary: 'Bulk create posts' })
@@ -94,6 +98,6 @@ export class PostsController {
   @Post('bulk')
   async bulkCreate(@Body() createPostDtos: CreatePostDto[]) {
     const result = await this.postsService.bulkCreate(createPostDtos);
-    return ApiRes.success(result, 'Posts created successfully');
+    return ApiRes.success(result, this.i18n.translate('posts.created'));
   }
 }
