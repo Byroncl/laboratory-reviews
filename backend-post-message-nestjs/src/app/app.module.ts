@@ -16,6 +16,7 @@ import { I18nMiddleware } from './core/middleware/i18n.middleware';
 import { I18nModule } from './modules/i18n/i18n.module';
 import { TransformInterceptor } from './core/interceptors/transform.interceptor';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     AuthModule,
     I18nModule,
     NotificationsModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [

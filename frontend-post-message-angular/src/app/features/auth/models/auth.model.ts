@@ -1,11 +1,11 @@
-export interface User {
+export interface AuthUser {
   id: string;
-  email: string;
-  name: string;
+  username: string;
+  role: string;
 }
 
 export interface AuthState {
-  user: User | null;
+  user: AuthUser | null;
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;

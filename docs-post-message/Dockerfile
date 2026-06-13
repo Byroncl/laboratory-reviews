@@ -2,11 +2,14 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Instalar http-server globalmente
-RUN npm install -g http-server
+COPY package*.json ./
+
+RUN npm install --legacy-peer-deps
 
 COPY . .
 
+RUN npm run build
+
 EXPOSE 3000
 
-CMD ["http-server", "-p", "3000", "-c-1"]
+CMD ["npm", "run", "serve"]

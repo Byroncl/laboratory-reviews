@@ -40,11 +40,13 @@ export async function seedDatabase(): Promise<void> {
       await clearCollections(app);
     }
 
+    const categories = await seedCategories(app);
     const users = await seedUsers(app, config.usersCount);
-    const posts = await seedPosts(app, users, config.postsPerUser);
+    const posts = await seedPosts(app, users, categories, config.postsPerUser);
     await seedComments(app, posts, users, config.commentsPerPost, config.reactionsPerComment);
 
     console.log('Seed completed successfully!');
+    console.log(`   - Categories: ${categories.length}`);
     console.log(`   - Users: ${users.length}`);
     console.log(`   - Posts: ${posts.length}`);
   } catch (error) {
@@ -65,6 +67,39 @@ async function clearCollections(app: { get: (token: unknown) => unknown }): Prom
       console.log(`   - Cleared ${name}`);
     }
   }
+}
+
+const SEED_CATEGORIES = [
+  { name: 'Backend', slug: 'backend', color: '#3B82F6', description: 'Server-side development and APIs' },
+  { name: 'Frontend', slug: 'frontend', color: '#10B981', description: 'UI development and frameworks' },
+  { name: 'DevOps', slug: 'devops', color: '#F59E0B', description: 'Infrastructure, CI/CD, and deployment' },
+  { name: 'Database', slug: 'database', color: '#EF4444', description: 'Database design and optimization' },
+  { name: 'Testing', slug: 'testing', color: '#8B5CF6', description: 'Testing strategies and tools' },
+];
+
+async function seedCategories(
+  app: { get: (token: unknown) => unknown },
+): Promise<Array<{ _id: unknown; name: string; slug: string }>> {
+  const CategoryModel = app.get(getModelToken('Category')) as {
+    findOne: (filter: unknown) => { exec: () => Promise<unknown> };
+    create: (data: unknown) => Promise<{ _id: unknown; name: string; slug: string }>;
+  };
+
+  const categories: Array<{ _id: unknown; name: string; slug: string }> = [];
+
+  for (const data of SEED_CATEGORIES) {
+    const existing = await CategoryModel.findOne({ slug: data.slug }).exec();
+    if (existing) {
+      categories.push(existing as { _id: unknown; name: string; slug: string });
+      console.log(`   Skipped existing category: ${data.name}`);
+      continue;
+    }
+    const category = await CategoryModel.create(data);
+    categories.push(category);
+    console.log(`   Created category: ${data.name}`);
+  }
+
+  return categories;
 }
 
 const SEED_USERS = [
@@ -100,6 +135,18 @@ const POST_BODIES = [
   'Secure your API with authentication and authorization.',
 ];
 
+// Map post titles to category indices (align with SEED_CATEGORIES order)
+const POST_CATEGORY_MAP: Record<string, number> = {
+  'Getting Started with NestJS': 0,    // Backend
+  'Angular 18 Best Practices': 1,      // Frontend
+  'MongoDB Indexing Guide': 3,         // Database
+  'WebSocket Real-time Updates': 0,    // Backend
+  'Clean Architecture in Backend': 0,  // Backend
+  'Testing Strategies': 4,             // Testing
+  'Performance Optimization': 2,       // DevOps
+  'Security Best Practices': 0,        // Backend
+};
+
 async function seedUsers(
   app: { get: (token: unknown) => unknown },
   count: number,
@@ -132,6 +179,7 @@ async function seedUsers(
 async function seedPosts(
   app: { get: (token: unknown) => unknown },
   users: Array<{ _id: unknown; username: string }>,
+  categories: Array<{ _id: unknown; name: string; slug: string }>,
   postsPerUser: number,
 ): Promise<Array<{ _id: unknown }>> {
   const PostModel = app.get(getModelToken('Post')) as {
@@ -141,12 +189,18 @@ async function seedPosts(
 
   for (let i = 0; i < postsPerUser * users.length; i++) {
     const user = users[i % users.length];
+    const title = POST_TITLES[i % POST_TITLES.length];
+    const categoryIndex = POST_CATEGORY_MAP[title] ?? i % categories.length;
+    const category = categories[categoryIndex] ?? categories[i % categories.length];
+
     const post = await PostModel.create({
-      title: POST_TITLES[i % POST_TITLES.length],
+      title,
       body: POST_BODIES[i % POST_BODIES.length],
       author: user.username,
       isActive: true,
       isDeleted: false,
+      categoryId: String(category._id),
+      categoryName: category.name,
     });
     posts.push(post);
   }

@@ -14,16 +14,8 @@ import {
   SkeletonComponent
 } from '../../../shared/components/index';
 import { ModalService, NotificationService } from '../../../shared/services/index';
-
-interface Post extends Record<string, unknown> {
-  id: string;
-  title: string;
-  author: string;
-  status: 'published' | 'draft' | 'archived';
-  views: number;
-  createdAt: string;
-  updatedAt?: string;
-}
+import { PostsService } from '../../posts/services/posts.service';
+import { Post } from '../../../shared/models/post.model';
 
 @Component({
   selector: 'app-posts',
@@ -82,7 +74,7 @@ interface Post extends Record<string, unknown> {
       </div>
 
       <!-- Loading State -->
-      @if (isLoading) {
+      @if (postsService.loading()) {
         <app-skeleton type="table"></app-skeleton>
       } @else {
         @if (filteredPosts.length > 0) {
@@ -131,7 +123,6 @@ interface Post extends Record<string, unknown> {
   `
 })
 export class PostsComponent implements OnInit, OnDestroy {
-  isLoading = false;
   currentPage = 1;
   pageSize = 10;
   globalSearch = '';
@@ -164,75 +155,8 @@ export class PostsComponent implements OnInit, OnDestroy {
     }
   ];
 
-  posts: Post[] = [
-    {
-      id: '1',
-      title: 'Introducción a Angular',
-      author: 'Juan Pérez',
-      status: 'published',
-      views: 1234,
-      createdAt: '2024-01-15'
-    },
-    {
-      id: '2',
-      title: 'NestJS Best Practices',
-      author: 'María García',
-      status: 'published',
-      views: 892,
-      createdAt: '2024-01-12'
-    },
-    {
-      id: '3',
-      title: 'MongoDB Tutorial',
-      author: 'Carlos López',
-      status: 'draft',
-      views: 0,
-      createdAt: '2024-01-10'
-    },
-    {
-      id: '4',
-      title: 'RESTful APIs Design',
-      author: 'Ana Martínez',
-      status: 'published',
-      views: 2100,
-      createdAt: '2024-01-08'
-    },
-    {
-      id: '5',
-      title: 'TypeScript Advanced',
-      author: 'Pedro Sánchez',
-      status: 'archived',
-      views: 450,
-      createdAt: '2024-01-05'
-    },
-    {
-      id: '6',
-      title: 'React Hooks Deep Dive',
-      author: 'Sofia González',
-      status: 'published',
-      views: 1567,
-      createdAt: '2024-01-03'
-    },
-    {
-      id: '7',
-      title: 'Docker Containerization',
-      author: 'Luis Rodríguez',
-      status: 'draft',
-      views: 234,
-      createdAt: '2024-01-01'
-    },
-    {
-      id: '8',
-      title: 'GraphQL Introduction',
-      author: 'Elena Martinez',
-      status: 'published',
-      views: 890,
-      createdAt: '2023-12-28'
-    }
-  ];
-
   get filteredPosts(): Post[] {
-    return this.posts.filter(post => this.matchesAllFilters(post));
+    return this.postsService.posts().filter(post => this.matchesAllFilters(post));
   }
 
   get totalPages(): number {
@@ -240,13 +164,20 @@ export class PostsComponent implements OnInit, OnDestroy {
   }
 
   constructor(
+    public postsService: PostsService,
     private modalService: ModalService,
     private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
-    this.loadPosts();
-    this.updateStats();
+    this.postsService.loadPosts().pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.updateStats();
+      },
+      error: () => {
+        this.notificationService.toast('Error al cargar posts', 'error');
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -254,18 +185,11 @@ export class PostsComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  loadPosts(): void {
-    this.isLoading = true;
-    setTimeout(() => {
-      this.isLoading = false;
-      this.updateStats();
-    }, 1000);
-  }
-
   private updateStats(): void {
-    this.totalPostsCount = this.posts.length;
-    this.publishedCount = this.posts.filter(p => p.status === 'published').length;
-    this.draftCount = this.posts.filter(p => p.status === 'draft').length;
+    const posts = this.postsService.posts();
+    this.totalPostsCount = posts.length;
+    this.publishedCount = posts.filter(p => p.status === 'published').length;
+    this.draftCount = posts.filter(p => p.status === 'draft').length;
   }
 
   onCreatePost(): void {
@@ -329,13 +253,16 @@ export class PostsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(result => {
         if (result.confirmed) {
-          try {
-            this.posts = this.posts.filter(p => p.id !== post.id);
-            this.updateStats();
-            this.notificationService.toast('Post eliminado correctamente', 'success');
-          } catch {
-            this.notificationService.toast('Error al eliminar el post', 'error');
-          }
+          const postId = (post._id ?? post.id) as string;
+          this.postsService.deletePost(postId).pipe(takeUntil(this.destroy$)).subscribe({
+            next: () => {
+              this.updateStats();
+              this.notificationService.toast('Post eliminado correctamente', 'success');
+            },
+            error: () => {
+              this.notificationService.toast('Error al eliminar el post', 'error');
+            }
+          });
         }
       });
   }
@@ -360,7 +287,7 @@ export class PostsComponent implements OnInit, OnDestroy {
   }
 
   onSort(event: { sortBy: string; sortOrder: 'asc' | 'desc' }): void {
-    this.posts.sort((a, b) => {
+    const sortedPosts = [...this.postsService.posts()].sort((a, b) => {
       const aVal = a[event.sortBy as keyof Post];
       const bVal = b[event.sortBy as keyof Post];
 
@@ -375,6 +302,7 @@ export class PostsComponent implements OnInit, OnDestroy {
         ? aStr.localeCompare(bStr)
         : bStr.localeCompare(aStr);
     });
+    this.postsService.posts.set(sortedPosts);
   }
 
   onPageChange(page: number): void {

@@ -42,4 +42,21 @@ export class CreatePostDto {
   @IsString()
   @MaxLength(500)
   imageFilename?: string;
+
+  @ApiPropertyOptional({
+    example: '507f1f77bcf86cd799439011',
+    description: 'MongoDB ObjectId of the category',
+  })
+  @IsOptional()
+  @IsString()
+  categoryId?: string;
+
+  @ApiPropertyOptional({
+    example: 'Backend',
+    description: 'Denormalized category name for quick display',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  categoryName?: string;
 }

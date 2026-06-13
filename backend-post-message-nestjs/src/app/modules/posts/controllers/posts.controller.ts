@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   Put,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -46,8 +47,8 @@ export class PostsController {
   @ApiResponse({ status: 200, description: 'List of posts', type: [PostResponseDto] })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get()
-  async findAll() {
-    const posts = await this.postsService.findAll();
+  async findAll(@Query('categoryId') categoryId?: string) {
+    const posts = await this.postsService.findAll(categoryId);
     return ApiRes.success(posts);
   }
 

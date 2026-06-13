@@ -89,6 +89,12 @@
     "all_marked_read": "Todas las notificaciones marcadas como leídas",
     "deleted": "Notificación eliminada exitosamente"
   },
+  "categories": {
+    "created": "Categoría creada exitosamente",
+    "updated": "Categoría actualizada exitosamente",
+    "deleted": "Categoría eliminada exitosamente",
+    "not_found": "Categoría no encontrada"
+  },
   "common": {
     "success": "Éxito",
     "error": "Un error inesperado ocurrió",

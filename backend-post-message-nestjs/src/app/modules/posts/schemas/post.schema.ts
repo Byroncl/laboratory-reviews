@@ -28,6 +28,13 @@ export class Post {
 
   @Prop({ default: false })
   isDeleted: boolean;
+
+  @Prop({ type: String, required: false, index: true })
+  categoryId?: string;
+
+  @Prop({ type: String, required: false })
+  categoryName?: string;
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);
+PostSchema.index({ categoryId: 1 });

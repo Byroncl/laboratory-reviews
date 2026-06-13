@@ -14,16 +14,8 @@ import {
   SkeletonComponent
 } from '../../../shared/components/index';
 import { ModalService, NotificationService } from '../../../shared/services/index';
-
-interface User extends Record<string, unknown> {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'editor' | 'viewer';
-  status: 'active' | 'inactive' | 'suspended';
-  createdAt: string;
-  lastLogin?: string;
-}
+import { UsersService } from '../../admin/services/users.service';
+import { User } from '../../../shared/models/user.model';
 
 @Component({
   selector: 'app-users',
@@ -95,10 +87,10 @@ interface User extends Record<string, unknown> {
       }
 
       <!-- Loading State -->
-      @if (isLoading) {
+      @if (usersService.loading$()) {
         <app-skeleton type="table"></app-skeleton>
       } @else {
-        @if (filteredUsers.length > 0) {
+        @if ((usersService.users$() ?? []).length > 0) {
           <!-- Users Table -->
           <app-table
             [columns]="columns"
@@ -148,7 +140,6 @@ interface User extends Record<string, unknown> {
   `
 })
 export class UsersComponent implements OnInit, OnDestroy {
-  isLoading = false;
   currentPage = 1;
   pageSize = 10;
   globalSearch = '';
@@ -184,83 +175,8 @@ export class UsersComponent implements OnInit, OnDestroy {
     }
   ];
 
-  users: User[] = [
-    {
-      id: '1',
-      name: 'Juan Pérez',
-      email: 'juan.perez@example.com',
-      role: 'admin',
-      status: 'active',
-      createdAt: '2024-01-15',
-      lastLogin: '2024-06-13'
-    },
-    {
-      id: '2',
-      name: 'María García',
-      email: 'maria.garcia@example.com',
-      role: 'editor',
-      status: 'active',
-      createdAt: '2024-02-10',
-      lastLogin: '2024-06-12'
-    },
-    {
-      id: '3',
-      name: 'Carlos López',
-      email: 'carlos.lopez@example.com',
-      role: 'viewer',
-      status: 'inactive',
-      createdAt: '2024-03-05',
-      lastLogin: '2024-05-20'
-    },
-    {
-      id: '4',
-      name: 'Ana Martínez',
-      email: 'ana.martinez@example.com',
-      role: 'editor',
-      status: 'active',
-      createdAt: '2024-01-20',
-      lastLogin: '2024-06-13'
-    },
-    {
-      id: '5',
-      name: 'Pedro Sánchez',
-      email: 'pedro.sanchez@example.com',
-      role: 'admin',
-      status: 'active',
-      createdAt: '2023-12-10',
-      lastLogin: '2024-06-11'
-    },
-    {
-      id: '6',
-      name: 'Sofia González',
-      email: 'sofia.gonzalez@example.com',
-      role: 'viewer',
-      status: 'suspended',
-      createdAt: '2024-04-01',
-      lastLogin: '2024-04-15'
-    },
-    {
-      id: '7',
-      name: 'Luis Rodríguez',
-      email: 'luis.rodriguez@example.com',
-      role: 'editor',
-      status: 'active',
-      createdAt: '2024-05-12',
-      lastLogin: '2024-06-10'
-    },
-    {
-      id: '8',
-      name: 'Elena Martinez',
-      email: 'elena.martinez@example.com',
-      role: 'viewer',
-      status: 'active',
-      createdAt: '2024-06-01',
-      lastLogin: '2024-06-13'
-    }
-  ];
-
   get filteredUsers(): User[] {
-    return this.users.filter(user => this.matchesAllFilters(user));
+    return this.usersService.users$().filter(user => this.matchesAllFilters(user));
   }
 
   get totalPages(): number {
@@ -268,13 +184,20 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   constructor(
+    public usersService: UsersService,
     private modalService: ModalService,
     private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
-    this.loadUsers();
-    this.updateStats();
+    this.usersService.loadUsers().pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.updateStats();
+      },
+      error: () => {
+        this.notificationService.toast('Error al cargar usuarios', 'error');
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -282,19 +205,12 @@ export class UsersComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  loadUsers(): void {
-    this.isLoading = true;
-    setTimeout(() => {
-      this.isLoading = false;
-      this.updateStats();
-    }, 1000);
-  }
-
   private updateStats(): void {
-    this.totalUsersCount = this.users.length;
-    this.activeCount = this.users.filter(u => u.status === 'active').length;
-    this.adminCount = this.users.filter(u => u.role === 'admin').length;
-    this.suspendedCount = this.users.filter(u => u.status === 'suspended').length;
+    const users = this.usersService.users$();
+    this.totalUsersCount = users.length;
+    this.activeCount = users.filter(u => u.status === 'active').length;
+    this.adminCount = users.filter(u => u.role === 'admin').length;
+    this.suspendedCount = users.filter(u => u.status === 'suspended').length;
   }
 
   onCreateUser(): void {
@@ -357,13 +273,16 @@ export class UsersComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(result => {
         if (result.confirmed) {
-          try {
-            this.users = this.users.filter(u => u.id !== user.id);
-            this.updateStats();
-            this.notificationService.toast('Usuario eliminado correctamente', 'success');
-          } catch {
-            this.notificationService.toast('Error al eliminar el usuario', 'error');
-          }
+          const userId = (user._id ?? user.id) as string;
+          this.usersService.deleteUser(userId).pipe(takeUntil(this.destroy$)).subscribe({
+            next: () => {
+              this.updateStats();
+              this.notificationService.toast('Usuario eliminado correctamente', 'success');
+            },
+            error: () => {
+              this.notificationService.toast('Error al eliminar el usuario', 'error');
+            }
+          });
         }
       });
   }
@@ -399,7 +318,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   onSort(event: { sortBy: string; sortOrder: 'asc' | 'desc' }): void {
-    this.users.sort((a, b) => {
+    const sortedUsers = [...this.usersService.users$()].sort((a, b) => {
       const aVal = a[event.sortBy as keyof User];
       const bVal = b[event.sortBy as keyof User];
 
@@ -414,6 +333,7 @@ export class UsersComponent implements OnInit, OnDestroy {
         ? aStr.localeCompare(bStr)
         : bStr.localeCompare(aStr);
     });
+    this.usersService.users$.set(sortedUsers);
   }
 
   onPageChange(page: number): void {
