@@ -43,16 +43,15 @@ export class UsersService {
 
     return this.api.get<UsersPaginatedResponse>('/users', { skip, limit }).pipe(
       tap(response => {
-        const data = response.data;
-        if (data && 'items' in data) {
-          this.users$.set(data.items ?? []);
-          this.pagination.set({ skip, limit, total: data.total ?? 0 });
-        } else {
-          this.users$.set((data as User[]) ?? []);
-          this.pagination.set({ skip, limit, total: ((data as User[]) ?? []).length });
-        }
+        const { items, total, skip: responseSkip, limit: responseLimit } = response.data;
+        this.users$.set(items ?? []);
+        this.pagination.set({
+          skip: responseSkip ?? skip,
+          limit: responseLimit ?? limit,
+          total: total ?? 0
+        });
         this.loading$.set(false);
-        console.log('[UsersService] loadUsers success', { count: this.users$().length });
+        console.log('[UsersService] loadUsers success', { count: this.users$().length, total });
       }),
       catchError(err => {
         const errorMsg = err?.message || 'Failed to load users';

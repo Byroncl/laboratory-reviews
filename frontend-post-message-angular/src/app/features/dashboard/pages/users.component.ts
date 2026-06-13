@@ -16,6 +16,7 @@ import {
 import { ModalService, NotificationService } from '../../../shared/services/index';
 import { UsersService } from '../../admin/services/users.service';
 import { User } from '../../../shared/models/user.model';
+import { UserFormComponent } from '../components/user-form.component';
 
 @Component({
   selector: 'app-users',
@@ -28,16 +29,40 @@ import { User } from '../../../shared/models/user.model';
     PaginationComponent,
     BadgeComponent,
     SpinnerComponent,
-    SkeletonComponent
+    SkeletonComponent,
+    UserFormComponent
   ],
   template: `
     <div class="space-y-6">
+      <!-- Form Modal -->
+      @if (showUserForm) {
+        <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-900">
+              {{ editingUserId ? 'Editar Usuario' : 'Crear Nuevo Usuario' }}
+            </h2>
+            <button
+              (click)="closeForm()"
+              class="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+          <app-user-form
+            [editingUserId]="editingUserId"
+            (formSubmitted)="onFormSubmitted()"
+            (formCancelled)="closeForm()"
+          ></app-user-form>
+        </div>
+      }
+
       <!-- Header -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 class="text-3xl font-bold text-primary">{{ 'sidebar.users' | t }}</h1>
         <button
           (click)="onCreateUser()"
-          class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap"
+          [disabled]="showUserForm"
+          class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
         >
           + Nuevo Usuario
         </button>
@@ -104,9 +129,9 @@ import { User } from '../../../shared/models/user.model';
 
           <!-- Pagination -->
           <app-pagination
-            [currentPage]="currentPage"
-            [totalPages]="totalPages"
-            [total]="filteredUsers.length"
+            [currentPage]="usersService.currentPage()"
+            [totalPages]="usersService.totalPages()"
+            [total]="usersService.totalUsers()"
             [pageSize]="pageSize"
             (pageChanged)="onPageChange($event)"
           ></app-pagination>
@@ -140,7 +165,6 @@ import { User } from '../../../shared/models/user.model';
   `
 })
 export class UsersComponent implements OnInit, OnDestroy {
-  currentPage = 1;
   pageSize = 10;
   globalSearch = '';
   roleFilter = '';
@@ -150,6 +174,8 @@ export class UsersComponent implements OnInit, OnDestroy {
   activeCount = 0;
   adminCount = 0;
   suspendedCount = 0;
+  showUserForm = false;
+  editingUserId: string | null = null;
   private columnFilters: Record<string, string> = {};
   private destroy$ = new Subject<void>();
 
@@ -176,11 +202,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   ];
 
   get filteredUsers(): User[] {
-    return this.usersService.users$().filter(user => this.matchesAllFilters(user));
-  }
-
-  get totalPages(): number {
-    return Math.ceil(this.filteredUsers.length / this.pageSize);
+    return this.usersService.users$();
   }
 
   constructor(
@@ -190,14 +212,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.usersService.loadUsers().pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.updateStats();
-      },
-      error: () => {
-        this.notificationService.toast('Error al cargar usuarios', 'error');
-      }
-    });
+    this.loadCurrentPage();
   }
 
   ngOnDestroy(): void {
@@ -214,17 +229,18 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   onCreateUser(): void {
-    this.modalService
-      .openConfirm(
-        'Nuevo Usuario',
-        'Funcionalidad de crear usuarios próximamente disponible.'
-      )
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(result => {
-        if (result.confirmed) {
-          this.notificationService.success('Usuario creado', 'El usuario se creó correctamente');
-        }
-      });
+    this.showUserForm = true;
+    this.editingUserId = null;
+  }
+
+  closeForm(): void {
+    this.showUserForm = false;
+    this.editingUserId = null;
+  }
+
+  onFormSubmitted(): void {
+    this.closeForm();
+    this.loadCurrentPage();
   }
 
   onTableAction(event: { action: string; row: Record<string, unknown> }): void {
@@ -254,13 +270,8 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   editUser(user: User): void {
-    this.modalService
-      .openConfirm(
-        `Editar: ${user.name}`,
-        'Funcionalidad de edición próximamente disponible.'
-      )
-      .pipe(takeUntil(this.destroy$))
-      .subscribe();
+    this.editingUserId = (user._id ?? user.id) as string;
+    this.showUserForm = true;
   }
 
   deleteUser(user: User): void {
@@ -294,18 +305,18 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   onGlobalSearch(): void {
-    this.currentPage = 1;
     this.updateActiveFilters();
+    this.loadCurrentPage();
   }
 
   onRoleFilterChange(): void {
-    this.currentPage = 1;
     this.updateActiveFilters();
+    this.loadCurrentPage();
   }
 
   onStatusFilterChange(): void {
-    this.currentPage = 1;
     this.updateActiveFilters();
+    this.loadCurrentPage();
   }
 
   onColumnFilter(filters: Array<{ column: string; value: string }>): void {
@@ -313,8 +324,8 @@ export class UsersComponent implements OnInit, OnDestroy {
     filters.forEach(filter => {
       this.columnFilters[filter.column] = filter.value;
     });
-    this.currentPage = 1;
     this.updateActiveFilters();
+    this.loadCurrentPage();
   }
 
   onSort(event: { sortBy: string; sortOrder: 'asc' | 'desc' }): void {
@@ -337,7 +348,27 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   onPageChange(page: number): void {
-    this.currentPage = page;
+    const skip = (page - 1) * this.pageSize;
+    this.usersService.loadUsers(skip, this.pageSize).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.updateStats();
+      },
+      error: () => {
+        this.notificationService.toast('Error al cargar usuarios', 'error');
+      }
+    });
+  }
+
+  private loadCurrentPage(): void {
+    const { skip } = this.usersService.pagination();
+    this.usersService.loadUsers(skip, this.pageSize).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.updateStats();
+      },
+      error: () => {
+        this.notificationService.toast('Error al cargar usuarios', 'error');
+      }
+    });
   }
 
   clearAllFilters(): void {
@@ -345,8 +376,8 @@ export class UsersComponent implements OnInit, OnDestroy {
     this.roleFilter = '';
     this.statusFilter = '';
     this.columnFilters = {};
-    this.currentPage = 1;
     this.updateActiveFilters();
+    this.loadCurrentPage();
   }
 
   private matchesAllFilters(user: User): boolean {

@@ -37,10 +37,18 @@ export interface UsersListResponse {
   message: string;
 }
 
+export interface PaginationState {
+  skip: number;
+  limit: number;
+  total: number;
+}
+
 export interface UsersPaginatedResponse {
   data: {
     items: User[];
     total: number;
+    skip: number;
+    limit: number;
   };
   message: string;
 }
