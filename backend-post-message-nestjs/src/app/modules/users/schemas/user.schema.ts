@@ -32,6 +32,9 @@ export class User extends Document {
 
   @Prop({ type: Types.ObjectId, ref: 'Role' })
   role: Role;
+
+  @Prop({ enum: ['en', 'es'], default: 'en' })
+  preferredLanguage?: 'en' | 'es';
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

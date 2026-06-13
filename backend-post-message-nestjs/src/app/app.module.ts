@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -12,6 +12,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './modules/auth/auth.module';
 import { TranslationService } from './core/utils/translation.service';
 import { AuthGuard } from './core/guards/auth.guard';
+import { I18nMiddleware } from './core/middleware/i18n.middleware';
+import { I18nModule } from './modules/i18n/i18n.module';
 
 @Module({
   imports: [
@@ -25,6 +27,7 @@ import { AuthGuard } from './core/guards/auth.guard';
     ClientsModule,
     FilesModule,
     AuthModule,
+    I18nModule,
   ],
   controllers: [AppController],
   providers: [
@@ -36,4 +39,8 @@ import { AuthGuard } from './core/guards/auth.guard';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(I18nMiddleware).forRoutes('*');
+  }
+}

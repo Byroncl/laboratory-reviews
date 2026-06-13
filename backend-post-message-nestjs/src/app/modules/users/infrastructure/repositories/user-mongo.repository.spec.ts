@@ -198,4 +198,31 @@ describe('UserMongoRepository', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('updateLanguagePreference', () => {
+    it('should call findByIdAndUpdate with preferredLanguage field', async () => {
+      const updatedUser = { ...mockUser, preferredLanguage: 'es' };
+      mockExec.mockResolvedValue(updatedUser);
+
+      const result = await repository.updateLanguagePreference(
+        '507f1f77bcf86cd799439011',
+        'es',
+      );
+
+      expect(result).toEqual(updatedUser);
+      expect(MockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011',
+        { preferredLanguage: 'es' },
+        { new: true },
+      );
+    });
+
+    it('should return null when user not found', async () => {
+      mockExec.mockResolvedValue(null);
+
+      const result = await repository.updateLanguagePreference('ghost-id', 'en');
+
+      expect(result).toBeNull();
+    });
+  });
 });

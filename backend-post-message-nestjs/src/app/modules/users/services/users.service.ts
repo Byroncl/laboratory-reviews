@@ -8,6 +8,7 @@ import { FindUserByUsernameUseCase } from '../domain/use-cases/find-user-by-user
 import { FindUserByIdUseCase } from '../domain/use-cases/find-user-by-id.use-case';
 import { UpdateUserUseCase } from '../domain/use-cases/update-user.use-case';
 import { RemoveUserUseCase } from '../domain/use-cases/remove-user.use-case';
+import { UpdateLanguagePreferenceUseCase } from '../domain/use-cases/update-language-preference.use-case';
 
 @Injectable()
 export class UsersService {
@@ -18,6 +19,7 @@ export class UsersService {
     private readonly findUserByIdUseCase: FindUserByIdUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly removeUserUseCase: RemoveUserUseCase,
+    private readonly updateLanguagePreferenceUseCase: UpdateLanguagePreferenceUseCase,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -42,5 +44,12 @@ export class UsersService {
 
   async findOneByUsername(username: string): Promise<User | null> {
     return this.findUserByUsernameUseCase.execute(username);
+  }
+
+  async updateLanguagePreference(
+    id: string,
+    language: 'en' | 'es',
+  ): Promise<User | null> {
+    return this.updateLanguagePreferenceUseCase.execute(id, language);
   }
 }

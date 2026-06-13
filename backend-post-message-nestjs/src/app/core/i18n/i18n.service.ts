@@ -1,16 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, Optional } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 import { TRANSLATIONS, SupportedLanguage } from './translations';
 
 @Injectable()
-export class TranslationService {
-  private currentLanguage: SupportedLanguage = 'en';
+export class I18nService {
+  constructor(@Optional() @Inject(REQUEST) private request?: Request) {}
 
-  setLanguage(lang: SupportedLanguage): void {
-    this.currentLanguage = lang;
+  private getLanguageFromRequest(): SupportedLanguage {
+    if (this.request) {
+      const lang = (this.request.headers['accept-language'] as string)
+        ?.split(',')[0]
+        ?.split('-')[0]
+        ?.toLowerCase();
+
+      if (lang === 'es' || lang === 'en') {
+        return lang as SupportedLanguage;
+      }
+    }
+
+    return 'en';
   }
 
-  translate(key: string, lang?: SupportedLanguage, ...args: string[]): string {
-    const language = lang ?? this.currentLanguage;
+  translate(key: string, ...args: string[]): string {
+    const language = this.getLanguageFromRequest();
     const translations = TRANSLATIONS[language] ?? TRANSLATIONS['en'];
 
     const keys = key.split('.');
@@ -26,5 +39,9 @@ export class TranslationService {
       (str, arg, idx) => str.replace(`{${idx}}`, arg),
       value,
     );
+  }
+
+  getLanguage(): SupportedLanguage {
+    return this.getLanguageFromRequest();
   }
 }

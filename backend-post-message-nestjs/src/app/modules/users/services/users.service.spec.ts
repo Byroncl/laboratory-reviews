@@ -6,6 +6,7 @@ import { FindUserByUsernameUseCase } from '../domain/use-cases/find-user-by-user
 import { FindUserByIdUseCase } from '../domain/use-cases/find-user-by-id.use-case';
 import { UpdateUserUseCase } from '../domain/use-cases/update-user.use-case';
 import { RemoveUserUseCase } from '../domain/use-cases/remove-user.use-case';
+import { UpdateLanguagePreferenceUseCase } from '../domain/use-cases/update-language-preference.use-case';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 
@@ -18,6 +19,7 @@ describe('UsersService', () => {
   const mockFindUserByIdUseCase = { execute: jest.fn() };
   const mockUpdateUserUseCase = { execute: jest.fn() };
   const mockRemoveUserUseCase = { execute: jest.fn() };
+  const mockUpdateLanguagePreferenceUseCase = { execute: jest.fn() };
 
   const mockUser = {
     _id: '507f1f77bcf86cd799439011',
@@ -45,6 +47,10 @@ describe('UsersService', () => {
         { provide: FindUserByIdUseCase, useValue: mockFindUserByIdUseCase },
         { provide: UpdateUserUseCase, useValue: mockUpdateUserUseCase },
         { provide: RemoveUserUseCase, useValue: mockRemoveUserUseCase },
+        {
+          provide: UpdateLanguagePreferenceUseCase,
+          useValue: mockUpdateLanguagePreferenceUseCase,
+        },
       ],
     }).compile();
 
@@ -183,6 +189,32 @@ describe('UsersService', () => {
       mockRemoveUserUseCase.execute.mockResolvedValue(null);
 
       const result = await service.remove('ghost-id');
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('updateLanguagePreference', () => {
+    it('should delegate to UpdateLanguagePreferenceUseCase', async () => {
+      const updatedUser = { ...mockUser, preferredLanguage: 'es' };
+      mockUpdateLanguagePreferenceUseCase.execute.mockResolvedValue(updatedUser);
+
+      const result = await service.updateLanguagePreference(
+        '507f1f77bcf86cd799439011',
+        'es',
+      );
+
+      expect(result).toEqual(updatedUser);
+      expect(mockUpdateLanguagePreferenceUseCase.execute).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011',
+        'es',
+      );
+    });
+
+    it('should return null when user not found', async () => {
+      mockUpdateLanguagePreferenceUseCase.execute.mockResolvedValue(null);
+
+      const result = await service.updateLanguagePreference('ghost-id', 'en');
 
       expect(result).toBeNull();
     });

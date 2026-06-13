@@ -16,6 +16,8 @@ export const ES_TRANSLATIONS = {
     not_found: 'Usuario no encontrado',
     email_already_exists: 'El email ya existe',
     username_already_exists: 'El nombre de usuario ya existe',
+    language_updated: 'Preferencia de idioma actualizada exitosamente',
+    language_invalid: 'Idioma inválido. Soportados: en, es',
   },
   posts: {
     created: 'Post creado exitosamente',

@@ -9,4 +9,8 @@ export abstract class UserRepository {
   abstract findAll(): Promise<User[]>;
   abstract update(id: string, updateUserDto: UpdateUserDto): Promise<User | null>;
   abstract remove(id: string): Promise<User | null>;
+  abstract updateLanguagePreference(
+    id: string,
+    language: 'en' | 'es',
+  ): Promise<User | null>;
 }

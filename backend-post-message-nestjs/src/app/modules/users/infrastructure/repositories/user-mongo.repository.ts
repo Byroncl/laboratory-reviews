@@ -43,4 +43,13 @@ export class UserMongoRepository implements UserRepository {
   async remove(id: string): Promise<User | null> {
     return this.userModel.findByIdAndDelete(id).exec();
   }
+
+  async updateLanguagePreference(
+    id: string,
+    language: 'en' | 'es',
+  ): Promise<User | null> {
+    return this.userModel
+      .findByIdAndUpdate(id, { preferredLanguage: language }, { new: true })
+      .exec();
+  }
 }
