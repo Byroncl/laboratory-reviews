@@ -8,6 +8,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { PaginationQueryDto } from '../../../core/dto/pagination.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -43,13 +44,20 @@ export class PostsController {
   }
 
   @Auth()
-  @ApiOperation({ summary: 'Get all posts' })
-  @ApiResponse({ status: 200, description: 'List of posts', type: [PostResponseDto] })
+  @ApiOperation({ summary: 'Get all posts (paginated)' })
+  @ApiResponse({ status: 200, description: 'Paginated list of posts' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get()
-  async findAll(@Query('categoryId') categoryId?: string) {
-    const posts = await this.postsService.findAll(categoryId);
-    return ApiRes.success(posts);
+  async findAll(
+    @Query() paginationDto: PaginationQueryDto,
+    @Query('categoryId') categoryId?: string
+  ) {
+    const result = await this.postsService.findAllPaginated(
+      paginationDto.skip,
+      paginationDto.limit,
+      categoryId
+    );
+    return ApiRes.success(result);
   }
 
   @Auth()

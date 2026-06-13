@@ -6,6 +6,7 @@ import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { FilesService } from '../../files/services/files.service';
 import { CategoriesService } from '../../categories/services/categories.service';
+import { PaginatedResponse } from 'src/app/core/dto/pagination.dto';
 
 @Injectable()
 export class PostsService {
@@ -29,6 +30,21 @@ export class PostsService {
   async findAll(categoryId?: string): Promise<Post[]> {
     const filter = categoryId ? { categoryId } : {};
     return this.postModel.find(filter).exec();
+  }
+
+  async findAllPaginated(skip: number, limit: number, categoryId?: string): Promise<PaginatedResponse<Post>> {
+    const filter = categoryId ? { categoryId } : {};
+    const [items, total] = await Promise.all([
+      this.postModel.find(filter).skip(skip).limit(limit).exec(),
+      this.postModel.countDocuments(filter).exec(),
+    ]);
+
+    return {
+      items,
+      total,
+      skip,
+      limit,
+    };
   }
 
   async findOne(id: string): Promise<Post | null> {
