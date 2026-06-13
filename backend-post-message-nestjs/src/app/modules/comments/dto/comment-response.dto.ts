@@ -32,4 +32,24 @@ export class CommentResponseDto {
     description: 'Array of attached media (images and audios)',
   })
   media: CommentMediaDto[];
+
+  @ApiProperty({
+    example: null,
+    description: 'Parent comment ID (null for root comments)',
+    required: false,
+  })
+  parentCommentId?: string;
+
+  @ApiProperty({
+    type: [String],
+    description: 'Array of direct reply comment IDs',
+    example: [],
+  })
+  childCommentIds?: string[];
+
+  @ApiProperty({ example: '2024-01-01T00:00:00.000Z', description: 'Creation timestamp', required: false })
+  createdAt?: Date;
+
+  @ApiProperty({ example: '2024-01-01T00:00:00.000Z', description: 'Last update timestamp', required: false })
+  updatedAt?: Date;
 }

@@ -8,11 +8,18 @@ import { Observable } from 'rxjs';
 import { User } from '../auth/models/auth.model';
 import { SidebarComponent } from '../../core/components/sidebar.component';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
+import { LanguageSelectorComponent } from './components/language-selector.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, SidebarComponent, TranslatePipe],
+  imports: [
+    CommonModule,
+    RouterModule,
+    SidebarComponent,
+    TranslatePipe,
+    LanguageSelectorComponent
+  ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })

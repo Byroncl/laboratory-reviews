@@ -23,6 +23,8 @@ describe('CommentsGateway', () => {
       remove: jest.fn(),
       findAll: jest.fn(),
       getCommentWithMedia: jest.fn((c) => ({ ...c, media: [] })),
+      createReply: jest.fn(),
+      getCommentThread: jest.fn(),
     } as unknown as jest.Mocked<CommentsService>;
 
     mockI18n = {
@@ -331,6 +333,86 @@ describe('CommentsGateway', () => {
       expect(mockClient.broadcast.emit).toHaveBeenCalledWith(
         'comment:typing:stop',
         data,
+      );
+    });
+  });
+
+  // ─── Nested comments / Replies ───────────────────────────────────────────
+
+  describe('handleReplyCreate', () => {
+    beforeEach(() => {
+      gateway['connectedUsers'].set('socket-1', {
+        userId: 'user-1',
+        username: 'testuser',
+      });
+    });
+
+    it('should broadcast reply:created and confirm to client', async () => {
+      const replyData = {
+        postId: 'post-1',
+        content: 'I agree!',
+        parentCommentId: 'parent-id',
+      };
+      const createdReply = { _id: 'reply-1', ...replyData };
+      (mockService.createReply as jest.Mock).mockResolvedValue(createdReply);
+
+      await gateway.handleReplyCreate(mockClient as any, replyData);
+
+      expect(mockService.createReply).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: 'user-1', parentCommentId: 'parent-id' }),
+      );
+      expect(mockServer.emit).toHaveBeenCalledWith(
+        'reply:created',
+        expect.objectContaining({ parentCommentId: 'parent-id' }),
+      );
+      expect(mockClient.emit).toHaveBeenCalledWith(
+        'reply:create:success',
+        expect.objectContaining({ replyId: 'reply-1' }),
+      );
+    });
+
+    it('should emit error when user is not registered', async () => {
+      gateway['connectedUsers'].delete('socket-1');
+
+      await gateway.handleReplyCreate(mockClient as any, { parentCommentId: 'p1' });
+
+      expect(mockClient.emit).toHaveBeenCalledWith(
+        'error',
+        expect.objectContaining({ message: 'auth.unauthorized' }),
+      );
+    });
+
+    it('should emit error when createReply throws', async () => {
+      (mockService.createReply as jest.Mock).mockRejectedValue(new Error('Parent not found'));
+
+      await gateway.handleReplyCreate(mockClient as any, { parentCommentId: 'bad-id' });
+
+      expect(mockClient.emit).toHaveBeenCalledWith(
+        'error',
+        expect.objectContaining({ error: 'Parent not found' }),
+      );
+    });
+  });
+
+  describe('handleGetThread', () => {
+    it('should emit thread:data with thread content', async () => {
+      const thread = { root: { id: 'root-1', replies: [] }, totalInThread: 1 };
+      (mockService.getCommentThread as jest.Mock).mockResolvedValue(thread);
+
+      await gateway.handleGetThread(mockClient as any, { commentId: 'root-1' });
+
+      expect(mockService.getCommentThread).toHaveBeenCalledWith('root-1');
+      expect(mockClient.emit).toHaveBeenCalledWith('thread:data', { thread });
+    });
+
+    it('should emit error when getCommentThread throws', async () => {
+      (mockService.getCommentThread as jest.Mock).mockRejectedValue(new Error('not found'));
+
+      await gateway.handleGetThread(mockClient as any, { commentId: 'ghost' });
+
+      expect(mockClient.emit).toHaveBeenCalledWith(
+        'error',
+        expect.objectContaining({ error: 'not found' }),
       );
     });
   });

@@ -68,3 +68,16 @@ export interface ReactionRemovedEvent {
     users: string[];
   }>;
 }
+
+export interface CommentReplyCreatedEvent {
+  parentCommentId: string;
+  reply: CommentMedia & Record<string, unknown>;
+  username: string;
+}
+
+export interface CommentThreadEvent {
+  thread: {
+    root: Record<string, unknown>;
+    totalInThread: number;
+  };
+}

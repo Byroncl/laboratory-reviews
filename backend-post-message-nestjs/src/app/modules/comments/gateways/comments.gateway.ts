@@ -229,6 +229,57 @@ export class CommentsGateway
     });
   }
 
+  // ─── Nested comments / Replies ───────────────────────────────────────────
+
+  @SubscribeMessage('comment:reply:create')
+  async handleReplyCreate(client: Socket, data: any): Promise<void> {
+    try {
+      const user = this.connectedUsers.get(client.id);
+      if (!user) {
+        client.emit('error', {
+          message: this.i18n.translate('auth.unauthorized'),
+        });
+        return;
+      }
+
+      const reply = await this.commentsService.createReply({
+        ...data,
+        userId: user.userId,
+      });
+
+      const formattedReply = this.commentsService.getCommentWithMedia(reply as any);
+
+      this.server.emit('reply:created', {
+        parentCommentId: data.parentCommentId,
+        reply: formattedReply,
+        username: user.username,
+      });
+
+      client.emit('reply:create:success', {
+        replyId: (reply as any)._id,
+      });
+    } catch (error: any) {
+      client.emit('error', {
+        message: this.i18n.translate('common.error'),
+        error: error.message,
+      });
+    }
+  }
+
+  @SubscribeMessage('comment:thread:get')
+  async handleGetThread(client: Socket, data: any): Promise<void> {
+    try {
+      const thread = await this.commentsService.getCommentThread(data.commentId);
+
+      client.emit('thread:data', { thread });
+    } catch (error: any) {
+      client.emit('error', {
+        message: this.i18n.translate('common.error'),
+        error: error.message,
+      });
+    }
+  }
+
   // ─── Reaction events ───────────────────────────────────────────────────────
 
   @SubscribeMessage('reaction:add')

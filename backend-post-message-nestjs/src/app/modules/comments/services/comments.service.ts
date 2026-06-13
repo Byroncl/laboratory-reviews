@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Comment, CommentDocument } from '../schemas/comment.schema';
 import { CreateCommentDto } from '../dto/create-comment.dto';
 import { UpdateCommentDto } from '../dto/update-comment.dto';
-import { CommentMediaDto } from '../dto/comment-response.dto';
+import { CommentMediaDto, CommentResponseDto } from '../dto/comment-response.dto';
+import { CommentTreeNodeDto, CommentThreadDto } from '../dto/comment-tree.dto';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 export interface CommentWithMedia {
   media: CommentMediaDto[];
@@ -15,6 +17,7 @@ export interface CommentWithMedia {
 export class CommentsService {
   constructor(
     @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
+    private readonly i18n: TranslationService,
   ) {}
 
   async create(createCommentDto: CreateCommentDto): Promise<Comment> {
@@ -54,15 +57,143 @@ export class CommentsService {
       .exec();
   }
 
-  async remove(id: string): Promise<Comment | null> {
-    return this.commentModel.findByIdAndDelete(id).exec();
+  async remove(id: string): Promise<void> {
+    const comment = await this.commentModel.findById(id).exec();
+    if (!comment) {
+      throw new NotFoundException(this.i18n.translate('comments.not_found'));
+    }
+
+    // Cascade delete: remove all direct replies first
+    if ((comment as any).childCommentIds && (comment as any).childCommentIds.length > 0) {
+      await this.commentModel.deleteMany({
+        _id: { $in: (comment as any).childCommentIds },
+      });
+    }
+
+    // If this is a reply, remove its ID from the parent's childCommentIds
+    if ((comment as any).parentCommentId) {
+      await this.commentModel.findByIdAndUpdate(
+        (comment as any).parentCommentId,
+        { $pull: { childCommentIds: id } },
+      );
+    }
+
+    await this.commentModel.findByIdAndDelete(id);
   }
 
-  getCommentWithMedia(comment: Comment & { toObject?: () => Record<string, unknown>; mediaUrls?: string[]; mediaTypes?: string[]; mediaFilenames?: string[] }): CommentWithMedia {
-    const obj = typeof comment.toObject === 'function' ? comment.toObject() : { ...(comment as object) };
-    const mediaUrls: string[] = (comment.mediaUrls as string[]) ?? (obj['mediaUrls'] as string[]) ?? [];
-    const mediaTypes: string[] = (comment.mediaTypes as string[]) ?? (obj['mediaTypes'] as string[]) ?? [];
-    const mediaFilenames: string[] = (comment.mediaFilenames as string[]) ?? (obj['mediaFilenames'] as string[]) ?? [];
+  // ─── Nested comments ───────────────────────────────────────────────────────
+
+  async createReply(createCommentDto: CreateCommentDto): Promise<Comment> {
+    if (createCommentDto.parentCommentId) {
+      const parentComment = await this.commentModel.findById(
+        createCommentDto.parentCommentId,
+      );
+      if (!parentComment) {
+        throw new NotFoundException(
+          this.i18n.translate('comments.parent_not_found'),
+        );
+      }
+
+      // Enforce max 2 levels: root comment only can receive replies
+      if ((parentComment as any).parentCommentId) {
+        throw new BadRequestException(
+          this.i18n.translate('comments.max_nesting_level'),
+        );
+      }
+    }
+
+    const comment = await this.create(createCommentDto);
+
+    if (createCommentDto.parentCommentId) {
+      await this.commentModel.findByIdAndUpdate(
+        createCommentDto.parentCommentId,
+        { $push: { childCommentIds: (comment as any)._id } },
+      );
+    }
+
+    return comment;
+  }
+
+  async getCommentWithReplies(commentId: string): Promise<CommentTreeNodeDto> {
+    const comment = await this.commentModel.findById(commentId).exec();
+    if (!comment) {
+      throw new NotFoundException(this.i18n.translate('comments.not_found'));
+    }
+
+    return this.buildCommentTree(comment);
+  }
+
+  async getCommentThread(commentId: string): Promise<CommentThreadDto> {
+    let rootComment = await this.commentModel.findById(commentId).exec();
+    if (!rootComment) {
+      throw new NotFoundException(this.i18n.translate('comments.not_found'));
+    }
+
+    // If it is a reply, walk up to the root
+    if ((rootComment as any).parentCommentId) {
+      const parent = await this.commentModel
+        .findById((rootComment as any).parentCommentId)
+        .exec();
+      if (parent) {
+        rootComment = parent;
+      }
+    }
+
+    const tree = await this.buildCommentTree(rootComment);
+    const totalInThread = this.countCommentsInTree(tree);
+
+    return { root: tree, totalInThread };
+  }
+
+  async getReplies(
+    parentCommentId: string,
+    pagination?: { skip?: number; limit?: number },
+  ): Promise<{ items: CommentResponseDto[]; total: number }> {
+    const skip = pagination?.skip ?? 0;
+    const limit = pagination?.limit ?? 10;
+
+    const [items, total] = await Promise.all([
+      this.commentModel
+        .find({ parentCommentId })
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .exec(),
+      this.commentModel.countDocuments({ parentCommentId }),
+    ]);
+
+    return {
+      items: items.map((item) => this.commentToResponseDto(item)),
+      total,
+    };
+  }
+
+  // ─── Media helper (public, used by gateway + controller) ──────────────────
+
+  getCommentWithMedia(
+    comment: Comment & {
+      toObject?: () => Record<string, unknown>;
+      mediaUrls?: string[];
+      mediaTypes?: string[];
+      mediaFilenames?: string[];
+    },
+  ): CommentWithMedia {
+    const obj =
+      typeof comment.toObject === 'function'
+        ? comment.toObject()
+        : { ...(comment as object) };
+    const mediaUrls: string[] =
+      (comment.mediaUrls as string[]) ??
+      (obj['mediaUrls'] as string[]) ??
+      [];
+    const mediaTypes: string[] =
+      (comment.mediaTypes as string[]) ??
+      (obj['mediaTypes'] as string[]) ??
+      [];
+    const mediaFilenames: string[] =
+      (comment.mediaFilenames as string[]) ??
+      (obj['mediaFilenames'] as string[]) ??
+      [];
 
     const media: CommentMediaDto[] = mediaUrls.map((url, idx) => ({
       url,
@@ -71,5 +202,61 @@ export class CommentsService {
     }));
 
     return { ...obj, media };
+  }
+
+  // ─── Private helpers ───────────────────────────────────────────────────────
+
+  private async buildCommentTree(
+    comment: Comment & Document,
+  ): Promise<CommentTreeNodeDto> {
+    const replies = await this.commentModel
+      .find({ parentCommentId: (comment as any)._id.toString() })
+      .sort({ createdAt: 1 })
+      .exec();
+
+    const dto = this.commentToResponseDto(comment);
+
+    return {
+      ...dto,
+      replies: replies.map((r) => ({
+        ...this.commentToResponseDto(r),
+        replies: [],
+        replyCount: 0,
+      })),
+      replyCount: replies.length,
+    };
+  }
+
+  private countCommentsInTree(node: CommentTreeNodeDto): number {
+    let count = 1;
+    if (node.replies && node.replies.length > 0) {
+      count += node.replies.length;
+      for (const reply of node.replies) {
+        if (reply.replies && reply.replies.length > 0) {
+          count += reply.replies.length;
+        }
+      }
+    }
+    return count;
+  }
+
+  commentToResponseDto(comment: Comment & Document): CommentResponseDto {
+    const raw = (comment as any);
+    return {
+      id: raw._id?.toString(),
+      content: raw.content,
+      post: raw.postId,
+      isActive: raw.isActive,
+      parentCommentId: raw.parentCommentId ?? null,
+      childCommentIds: raw.childCommentIds ?? [],
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+      media:
+        (raw.mediaUrls ?? []).map((url: string, idx: number) => ({
+          url,
+          type: (raw.mediaTypes ?? [])[idx] ?? 'unknown',
+          filename: (raw.mediaFilenames ?? [])[idx] ?? `media-${idx}`,
+        })),
+    };
   }
 }

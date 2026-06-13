@@ -23,6 +23,7 @@ import { CommentsGateway } from '../gateways/comments.gateway';
 import { CreateCommentDto } from '../dto/create-comment.dto';
 import { UpdateCommentDto } from '../dto/update-comment.dto';
 import { CommentResponseDto } from '../dto/comment-response.dto';
+import { CommentTreeNodeDto, CommentThreadDto } from '../dto/comment-tree.dto';
 import { FindCommentsByPostDto } from '../dto/find-comments-by-post.dto';
 import { CreateReactionDto } from '../dto/create-reaction.dto';
 import { ReactionResponseDto } from '../dto/reaction-response.dto';
@@ -106,6 +107,76 @@ export class CommentsController {
   async remove(@Param() findOneDto: FindOneDto) {
     await this.commentsService.remove(findOneDto.id);
     return ApiRes.success(null, this.i18n.translate('comments.deleted'));
+  }
+
+  // ─── Nested comments / Replies ────────────────────────────────────────────
+
+  @Auth()
+  @ApiOperation({ summary: 'Create a reply to a comment' })
+  @ApiParam({ name: 'id', type: 'string', description: 'Parent comment ID' })
+  @ApiBody({ type: CreateCommentDto })
+  @ApiResponse({ status: 201, description: 'Reply created successfully', type: CommentResponseDto })
+  @ApiResponse({ status: 404, description: 'Parent comment not found' })
+  @ApiResponse({ status: 400, description: 'Cannot reply to a reply (max 2 levels)' })
+  @Post(':id/replies')
+  async createReply(
+    @Param() findOneDto: FindOneDto,
+    @Body() createCommentDto: CreateCommentDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    const reply = await this.commentsService.createReply({
+      ...createCommentDto,
+      userId: user.userId,
+      parentCommentId: findOneDto.id,
+    } as any);
+
+    const formattedReply = this.commentsService.getCommentWithMedia(reply as any);
+
+    this.commentsGateway?.server?.emit('comment:reply:created', {
+      parentCommentId: findOneDto.id,
+      reply: formattedReply,
+    });
+
+    return ApiRes.success(formattedReply, this.i18n.translate('comments.reply_created'));
+  }
+
+  @Auth()
+  @ApiOperation({ summary: 'Get all replies to a comment' })
+  @ApiParam({ name: 'id', type: 'string', description: 'Parent comment ID' })
+  @ApiQuery({ name: 'skip', required: false, type: 'number' })
+  @ApiQuery({ name: 'limit', required: false, type: 'number' })
+  @ApiResponse({ status: 200, description: 'List of replies', type: [CommentResponseDto] })
+  @Get(':id/replies')
+  async getReplies(
+    @Param() findOneDto: FindOneDto,
+    @Query() pagination: { skip?: number; limit?: number },
+  ) {
+    const { items, total } = await this.commentsService.getReplies(
+      findOneDto.id,
+      pagination,
+    );
+
+    return ApiRes.success({ items, total, parentCommentId: findOneDto.id });
+  }
+
+  @Auth()
+  @ApiOperation({ summary: 'Get entire comment thread (root + all nested replies)' })
+  @ApiParam({ name: 'id', type: 'string', description: 'Comment ID (root or reply)' })
+  @ApiResponse({ status: 200, description: 'Full comment thread', type: CommentThreadDto })
+  @Get(':id/thread')
+  async getCommentThread(@Param() findOneDto: FindOneDto) {
+    const thread = await this.commentsService.getCommentThread(findOneDto.id);
+    return ApiRes.success(thread, this.i18n.translate('comments.thread_retrieved'));
+  }
+
+  @Auth()
+  @ApiOperation({ summary: 'Get comment with immediate replies' })
+  @ApiParam({ name: 'id', type: 'string', description: 'Comment ID' })
+  @ApiResponse({ status: 200, description: 'Comment with direct replies', type: CommentTreeNodeDto })
+  @Get(':id/with-replies')
+  async getCommentWithReplies(@Param() findOneDto: FindOneDto) {
+    const tree = await this.commentsService.getCommentWithReplies(findOneDto.id);
+    return ApiRes.success(tree);
   }
 
   // ─── Reactions ────────────────────────────────────────────────────────────

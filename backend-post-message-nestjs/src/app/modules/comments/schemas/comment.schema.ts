@@ -31,8 +31,19 @@ export class Comment {
 
   @Prop({ default: true, index: true })
   isActive: boolean;
+
+  @Prop({ type: String, default: null })
+  parentCommentId?: string;
+
+  @Prop({ type: [String], default: [] })
+  childCommentIds: string[];
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const CommentSchema = SchemaFactory.createForClass(Comment);
 CommentSchema.index({ postId: 1 });
 CommentSchema.index({ userId: 1 });
+CommentSchema.index({ postId: 1, parentCommentId: 1 });
+CommentSchema.index({ parentCommentId: 1 });

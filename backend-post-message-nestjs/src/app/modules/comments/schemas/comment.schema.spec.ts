@@ -48,3 +48,39 @@ describe('Comment schema — media fields', () => {
     expect(instance.mediaFilenames[0]).toBe('img.jpg');
   });
 });
+
+describe('Comment schema — nested comment fields', () => {
+  it('should declare parentCommentId as a String path', () => {
+    const path = CommentSchema.path('parentCommentId');
+    expect(path).toBeDefined();
+    expect((path as any).instance).toBe('String');
+  });
+
+  it('should declare childCommentIds as an Array path', () => {
+    const path = CommentSchema.path('childCommentIds');
+    expect(path).toBeDefined();
+    expect((path as any).instance).toBe('Array');
+  });
+
+  it('should default childCommentIds to empty array', () => {
+    const path = CommentSchema.path('childCommentIds') as any;
+    expect(path.defaultValue).toBeDefined();
+  });
+
+  it('should have compound indexes for parentCommentId queries', () => {
+    const indexes = CommentSchema.indexes();
+    const hasParentIdx = indexes.some(
+      ([fields]) => fields['parentCommentId'] !== undefined,
+    );
+    expect(hasParentIdx).toBe(true);
+  });
+
+  it('should assign parentCommentId and childCommentIds correctly', () => {
+    const instance = new Comment();
+    instance.parentCommentId = 'parent-id-123';
+    instance.childCommentIds = ['child-1', 'child-2'];
+
+    expect(instance.parentCommentId).toBe('parent-id-123');
+    expect(instance.childCommentIds).toEqual(['child-1', 'child-2']);
+  });
+});

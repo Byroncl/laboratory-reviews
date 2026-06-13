@@ -33,7 +33,11 @@
     "user_joined": "{0} se unió a los comentarios",
     "reaction_added": "Reacción agregada exitosamente",
     "reaction_removed": "Reacción eliminada exitosamente",
-    "invalid_emoji": "Emoji inválido. Permitidos: 👍, ❤️, 😂, 😮, 😢, 😡"
+    "invalid_emoji": "Emoji inválido. Permitidos: 👍, ❤️, 😂, 😮, 😢, 😡",
+    "reply_created": "Respuesta creada exitosamente",
+    "parent_not_found": "Comentario padre no encontrado",
+    "max_nesting_level": "No se puede responder a una respuesta. El nivel máximo de anidamiento es 2",
+    "thread_retrieved": "Hilo recuperado exitosamente"
   },
   "socket": {
     "connected": "Socket conectado",

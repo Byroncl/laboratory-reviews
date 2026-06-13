@@ -23,6 +23,12 @@ export class I18nService {
         files: 'Gestionar Archivos',
         logout: 'Cerrar sesión'
       },
+      navbar: {
+        language: 'Idioma',
+        spanish: 'Español',
+        english: 'English',
+        selectLanguage: 'Seleccionar idioma'
+      },
       auth: {
         login: {
           title: 'Bienvenido de vuelta',
@@ -78,6 +84,12 @@ export class I18nService {
         comments: 'Manage Comments',
         files: 'Manage Files',
         logout: 'Log out'
+      },
+      navbar: {
+        language: 'Language',
+        spanish: 'Español',
+        english: 'English',
+        selectLanguage: 'Select language'
       },
       auth: {
         login: {

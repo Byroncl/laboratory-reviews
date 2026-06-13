@@ -11,33 +11,56 @@
   <div class="flex-1 flex flex-col overflow-hidden">
     <!-- Top Navigation Bar -->
     <nav class="bg-white shadow-sm border-b border-gray-200 flex-shrink-0">
-      <div class="px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-4">
+      <div class="px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+        <!-- Left: Menu Toggle + Dashboard Title -->
+        <div class="flex items-center gap-3 min-w-0">
           <button
             (click)="toggleSidebar()"
-            class="lg:hidden p-2 text-primary hover:bg-gray-100 rounded-lg transition"
+            class="lg:hidden p-2 text-primary hover:bg-gray-100 rounded-lg transition-colors duration-150 flex-shrink-0"
+            [attr.aria-label]="'Toggle sidebar'"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
           </button>
-          <h2 class="text-xl font-bold text-primary">{{ 'sidebar.dashboard' | t }}</h2>
+          <h2 class="text-lg sm:text-xl font-bold text-primary truncate">
+            {{ 'sidebar.dashboard' | t }}
+          </h2>
         </div>
 
+        <!-- Right: Actions (Notifications, Language, User) -->
         @if (user$ | async; as user) {
-          <div class="flex items-center gap-4">
-            <button class="p-2 text-secondary hover:bg-gray-100 rounded-lg relative transition">
+          <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+            <!-- Notifications Button -->
+            <button
+              class="p-2 text-secondary hover:bg-gray-100 rounded-lg relative transition-colors duration-150"
+              [attr.aria-label]="'Notifications'"
+            >
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
               </svg>
               <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
 
-            <div class="flex items-center gap-3 pl-4 border-l border-gray-200">
-              <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <span class="text-white font-bold text-xs">{{ user.name.charAt(0).toUpperCase() }}</span>
+            <!-- Separator -->
+            <div class="hidden sm:block w-px h-6 bg-gray-200"></div>
+
+            <!-- Language Selector -->
+            <app-language-selector></app-language-selector>
+
+            <!-- Separator -->
+            <div class="hidden sm:block w-px h-6 bg-gray-200"></div>
+
+            <!-- User Profile -->
+            <div class="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4">
+              <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                <span class="text-white font-bold text-xs">
+                  {{ user.name.charAt(0).toUpperCase() }}
+                </span>
               </div>
-              <span class="text-sm font-medium text-primary hidden sm:inline">{{ user.name }}</span>
+              <span class="text-sm font-medium text-primary hidden sm:inline truncate max-w-[120px]">
+                {{ user.name }}
+              </span>
             </div>
           </div>
         }

@@ -1,39 +1,75 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { Comment } from '../schemas/comment.schema';
 import { CreateCommentDto } from '../dto/create-comment.dto';
 import { UpdateCommentDto } from '../dto/update-comment.dto';
+import { TranslationService } from '../../../core/utils/translation.service';
 
 describe('CommentsService', () => {
   let service: CommentsService;
 
   const mockSave = jest.fn();
   const mockExec = jest.fn();
+  const mockCountDocuments = jest.fn();
 
   const MockCommentModel = jest.fn().mockImplementation((dto) => ({
     ...dto,
     save: mockSave,
   })) as any;
 
-  MockCommentModel.find = jest.fn().mockReturnValue({ exec: mockExec });
+  MockCommentModel.find = jest.fn().mockReturnValue({
+    exec: mockExec,
+    skip: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    sort: jest.fn().mockReturnThis(),
+  });
   MockCommentModel.findById = jest.fn().mockReturnValue({ exec: mockExec });
   MockCommentModel.findByIdAndUpdate = jest.fn().mockReturnValue({ exec: mockExec });
   MockCommentModel.findByIdAndDelete = jest.fn().mockReturnValue({ exec: mockExec });
+  MockCommentModel.deleteMany = jest.fn().mockResolvedValue({ deletedCount: 1 });
+  MockCommentModel.countDocuments = jest.fn().mockResolvedValue(0);
 
   const mockComment = {
     _id: '507f1f77bcf86cd799439011',
     content: 'Great post!',
     postId: '507f1f77bcf86cd799439022',
+    parentCommentId: null,
+    childCommentIds: [],
+    mediaUrls: [],
+    mediaTypes: [],
+    mediaFilenames: [],
+    isActive: true,
+    toObject: function () { return { ...this }; },
+  };
+
+  const mockI18n = {
+    translate: jest.fn((key: string) => key),
   };
 
   beforeEach(async () => {
     jest.clearAllMocks();
 
+    // Reset find mock to have chainable methods
+    const chainableFindMock = {
+      exec: mockExec,
+      skip: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockReturnThis(),
+    };
+    MockCommentModel.find = jest.fn().mockReturnValue(chainableFindMock);
+    MockCommentModel.findById = jest.fn().mockReturnValue({ exec: mockExec });
+    MockCommentModel.findByIdAndUpdate = jest.fn().mockReturnValue({ exec: mockExec });
+    MockCommentModel.findByIdAndDelete = jest.fn().mockReturnValue({ exec: mockExec });
+    MockCommentModel.deleteMany = jest.fn().mockResolvedValue({ deletedCount: 1 });
+    MockCommentModel.countDocuments = jest.fn().mockResolvedValue(0);
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CommentsService,
         { provide: getModelToken(Comment.name), useValue: MockCommentModel },
+        { provide: TranslationService, useValue: mockI18n },
       ],
     }).compile();
 
@@ -43,6 +79,8 @@ describe('CommentsService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  // ─── create ───────────────────────────────────────────────────────────────
 
   describe('create', () => {
     it('should create and save a comment', async () => {
@@ -64,6 +102,8 @@ describe('CommentsService', () => {
       await expect(service.create({} as any)).rejects.toThrow('Validation error');
     });
   });
+
+  // ─── findAll ──────────────────────────────────────────────────────────────
 
   describe('findAll', () => {
     it('should return all comments when no postId filter', async () => {
@@ -94,6 +134,8 @@ describe('CommentsService', () => {
     });
   });
 
+  // ─── findOne ──────────────────────────────────────────────────────────────
+
   describe('findOne', () => {
     it('should return comment by id', async () => {
       mockExec.mockResolvedValue(mockComment);
@@ -115,6 +157,8 @@ describe('CommentsService', () => {
     });
   });
 
+  // ─── update ───────────────────────────────────────────────────────────────
+
   describe('update', () => {
     it('should update a comment', async () => {
       const dto: UpdateCommentDto = { content: 'Updated content' } as any;
@@ -126,7 +170,7 @@ describe('CommentsService', () => {
       expect(result).toEqual(updated);
       expect(MockCommentModel.findByIdAndUpdate).toHaveBeenCalledWith(
         '507f1f77bcf86cd799439011',
-        dto,
+        { content: 'Updated content' },
         { new: true },
       );
     });
@@ -140,26 +184,264 @@ describe('CommentsService', () => {
     });
   });
 
+  // ─── remove ───────────────────────────────────────────────────────────────
+
   describe('remove', () => {
-    it('should delete a comment', async () => {
-      mockExec.mockResolvedValue(mockComment);
+    it('should delete a root comment with no children', async () => {
+      const comment = { ...mockComment, childCommentIds: [], parentCommentId: null };
+      mockExec.mockResolvedValue(comment);
 
-      const result = await service.remove('507f1f77bcf86cd799439011');
+      await service.remove('507f1f77bcf86cd799439011');
 
-      expect(result).toEqual(mockComment);
       expect(MockCommentModel.findByIdAndDelete).toHaveBeenCalledWith(
         '507f1f77bcf86cd799439011',
       );
     });
 
-    it('should return null when comment not found for delete', async () => {
+    it('should throw NotFoundException when comment not found', async () => {
       mockExec.mockResolvedValue(null);
 
-      const result = await service.remove('ghost-id');
+      await expect(service.remove('ghost-id')).rejects.toThrow(NotFoundException);
+    });
 
-      expect(result).toBeNull();
+    it('should cascade delete all child replies when removing root comment', async () => {
+      const childIds = ['child-1', 'child-2'];
+      const commentWithChildren = { ...mockComment, childCommentIds: childIds, parentCommentId: null };
+      mockExec.mockResolvedValue(commentWithChildren);
+
+      await service.remove('507f1f77bcf86cd799439011');
+
+      expect(MockCommentModel.deleteMany).toHaveBeenCalledWith({
+        _id: { $in: childIds },
+      });
+      expect(MockCommentModel.findByIdAndDelete).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011',
+      );
+    });
+
+    it('should remove reply ID from parent childCommentIds when deleting a reply', async () => {
+      const replyComment = {
+        ...mockComment,
+        _id: 'reply-1',
+        parentCommentId: 'parent-id',
+        childCommentIds: [],
+      };
+      mockExec.mockResolvedValue(replyComment);
+      MockCommentModel.findByIdAndUpdate.mockReturnValue({ exec: jest.fn() });
+
+      await service.remove('reply-1');
+
+      expect(MockCommentModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        'parent-id',
+        { $pull: { childCommentIds: 'reply-1' } },
+      );
+      expect(MockCommentModel.findByIdAndDelete).toHaveBeenCalledWith('reply-1');
     });
   });
+
+  // ─── createReply ──────────────────────────────────────────────────────────
+
+  describe('createReply', () => {
+    it('should create a reply and update parent childCommentIds', async () => {
+      const parentComment = {
+        ...mockComment,
+        _id: 'parent-id',
+        parentCommentId: null,
+      };
+      const createdReply = {
+        ...mockComment,
+        _id: 'reply-id',
+        parentCommentId: 'parent-id',
+      };
+
+      MockCommentModel.findById.mockResolvedValueOnce(parentComment);
+      mockSave.mockResolvedValue(createdReply);
+      MockCommentModel.findByIdAndUpdate.mockReturnValue({ exec: jest.fn() });
+
+      const dto: CreateCommentDto = {
+        content: 'I agree!',
+        postId: '507f1f77bcf86cd799439022',
+        parentCommentId: 'parent-id',
+      } as any;
+
+      const result = await service.createReply(dto);
+
+      expect(result).toEqual(createdReply);
+      expect(MockCommentModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        'parent-id',
+        { $push: { childCommentIds: 'reply-id' } },
+      );
+    });
+
+    it('should throw NotFoundException when parent comment does not exist', async () => {
+      MockCommentModel.findById.mockResolvedValueOnce(null);
+
+      const dto: CreateCommentDto = {
+        content: 'Reply',
+        postId: 'post-id',
+        parentCommentId: 'non-existent-id',
+      } as any;
+
+      await expect(service.createReply(dto)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException when replying to a reply (max 2 levels)', async () => {
+      const replyComment = {
+        ...mockComment,
+        _id: 'reply-id',
+        parentCommentId: 'some-root-id', // This is already a reply
+      };
+      MockCommentModel.findById.mockResolvedValueOnce(replyComment);
+
+      const dto: CreateCommentDto = {
+        content: 'Nested reply',
+        postId: 'post-id',
+        parentCommentId: 'reply-id',
+      } as any;
+
+      await expect(service.createReply(dto)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should create a root comment (no parentCommentId) via createReply', async () => {
+      mockSave.mockResolvedValue(mockComment);
+
+      const dto: CreateCommentDto = {
+        content: 'Root comment',
+        postId: 'post-id',
+      } as any;
+
+      const result = await service.createReply(dto);
+
+      expect(result).toEqual(mockComment);
+      expect(MockCommentModel.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+  });
+
+  // ─── getReplies ───────────────────────────────────────────────────────────
+
+  describe('getReplies', () => {
+    it('should return paginated replies for a parent comment', async () => {
+      const replies = [
+        { ...mockComment, _id: 'r1', parentCommentId: 'parent-id' },
+        { ...mockComment, _id: 'r2', parentCommentId: 'parent-id' },
+      ];
+      mockExec.mockResolvedValue(replies);
+      MockCommentModel.countDocuments.mockResolvedValue(2);
+
+      const result = await service.getReplies('parent-id', { skip: 0, limit: 10 });
+
+      expect(result.total).toBe(2);
+      expect(result.items).toHaveLength(2);
+    });
+
+    it('should use default pagination when not provided', async () => {
+      mockExec.mockResolvedValue([]);
+      MockCommentModel.countDocuments.mockResolvedValue(0);
+
+      const result = await service.getReplies('parent-id');
+
+      expect(result.total).toBe(0);
+      expect(result.items).toHaveLength(0);
+    });
+  });
+
+  // ─── getCommentWithReplies ─────────────────────────────────────────────────
+
+  describe('getCommentWithReplies', () => {
+    it('should return comment with its direct replies', async () => {
+      const comment = { ...mockComment, _id: 'root-id' };
+      const replies = [
+        { ...mockComment, _id: 'reply-1', parentCommentId: 'root-id' },
+      ];
+
+      MockCommentModel.findById.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue(comment),
+      });
+      mockExec.mockResolvedValue(replies);
+
+      const result = await service.getCommentWithReplies('root-id');
+
+      expect(result.replyCount).toBe(1);
+      expect(result.replies).toHaveLength(1);
+    });
+
+    it('should throw NotFoundException when comment not found', async () => {
+      MockCommentModel.findById.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+
+      await expect(service.getCommentWithReplies('ghost-id')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  // ─── getCommentThread ─────────────────────────────────────────────────────
+
+  describe('getCommentThread', () => {
+    it('should return full thread starting from root comment', async () => {
+      const rootComment = { ...mockComment, _id: 'root-id', parentCommentId: null };
+      const replies = [
+        { ...mockComment, _id: 'r1', parentCommentId: 'root-id' },
+        { ...mockComment, _id: 'r2', parentCommentId: 'root-id' },
+      ];
+
+      MockCommentModel.findById.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue(rootComment),
+      });
+      mockExec.mockResolvedValue(replies);
+
+      const result = await service.getCommentThread('root-id');
+
+      expect(result.totalInThread).toBe(3); // root + 2 replies
+      expect(result.root.replyCount).toBe(2);
+    });
+
+    it('should navigate to root when called with a reply ID', async () => {
+      const replyComment = { ...mockComment, _id: 'reply-id', parentCommentId: 'root-id' };
+      const rootComment = { ...mockComment, _id: 'root-id', parentCommentId: null };
+
+      MockCommentModel.findById
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(replyComment) })
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(rootComment) });
+      mockExec.mockResolvedValue([]);
+
+      const result = await service.getCommentThread('reply-id');
+
+      expect(result.root.id).toBe('root-id');
+    });
+
+    it('should throw NotFoundException when comment not found', async () => {
+      MockCommentModel.findById.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+
+      await expect(service.getCommentThread('ghost-id')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  // ─── countCommentsInTree ──────────────────────────────────────────────────
+
+  describe('countCommentsInTree (via getCommentThread)', () => {
+    it('should count root + all nested replies correctly', async () => {
+      const rootComment = { ...mockComment, _id: 'root-id', parentCommentId: null };
+      // 3 direct replies
+      const replies = [
+        { ...mockComment, _id: 'r1', parentCommentId: 'root-id' },
+        { ...mockComment, _id: 'r2', parentCommentId: 'root-id' },
+        { ...mockComment, _id: 'r3', parentCommentId: 'root-id' },
+      ];
+
+      MockCommentModel.findById.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue(rootComment),
+      });
+      mockExec.mockResolvedValue(replies);
+
+      const result = await service.getCommentThread('root-id');
+
+      expect(result.totalInThread).toBe(4); // 1 root + 3 replies
+    });
+  });
+
+  // ─── create with media ────────────────────────────────────────────────────
 
   describe('create with media', () => {
     it('should persist mediaUrls, mediaTypes, and mediaFilenames', async () => {
@@ -203,6 +485,8 @@ describe('CommentsService', () => {
       );
     });
   });
+
+  // ─── getCommentWithMedia ──────────────────────────────────────────────────
 
   describe('getCommentWithMedia', () => {
     it('should return media array built from mediaUrls, mediaTypes, and mediaFilenames', () => {
@@ -292,6 +576,8 @@ describe('CommentsService', () => {
       expect(result.media[0].filename).toBe('media-0');
     });
   });
+
+  // ─── update with media ────────────────────────────────────────────────────
 
   describe('update with media', () => {
     it('should update mediaUrls when provided in updateDto', async () => {

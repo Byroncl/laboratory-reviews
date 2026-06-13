@@ -33,7 +33,11 @@
     "user_joined": "{0} joined the comments",
     "reaction_added": "Reaction added successfully",
     "reaction_removed": "Reaction removed successfully",
-    "invalid_emoji": "Invalid emoji. Allowed: 👍, ❤️, 😂, 😮, 😢, 😡"
+    "invalid_emoji": "Invalid emoji. Allowed: 👍, ❤️, 😂, 😮, 😢, 😡",
+    "reply_created": "Reply created successfully",
+    "parent_not_found": "Parent comment not found",
+    "max_nesting_level": "Cannot reply to a reply. Maximum nesting level is 2",
+    "thread_retrieved": "Thread retrieved successfully"
   },
   "socket": {
     "connected": "Socket connected",
