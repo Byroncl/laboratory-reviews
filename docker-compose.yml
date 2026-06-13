@@ -1,0 +1,32 @@
+services:
+  # Servidor de Base de Datos (MongoDB) por red para no exponer puertos
+  mongodb:
+    image: mongo:latest
+    container_name: mi_mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+
+  # Servidor de Aplicación (Express) 
+  express-app:
+    image: node:18-alpine
+    container_name: mi_express
+    restart: always
+    ports:
+      - "${NODE_PORT}:${NODE_PORT}"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    working_dir: /usr/src/app
+    command: sh -c "npm install && npm run dev"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URI=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DB_NAME}?authSource=admin
+      - PORT=${NODE_PORT}
+
+volumes:
+  mongo_data:
