@@ -1,18 +1,26 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ModalService, ModalConfig } from '../../services/modal.service';
+import { MinimizedModalService } from '../../services/minimized-modal.service';
+import { MinimizableModalDirective } from '../../directives/minimizable-modal.directive';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-advanced-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MinimizableModalDirective],
   template: `
     @if (currentModal) {
       <div
-        class="fixed inset-0 z-50 flex items-center justify-center"
+        class="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300"
+        [class.opacity-0]="isMinimized"
+        [class.pointer-events-none]="isMinimized"
         (click)="onBackdropClick()"
+        appMinimizable
+        [isMinimized]="isMinimized"
+        (minimized)="onMinimize($event)"
+        (restored)="onRestore($event)"
       >
         <!-- Backdrop -->
         <div
@@ -134,6 +142,10 @@ import { takeUntil } from 'rxjs/operators';
       display: block;
     }
 
+    :host.minimizable-minimized {
+      display: none !important;
+    }
+
     .modal-collapsible {
       overflow: hidden;
       max-height: 600px;
@@ -167,6 +179,15 @@ import { takeUntil } from 'rxjs/operators';
         opacity: 1;
       }
     }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
   `]
 })
 export class AdvancedModalComponent implements OnInit, OnDestroy {
@@ -174,9 +195,14 @@ export class AdvancedModalComponent implements OnInit, OnDestroy {
   isProcessing = false;
   isMinimized = false;
 
+  @ViewChild(MinimizableModalDirective) minimizableDirective?: MinimizableModalDirective;
+
   private destroy$ = new Subject<void>();
 
-  constructor(private modalService: ModalService) {}
+  constructor(
+    private modalService: ModalService,
+    private minimizedModalService: MinimizedModalService
+  ) {}
 
   ngOnInit(): void {
     this.modalService.activeModal
@@ -188,6 +214,15 @@ export class AdvancedModalComponent implements OnInit, OnDestroy {
           this.isMinimized = false;
         }
       });
+
+    // Escuchar solicitudes de restauración
+    this.minimizedModalService.restoreRequest
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(event => {
+        if (this.currentModal?.id === event.id) {
+          this.isMinimized = false;
+        }
+      });
   }
 
   ngOnDestroy(): void {
@@ -196,7 +231,25 @@ export class AdvancedModalComponent implements OnInit, OnDestroy {
   }
 
   toggleMinimize(): void {
-    this.isMinimized = !this.isMinimized;
+    if (!this.currentModal) return;
+
+    if (this.isMinimized) {
+      this.onRestore(this.currentModal.id);
+    } else {
+      this.onMinimize({ id: this.currentModal.id, title: this.currentModal.title });
+    }
+  }
+
+  onMinimize(event: { id: string; title: string }): void {
+    this.minimizedModalService.addMinimized({
+      id: event.id,
+      title: event.title
+    });
+  }
+
+  onRestore(modalId: string): void {
+    this.minimizedModalService.removeMinimized(modalId);
+    this.isMinimized = false;
   }
 
   onConfirm(): void {
