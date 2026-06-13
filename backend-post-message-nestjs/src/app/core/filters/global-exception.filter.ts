@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ApiResponse } from '../dto/api.response';
 import { TranslationService } from '../utils/translation.service';
-import { SupportedLanguage } from '../i18n/translations';
+import { SupportedLanguage } from '../i18n/locales';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {

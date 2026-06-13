@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { TRANSLATIONS, SupportedLanguage } from '../i18n/translations';
+import { TRANSLATIONS, SupportedLanguage } from '../i18n/locales';
 
 /**
  * TranslationService — thin wrapper kept here for backward-compatible imports.

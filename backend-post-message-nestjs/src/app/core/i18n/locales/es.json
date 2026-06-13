@@ -1,0 +1,81 @@
+{
+  "auth": {
+    "login_success": "Inicio de sesión exitoso",
+    "login_failed": "Credenciales inválidas",
+    "logout_success": "Cierre de sesión exitoso",
+    "unauthorized": "No autorizado",
+    "token_expired": "Token expirado",
+    "invalid_token": "Token inválido",
+    "missing_token": "Token de autenticación faltante",
+    "access_denied": "Acceso denegado"
+  },
+  "users": {
+    "created": "Usuario creado exitosamente",
+    "updated": "Usuario actualizado exitosamente",
+    "deleted": "Usuario eliminado exitosamente",
+    "not_found": "Usuario no encontrado",
+    "email_already_exists": "El email ya existe",
+    "username_already_exists": "El nombre de usuario ya existe",
+    "language_updated": "Preferencia de idioma actualizada exitosamente",
+    "language_invalid": "Idioma inválido. Soportados: en, es"
+  },
+  "posts": {
+    "created": "Post creado exitosamente",
+    "updated": "Post actualizado exitosamente",
+    "deleted": "Post eliminado exitosamente",
+    "not_found": "Post no encontrado"
+  },
+  "comments": {
+    "created": "Comentario creado exitosamente",
+    "updated": "Comentario actualizado exitosamente",
+    "deleted": "Comentario eliminado exitosamente",
+    "not_found": "Comentario no encontrado"
+  },
+  "clients": {
+    "created": "Cliente creado exitosamente",
+    "updated": "Cliente actualizado exitosamente",
+    "deleted": "Cliente eliminado exitosamente",
+    "not_found": "Cliente no encontrado"
+  },
+  "roles": {
+    "created": "Rol creado exitosamente",
+    "updated": "Rol actualizado exitosamente",
+    "deleted": "Rol eliminado exitosamente",
+    "not_found": "Rol no encontrado"
+  },
+  "permissions": {
+    "created": "Permiso creado exitosamente",
+    "updated": "Permiso actualizado exitosamente",
+    "deleted": "Permiso eliminado exitosamente",
+    "not_found": "Permiso no encontrado"
+  },
+  "files": {
+    "uploaded": "Archivo cargado exitosamente",
+    "upload_failed": "La carga del archivo falló",
+    "deleted": "Archivo eliminado exitosamente",
+    "invalid_type": "Tipo de archivo inválido",
+    "too_large": "El archivo excede el tamaño máximo"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "invalid_email": "Formato de email inválido",
+    "invalid_username": "Formato de nombre de usuario inválido",
+    "weak_password": "La contraseña es débil",
+    "not_found": "Recurso no encontrado",
+    "already_exists": "Este recurso ya existe",
+    "invalid_type": "Tipo de archivo inválido"
+  },
+  "common": {
+    "success": "Éxito",
+    "error": "Un error inesperado ocurrió",
+    "not_found": "No encontrado",
+    "unauthorized": "No autorizado",
+    "forbidden": "Prohibido",
+    "bad_request": "Solicitud inválida",
+    "conflict": "Conflicto",
+    "internal_error": "Error interno del servidor",
+    "created": "Creado exitosamente",
+    "updated": "Actualizado exitosamente",
+    "deleted": "Eliminado exitosamente"
+  }
+}

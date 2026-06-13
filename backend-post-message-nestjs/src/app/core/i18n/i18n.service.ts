@@ -1,7 +1,7 @@
 import { Injectable, Inject, Optional } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import type { Request } from 'express';
-import { TRANSLATIONS, SupportedLanguage } from './translations';
+import { TRANSLATIONS, SupportedLanguage } from './locales';
 
 @Injectable()
 export class I18nService {
