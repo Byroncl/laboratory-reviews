@@ -28,11 +28,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ? exception.message
         : this.translationService.translate('error', lang);
 
-    const message =
-      exception instanceof HttpException
-        ? exception.message
-        : 'Internal server error';
-
     response.status(status).json(ApiResponse.error(message, status));
   }
 }

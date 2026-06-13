@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Role } from '../schemas/role.schema';
-import { CreateRoleDto } from '../dto/create-role.dto';
-import { UpdateRoleDto } from '../dto/update-role.dto';
+import { Role } from './schemas/role.schema';
+import { CreateRoleDto } from './dto/create-role.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 
 @Injectable()
 export class RolesService {
@@ -22,17 +22,17 @@ export class RolesService {
     return this.roleModel.find().populate('permissions').exec();
   }
 
-  async findOne(id: string): Promise<Role> {
+  async findOne(id: string): Promise<Role | null> {
     return this.roleModel.findById(id).populate('permissions').exec();
   }
 
-  async update(id: string, updateRoleDto: UpdateRoleDto): Promise<Role> {
+  async update(id: string, updateRoleDto: UpdateRoleDto): Promise<Role | null> {
     return this.roleModel
       .findByIdAndUpdate(id, updateRoleDto, { new: true })
       .exec();
   }
 
-  async remove(id: string): Promise<Role> {
+  async remove(id: string): Promise<Role | null> {
     return this.roleModel.findByIdAndDelete(id).exec();
   }
 }

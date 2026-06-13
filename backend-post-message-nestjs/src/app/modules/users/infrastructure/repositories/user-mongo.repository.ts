@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { CreateUserDto } from '../../dto/create-user.dto';
 import { UpdateUserDto } from '../../dto/update-user.dto';
 import { User, UserDocument } from '../../schemas/user.schema';
-import { UserRepository } from '../repositories/user.repository';
+import { UserRepository } from '../../domain/repositories/user.repository';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -20,11 +20,11 @@ export class UserMongoRepository implements UserRepository {
     return createdUser.save();
   }
 
-  async findOneByUsername(username: string): Promise<User | undefined> {
+  async findOneByUsername(username: string): Promise<User | null> {
     return this.userModel.findOne({ username }).exec();
   }
 
-  async findOneById(id: string): Promise<User | undefined> {
+  async findOneById(id: string): Promise<User | null> {
     return this.userModel.findById(id).exec();
   }
 
@@ -32,13 +32,13 @@ export class UserMongoRepository implements UserRepository {
     return this.userModel.find().exec();
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
     return this.userModel
       .findByIdAndUpdate(id, updateUserDto, { new: true })
       .exec();
   }
 
-  async remove(id: string): Promise<User> {
+  async remove(id: string): Promise<User | null> {
     return this.userModel.findByIdAndDelete(id).exec();
   }
 }

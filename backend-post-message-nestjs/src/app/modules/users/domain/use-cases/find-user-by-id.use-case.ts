@@ -6,7 +6,7 @@ import { UserRepository } from '../repositories/user.repository';
 export class FindUserByIdUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(id: string): Promise<User | undefined> {
+  async execute(id: string): Promise<User | null> {
     return this.userRepository.findOneById(id);
   }
 }

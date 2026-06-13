@@ -18,17 +18,17 @@ export class PostsService {
     return this.postModel.find().exec();
   }
 
-  async findOne(id: string): Promise<Post> {
+  async findOne(id: string): Promise<Post | null> {
     return this.postModel.findById(id).exec();
   }
 
-  async update(id: string, updatePostDto: UpdatePostDto): Promise<Post> {
+  async update(id: string, updatePostDto: UpdatePostDto): Promise<Post | null> {
     return this.postModel
       .findByIdAndUpdate(id, updatePostDto, { new: true })
       .exec();
   }
 
-  async remove(id: string): Promise<Post> {
+  async remove(id: string): Promise<Post | null> {
     return this.postModel.findByIdAndDelete(id).exec();
   }
 

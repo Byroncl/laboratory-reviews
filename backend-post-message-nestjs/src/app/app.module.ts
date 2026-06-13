@@ -15,7 +15,7 @@ import { TranslationService } from './core/utils/translation.service';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot(process.env.MONGODB_URI),
+    MongooseModule.forRoot(process.env.MONGODB_URI ?? 'mongodb://localhost:27017'),
     PostsModule,
     CommentsModule,
     UsersModule,

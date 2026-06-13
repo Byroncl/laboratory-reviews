@@ -21,17 +21,17 @@ export class CommentsService {
     return this.commentModel.find(filter).exec();
   }
 
-  async findOne(id: string): Promise<Comment> {
+  async findOne(id: string): Promise<Comment | null> {
     return this.commentModel.findById(id).exec();
   }
 
-  async update(id: string, updateCommentDto: UpdateCommentDto): Promise<Comment> {
+  async update(id: string, updateCommentDto: UpdateCommentDto): Promise<Comment | null> {
     return this.commentModel
       .findByIdAndUpdate(id, updateCommentDto, { new: true })
       .exec();
   }
 
-  async remove(id: string): Promise<Comment> {
+  async remove(id: string): Promise<Comment | null> {
     return this.commentModel.findByIdAndDelete(id).exec();
   }
 }

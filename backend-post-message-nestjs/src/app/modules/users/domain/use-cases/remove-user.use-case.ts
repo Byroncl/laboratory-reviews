@@ -6,7 +6,7 @@ import { UserRepository } from '../repositories/user.repository';
 export class RemoveUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(id: string): Promise<User> {
+  async execute(id: string): Promise<User | null> {
     return this.userRepository.remove(id);
   }
 }
