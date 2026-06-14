@@ -1,4 +1,5 @@
 import { Component, input, output } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { PostDto } from '../../types';
 import { truncateText } from '../../utils/string.utils';
@@ -6,7 +7,7 @@ import { truncateText } from '../../utils/string.utils';
 @Component({
   selector: 'app-post-card',
   standalone: true,
-  imports: [TranslatePipe],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './post-card.component.html',
   styleUrl: './post-card.component.scss',
 })
