@@ -11,25 +11,56 @@ COPY . .
 
 RUN npm run build
 
-# Production stage - use lightweight HTTP server
-FROM nginx:alpine
+# Production stage - serve with simple HTTP server
+FROM node:22-alpine
 
-WORKDIR /usr/share/nginx/html
+WORKDIR /app
 
-# Copy built assets from builder
-COPY --from=builder /app/build .
+# Install serve to serve static files
+RUN npm install -g serve
 
-# Copy nginx config for SPA routing
-RUN echo 'server {\n\
-    listen 3000;\n\
-    server_name localhost;\n\
-    root /usr/share/nginx/html;\n\
-    index index.html;\n\
-    location / {\n\
-        try_files $uri $uri/ /index.html;\n\
-    }\n\
-}' > /etc/nginx/conf.d/default.conf
+# Copy built app from builder
+COPY --from=builder /app/build ./build
 
-EXPOSE 3000
+# Create index.html that redirects to /docs/
+RUN cat > ./build/index.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0; url=/docs/">
+    <title>Redirecting...</title>
+</head>
+<body>
+    <p>Redirecting to <a href="/docs/">documentation</a>...</p>
+    <script>
+        window.location.href = '/docs/';
+    </script>
+</body>
+</html>
+EOF
 
-CMD ["nginx", "-g", "daemon off;"]
+# Create index.html in /docs/ that redirects to the intro page
+RUN cat > ./build/docs/index.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0; url=/docs/backend/intro/">
+    <title>Redirecting...</title>
+</head>
+<body>
+    <p>Redirecting to <a href="/docs/backend/intro/">documentation</a>...</p>
+    <script>
+        window.location.href = '/docs/backend/intro/';
+    </script>
+</body>
+</html>
+EOF
+
+EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD wget --quiet --tries=1 --spider http://localhost:3001/ || exit 1
+
+CMD ["serve", "build", "-l", "3001"]

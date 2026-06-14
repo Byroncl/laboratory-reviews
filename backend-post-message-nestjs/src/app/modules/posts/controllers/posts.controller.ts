@@ -43,14 +43,37 @@ export class PostsController {
   @AuditActionDecorator(AuditAction.CREATE, EntityType.POST)
   @ApiOperation({ summary: 'Create a new post' })
   @ApiBody({ type: CreatePostDto })
-  @ApiResponse({ status: 201, description: 'Post created successfully', type: PostResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Post created successfully',
+    type: PostResponseDto,
+  })
   @ApiResponse({ status: 400, description: 'Validation failed' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post()
-  async create(@Body() createPostDto: CreatePostDto) {
-    const post = await this.postsService.create(createPostDto);
+  async create(
+    @Body() createPostDto: CreatePostDto,
+    @CurrentUser() currentUser: CurrentUserPayload,
+  ) {
+    const post = await this.postsService.create(createPostDto, currentUser.id);
     this.postsGateway.notifyPostCreated(post, 'System');
     return ApiRes.success(post, this.i18n.translate('posts.created'));
+  }
+
+  @Auth()
+  @ApiOperation({ summary: 'Get my posts (client only)' })
+  @ApiResponse({ status: 200, description: 'Paginated list of my posts' })
+  @Get('my-posts')
+  async getMyPosts(
+    @CurrentUser() currentUser: CurrentUserPayload,
+    @Query() paginationDto: PaginationQueryDto,
+  ) {
+    const result = await this.postsService.findByAuthorId(
+      currentUser.id,
+      paginationDto.skip,
+      paginationDto.limit,
+    );
+    return ApiRes.success(result);
   }
 
   @ApiOperation({ summary: 'Get all posts (paginated with filters)' })
@@ -60,19 +83,27 @@ export class PostsController {
     @Query() paginationDto: PaginationQueryDto,
     @Query('categoryId') categoryId?: string,
     @Query('status') status?: string,
-    @Query('author') author?: string
+    @Query('author') author?: string,
   ) {
     const result = await this.postsService.findAllPaginated(
       paginationDto.skip,
       paginationDto.limit,
-      { categoryId, status, author }
+      { categoryId, status, author },
     );
     return ApiRes.success(result);
   }
 
   @ApiOperation({ summary: 'Get a post by ID' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Post MongoDB ObjectId' })
-  @ApiResponse({ status: 200, description: 'Post found', type: PostResponseDto })
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: 'Post MongoDB ObjectId',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Post found',
+    type: PostResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Post not found' })
   @Get(':id')
   async findOne(@Param() findOneDto: FindOneDto) {
@@ -81,11 +112,21 @@ export class PostsController {
   }
 
   @Auth()
-  @AuditActionDecorator(AuditAction.UPDATE, EntityType.POST, { captureSnapshot: true })
+  @AuditActionDecorator(AuditAction.UPDATE, EntityType.POST, {
+    captureSnapshot: true,
+  })
   @ApiOperation({ summary: 'Update a post' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Post MongoDB ObjectId' })
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: 'Post MongoDB ObjectId',
+  })
   @ApiBody({ type: UpdatePostDto })
-  @ApiResponse({ status: 200, description: 'Post updated successfully', type: PostResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Post updated successfully',
+    type: PostResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Post not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Put(':id')
@@ -102,7 +143,11 @@ export class PostsController {
   @Auth()
   @AuditActionDecorator(AuditAction.DELETE, EntityType.POST)
   @ApiOperation({ summary: 'Delete a post' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Post MongoDB ObjectId' })
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: 'Post MongoDB ObjectId',
+  })
   @ApiResponse({ status: 200, description: 'Post deleted successfully' })
   @ApiResponse({ status: 404, description: 'Post not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -119,7 +164,11 @@ export class PostsController {
   @Auth()
   @ApiOperation({ summary: 'Bulk create posts' })
   @ApiBody({ type: [CreatePostDto] })
-  @ApiResponse({ status: 201, description: 'Posts created successfully', type: [PostResponseDto] })
+  @ApiResponse({
+    status: 201,
+    description: 'Posts created successfully',
+    type: [PostResponseDto],
+  })
   @ApiResponse({ status: 400, description: 'Validation failed' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post('bulk')

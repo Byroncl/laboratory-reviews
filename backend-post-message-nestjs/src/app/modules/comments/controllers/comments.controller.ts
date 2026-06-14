@@ -59,6 +59,22 @@ export class CommentsController {
     return ApiRes.success(comment, this.i18n.translate('comments.created'));
   }
 
+  @Auth()
+  @ApiOperation({ summary: 'Get my comments (client only)' })
+  @ApiQuery({ name: 'page', required: false, type: 'number' })
+  @ApiQuery({ name: 'limit', required: false, type: 'number' })
+  @ApiResponse({ status: 200, description: 'List of my comments', type: [CommentResponseDto] })
+  @Get('my-comments')
+  async getMyComments(
+    @CurrentUser() user: CurrentUserPayload,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ) {
+    const skip = (page - 1) * limit;
+    const result = await this.commentsService.findByUserId(user.id, skip, limit);
+    return ApiRes.success(result);
+  }
+
   @ApiOperation({ summary: 'Get all comments (optionally filtered by post)' })
   @ApiQuery({ name: 'postId', required: true, type: 'string', description: 'MongoDB ObjectId of the post' })
   @ApiResponse({ status: 200, description: 'List of comments', type: [CommentResponseDto] })

@@ -13,6 +13,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { TranslationService } from './core/utils/translation.service';
 import { AuthGuard } from './core/guards/auth.guard';
 import { I18nMiddleware } from './core/middleware/i18n.middleware';
+import { RequestLoggerMiddleware } from './core/middleware/request-logger.middleware';
 import { I18nModule } from './modules/i18n/i18n.module';
 import { TransformInterceptor } from './core/interceptors/transform.interceptor';
 import { AuditInterceptor } from './core/interceptors/audit.interceptor';
@@ -21,6 +22,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
 
 @Module({
   imports: [
@@ -40,6 +42,7 @@ import { AuditModule } from './modules/audit/audit.module';
     RolesModule,
     PermissionsModule,
     AuditModule,
+    FavoritesModule,
   ],
   controllers: [AppController],
   providers: [
@@ -61,6 +64,8 @@ import { AuditModule } from './modules/audit/audit.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(I18nMiddleware).forRoutes('*');
+    consumer
+      .apply(RequestLoggerMiddleware, I18nMiddleware)
+      .forRoutes('*');
   }
 }

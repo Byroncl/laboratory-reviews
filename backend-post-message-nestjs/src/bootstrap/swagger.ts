@@ -1,7 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
-import { Application } from 'express';
 import {
   API_DOCS_PATH,
   API_PREFIX,
@@ -14,16 +13,22 @@ export const setupSwagger = (app: INestApplication, name: string): void => {
     .setDescription('REST API for managing posts, comments, users, clients, roles, and permissions')
     .setVersion(`v${API_VERSION.V1}`)
     .addServer('http://localhost:3000', 'Local development')
+    .addServer('http://host.docker.internal:3000', 'Docker development')
     .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
 
-  const expressApp = app.getHttpAdapter().getInstance() as Application;
-
-  expressApp.use(
+  // Use Scalar for API documentation instead of Swagger
+  app.use(
     `/${API_PREFIX}/${API_DOCS_PATH}`,
-    apiReference({ content: document }),
+    apiReference({
+      spec: {
+        content: document,
+      },
+      pageTitle: 'Post Message API - Scalar',
+      theme: 'moon',
+    }),
   );
 };
 

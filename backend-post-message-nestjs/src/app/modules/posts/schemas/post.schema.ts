@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type PostDocument = Post & Document;
 
@@ -16,6 +16,9 @@ export class Post {
 
   @Prop({ required: true, index: true })
   author: string;
+
+  @Prop({ type: Types.ObjectId, ref: 'Client', required: false, index: true })
+  authorId?: Types.ObjectId;
 
   @Prop({ default: true, index: true })
   isActive: boolean;

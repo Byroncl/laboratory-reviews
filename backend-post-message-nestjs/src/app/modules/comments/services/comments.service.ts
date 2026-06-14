@@ -39,6 +39,24 @@ export class CommentsService {
     return this.commentModel.findById(id).exec();
   }
 
+  async findByUserId(
+    userId: string,
+    skip: number,
+    limit: number,
+  ): Promise<{ data: Comment[]; total: number }> {
+    const [data, total] = await Promise.all([
+      this.commentModel
+        .find({ userId, isDeleted: false, isActive: true })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.commentModel.countDocuments({ userId, isDeleted: false, isActive: true }).exec(),
+    ]);
+
+    return { data, total };
+  }
+
   async update(id: string, updateCommentDto: UpdateCommentDto): Promise<Comment | null> {
     const updateData: Record<string, unknown> = {};
 

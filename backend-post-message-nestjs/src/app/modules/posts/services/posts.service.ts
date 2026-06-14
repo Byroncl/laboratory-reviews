@@ -16,8 +16,12 @@ export class PostsService {
     @Optional() private readonly categoriesService?: CategoriesService,
   ) {}
 
-  async create(createPostDto: CreatePostDto): Promise<Post> {
-    const createdPost = new this.postModel(createPostDto);
+  async create(createPostDto: CreatePostDto, authorId?: string): Promise<Post> {
+    const postData = {
+      ...createPostDto,
+      ...(authorId && { authorId }),
+    };
+    const createdPost = new this.postModel(postData);
     const saved = await createdPost.save();
 
     if (createPostDto.categoryId && this.categoriesService) {
@@ -64,6 +68,29 @@ export class PostsService {
 
   async findOne(id: string): Promise<Post | null> {
     return this.postModel.findById(id).exec();
+  }
+
+  async findByAuthorId(
+    authorId: string,
+    skip: number,
+    limit: number,
+  ): Promise<PaginatedResponse<Post>> {
+    const [items, total] = await Promise.all([
+      this.postModel
+        .find({ authorId, isActive: true, isDeleted: false })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.postModel.countDocuments({ authorId, isActive: true, isDeleted: false }).exec(),
+    ]);
+
+    return {
+      items,
+      total,
+      skip,
+      limit,
+    };
   }
 
   async update(id: string, updatePostDto: UpdatePostDto): Promise<Post | null> {

@@ -108,7 +108,7 @@ export class HomeComponent implements OnInit {
     if (!query) return this.postViewModels();
     return this.postViewModels().filter(post =>
       post.title.toLowerCase().includes(query) ||
-      (post.content && post.content.toLowerCase().includes(query))
+      post.preview.toLowerCase().includes(query)
     );
   });
 

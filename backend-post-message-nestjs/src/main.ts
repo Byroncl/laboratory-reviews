@@ -19,10 +19,13 @@ async function bootstrap() {
   }
 
   const app = await NestFactory.create(AppModule);
-  const host = process.env.HOST ?? 'localhost';
+  const host = process.env.HOST ?? (process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost');
   const port = parseInt(process.env.PORT ?? '3000', 10);
   const name = process.env.APP_NAME ?? 'My App';
   const env = process.env.NODE_ENV ?? 'development';
+
+  // Global API prefix - must be set before setupSwagger
+  app.setGlobalPrefix('api');
 
   setupCors(app);
   setupSwagger(app, name);
