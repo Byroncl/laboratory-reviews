@@ -4,52 +4,93 @@ import {
   IsEmail,
   MinLength,
   MaxLength,
+  IsAlphanumeric,
+  Matches,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
-  @ApiProperty({ example: 'John', description: 'First name of the user' })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(2)
-  @MaxLength(50)
+  @ApiProperty({
+    example: 'John',
+    description: 'First name of the user (2-50 characters)',
+    minLength: 2,
+    maxLength: 50,
+  })
+  @IsString({ message: 'First name must be a string' })
+  @IsNotEmpty({ message: 'First name is required' })
+  @MinLength(2, { message: 'First name must be at least 2 characters' })
+  @MaxLength(50, { message: 'First name must not exceed 50 characters' })
+  @Matches(/^[a-zA-Z\s'-]+$/, {
+    message: 'First name can only contain letters, spaces, hyphens, and apostrophes',
+  })
   @Transform(({ value }: { value: string }) => value?.trim())
   name: string;
 
-  @ApiProperty({ example: 'Doe', description: 'Last name of the user' })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(2)
-  @MaxLength(50)
+  @ApiProperty({
+    example: 'Doe',
+    description: 'Last name of the user (2-50 characters)',
+    minLength: 2,
+    maxLength: 50,
+  })
+  @IsString({ message: 'Last name must be a string' })
+  @IsNotEmpty({ message: 'Last name is required' })
+  @MinLength(2, { message: 'Last name must be at least 2 characters' })
+  @MaxLength(50, { message: 'Last name must not exceed 50 characters' })
+  @Matches(/^[a-zA-Z\s'-]+$/, {
+    message: 'Last name can only contain letters, spaces, hyphens, and apostrophes',
+  })
   @Transform(({ value }: { value: string }) => value?.trim())
   lastname: string;
 
-  @ApiProperty({ example: 'johndoe', description: 'Unique username' })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(3)
-  @MaxLength(20)
+  @ApiProperty({
+    example: 'johndoe',
+    description: 'Unique username (3-20 alphanumeric characters)',
+    minLength: 3,
+    maxLength: 20,
+  })
+  @IsString({ message: 'Username must be a string' })
+  @IsNotEmpty({ message: 'Username is required' })
+  @MinLength(3, { message: 'Username must be at least 3 characters' })
+  @MaxLength(20, { message: 'Username must not exceed 20 characters' })
+  @IsAlphanumeric(undefined, {
+    message: 'Username must contain only letters and numbers',
+  })
   @Transform(({ value }: { value: string }) => value?.trim().toLowerCase())
   username: string;
 
-  @ApiProperty({ example: 'john@example.com', description: 'User email address' })
-  @IsEmail()
-  @IsNotEmpty()
+  @ApiProperty({
+    example: 'john@example.com',
+    description: 'Valid email address',
+  })
+  @IsEmail({}, { message: 'Must be a valid email address' })
+  @IsNotEmpty({ message: 'Email is required' })
+  @MaxLength(255, { message: 'Email must not exceed 255 characters' })
   @Transform(({ value }: { value: string }) => value?.toLowerCase().trim())
   email: string;
 
-  @ApiProperty({ example: 'hashed_password_here', description: 'Hashed password' })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(6)
-  @MaxLength(200)
+  @ApiProperty({
+    example: 'hashed_password_here',
+    description: 'Hashed password (6-200 characters)',
+    minLength: 6,
+    maxLength: 200,
+  })
+  @IsString({ message: 'Password hash must be a string' })
+  @IsNotEmpty({ message: 'Password hash is required' })
+  @MinLength(6, { message: 'Password hash must be at least 6 characters' })
+  @MaxLength(200, { message: 'Password hash must not exceed 200 characters' })
   password_hash: string;
 
-  @ApiProperty({ example: 'admin', description: 'User type (e.g. admin, viewer)' })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(50)
+  @ApiProperty({
+    example: 'admin',
+    description: 'User type (2-50 characters)',
+    minLength: 2,
+    maxLength: 50,
+  })
+  @IsString({ message: 'User type must be a string' })
+  @IsNotEmpty({ message: 'User type is required' })
+  @MinLength(2, { message: 'User type must be at least 2 characters' })
+  @MaxLength(50, { message: 'User type must not exceed 50 characters' })
   @Transform(({ value }: { value: string }) => value?.trim())
   type: string;
 }

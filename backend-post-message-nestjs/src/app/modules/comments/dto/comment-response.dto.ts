@@ -1,5 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+export class CommentMediaDto {
+  @ApiProperty({ example: 'http://localhost:9000/posts/image.jpg' })
+  url: string;
+
+  @ApiProperty({ example: 'image/jpeg' })
+  type: string;
+
+  @ApiProperty({ example: 'photo.jpg' })
+  filename: string;
+}
+
 export class CommentResponseDto {
   @ApiProperty({ example: '507f1f77bcf86cd799439011', description: 'Comment ID' })
   id: string;
@@ -15,4 +26,30 @@ export class CommentResponseDto {
 
   @ApiProperty({ example: true, description: 'Whether the comment is active' })
   isActive: boolean;
+
+  @ApiProperty({
+    type: [CommentMediaDto],
+    description: 'Array of attached media (images and audios)',
+  })
+  media: CommentMediaDto[];
+
+  @ApiProperty({
+    example: null,
+    description: 'Parent comment ID (null for root comments)',
+    required: false,
+  })
+  parentCommentId?: string;
+
+  @ApiProperty({
+    type: [String],
+    description: 'Array of direct reply comment IDs',
+    example: [],
+  })
+  childCommentIds?: string[];
+
+  @ApiProperty({ example: '2024-01-01T00:00:00.000Z', description: 'Creation timestamp', required: false })
+  createdAt?: Date;
+
+  @ApiProperty({ example: '2024-01-01T00:00:00.000Z', description: 'Last update timestamp', required: false })
+  updatedAt?: Date;
 }

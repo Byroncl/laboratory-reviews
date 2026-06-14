@@ -225,4 +225,143 @@ describe('UserMongoRepository', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('changePassword', () => {
+    it('should call findByIdAndUpdate with new password_hash', async () => {
+      const updatedUser = { ...mockUser, password_hash: 'new_hashed_password' };
+      mockExec.mockResolvedValue(updatedUser);
+
+      const result = await repository.changePassword(
+        '507f1f77bcf86cd799439011',
+        'new_hashed_password',
+      );
+
+      expect(result).toEqual(updatedUser);
+      expect(MockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011',
+        { password_hash: 'new_hashed_password' },
+        { new: true },
+      );
+    });
+
+    it('should return null when user not found', async () => {
+      mockExec.mockResolvedValue(null);
+
+      const result = await repository.changePassword('ghost-id', 'new_hash');
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('findOneByEmail', () => {
+    it('should call findOne with email filter', async () => {
+      mockExec.mockResolvedValue(mockUser);
+
+      const result = await repository.findOneByEmail('john@example.com');
+
+      expect(result).toEqual(mockUser);
+      expect(MockUserModel.findOne).toHaveBeenCalledWith({ email: 'john@example.com' });
+    });
+
+    it('should return null when no user matches the email', async () => {
+      mockExec.mockResolvedValue(null);
+
+      const result = await repository.findOneByEmail('ghost@example.com');
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('activate', () => {
+    it('should set isActive to true via findByIdAndUpdate', async () => {
+      const activatedUser = { ...mockUser, isActive: true };
+      mockExec.mockResolvedValue(activatedUser);
+
+      const result = await repository.activate('507f1f77bcf86cd799439011');
+
+      expect(result).toEqual(activatedUser);
+      expect(result!.isActive).toBe(true);
+      expect(MockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011',
+        { isActive: true },
+        { new: true },
+      );
+    });
+
+    it('should return null when user not found', async () => {
+      mockExec.mockResolvedValue(null);
+
+      const result = await repository.activate('ghost-id');
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('deactivate', () => {
+    it('should set isActive to false via findByIdAndUpdate', async () => {
+      const deactivatedUser = { ...mockUser, isActive: false };
+      mockExec.mockResolvedValue(deactivatedUser);
+
+      const result = await repository.deactivate('507f1f77bcf86cd799439011');
+
+      expect(result).toEqual(deactivatedUser);
+      expect(result!.isActive).toBe(false);
+      expect(MockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011',
+        { isActive: false },
+        { new: true },
+      );
+    });
+
+    it('should return null when user not found', async () => {
+      mockExec.mockResolvedValue(null);
+
+      const result = await repository.deactivate('ghost-id');
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('getStats', () => {
+    it('should return total, active, and verified counts', async () => {
+      MockUserModel.countDocuments = jest
+        .fn()
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(100) })
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(80) })
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(50) });
+
+      const result = await repository.getStats();
+
+      expect(result.total).toBe(100);
+      expect(result.active).toBe(80);
+      expect(result.verified).toBe(50);
+    });
+
+    it('should return zero counts when database is empty', async () => {
+      MockUserModel.countDocuments = jest
+        .fn()
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(0) })
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(0) })
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(0) });
+
+      const result = await repository.getStats();
+
+      expect(result.total).toBe(0);
+      expect(result.active).toBe(0);
+      expect(result.verified).toBe(0);
+    });
+  });
+
+  describe('updateLastLogin', () => {
+    it('should call findByIdAndUpdate with lastLoginAt date', async () => {
+      mockExec.mockResolvedValue(mockUser);
+
+      await repository.updateLastLogin('507f1f77bcf86cd799439011');
+
+      expect(MockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011',
+        expect.objectContaining({ lastLoginAt: expect.any(Date) }),
+      );
+    });
+  });
 });

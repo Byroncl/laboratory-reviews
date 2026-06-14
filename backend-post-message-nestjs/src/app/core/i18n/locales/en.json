@@ -17,7 +17,13 @@
     "email_already_exists": "Email already exists",
     "username_already_exists": "Username already exists",
     "language_updated": "Language preference updated successfully",
-    "language_invalid": "Invalid language. Supported: en, es"
+    "language_invalid": "Invalid language. Supported: en, es",
+    "role_assigned": "Role assigned to user successfully",
+    "password_changed": "Password changed successfully",
+    "activated": "User activated successfully",
+    "deactivated": "User deactivated successfully",
+    "invalid_password": "Invalid password",
+    "passwords_do_not_match": "Passwords do not match"
   },
   "posts": {
     "created": "Post created successfully",
@@ -29,7 +35,20 @@
     "created": "Comment created successfully",
     "updated": "Comment updated successfully",
     "deleted": "Comment deleted successfully",
-    "not_found": "Comment not found"
+    "not_found": "Comment not found",
+    "user_joined": "{0} joined the comments",
+    "reaction_added": "Reaction added successfully",
+    "reaction_removed": "Reaction removed successfully",
+    "invalid_emoji": "Invalid emoji. Allowed: 👍, ❤️, 😂, 😮, 😢, 😡",
+    "reply_created": "Reply created successfully",
+    "parent_not_found": "Parent comment not found",
+    "max_nesting_level": "Cannot reply to a reply. Maximum nesting level is 2",
+    "thread_retrieved": "Thread retrieved successfully"
+  },
+  "socket": {
+    "connected": "Socket connected",
+    "disconnected": "Socket disconnected",
+    "error": "Socket error occurred"
   },
   "clients": {
     "created": "Client created successfully",
@@ -41,7 +60,8 @@
     "created": "Role created successfully",
     "updated": "Role updated successfully",
     "deleted": "Role deleted successfully",
-    "not_found": "Role not found"
+    "not_found": "Role not found",
+    "permissions_assigned": "Permissions assigned to role successfully"
   },
   "permissions": {
     "created": "Permission created successfully",
@@ -54,7 +74,9 @@
     "upload_failed": "File upload failed",
     "deleted": "File deleted successfully",
     "invalid_type": "Invalid file type",
-    "too_large": "File exceeds maximum size"
+    "too_large": "File exceeds maximum size",
+    "invalid_audio_type": "Invalid audio format. Supported: MP3, WAV, OGG, WebM",
+    "audio_too_large": "Audio file exceeds 20MB limit"
   },
   "validation": {
     "required": "This field is required",
@@ -64,6 +86,34 @@
     "not_found": "Resource not found",
     "already_exists": "This resource already exists",
     "invalid_type": "Invalid file type"
+  },
+  "notifications": {
+    "comment_created": "{0} commented on your post",
+    "reply_created": "{0} replied to your comment",
+    "reaction_added": "{0} reacted with {1} to your comment",
+    "user_joined": "{0} joined the comments",
+    "marked_read": "Notification marked as read",
+    "all_marked_read": "All notifications marked as read",
+    "deleted": "Notification deleted successfully"
+  },
+  "categories": {
+    "created": "Category created successfully",
+    "updated": "Category updated successfully",
+    "deleted": "Category deleted successfully",
+    "not_found": "Category not found"
+  },
+  "audit": {
+    "logged": "Audit entry recorded",
+    "not_found": "Audit log entry not found",
+    "action_create": "Resource created",
+    "action_update": "Resource updated",
+    "action_delete": "Resource deleted",
+    "action_login": "User logged in",
+    "action_logout": "User logged out",
+    "action_assign": "Assignment performed",
+    "action_activate": "Resource activated",
+    "action_deactivate": "Resource deactivated",
+    "permission_name": "Read Audits"
   },
   "common": {
     "success": "Success",

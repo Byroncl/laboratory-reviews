@@ -7,6 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "e2e": "cypress run",
+    "e2e:open": "cypress open",
     "serve:ssr:frontend-post-message-angular": "node dist/frontend-post-message-angular/server/server.mjs"
   },
   "private": true,
@@ -26,6 +28,8 @@
     "@ngrx/store-devtools": "^18.1.1",
     "express": "^4.18.2",
     "rxjs": "~7.8.0",
+    "socket.io-client": "^4.8.3",
+    "sweetalert2": "^11.26.25",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.10"
   },
@@ -43,6 +47,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "cypress": "^13.0.0",
     "postcss": "^8.5.15",
     "tailwindcss": "^3.4.19",
     "typescript": "~5.5.2"

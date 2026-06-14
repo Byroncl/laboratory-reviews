@@ -7,10 +7,17 @@ import { setupCors } from './bootstrap/cors';
 import { getDocsUrl, setupSwagger } from './bootstrap/swagger';
 import { checkDatabase } from './bootstrap/check-database';
 import { printBanner } from './bootstrap/banner';
+import { seedDatabase } from './bootstrap/seed';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   loadEnv();
+
+  // Run seed before creating the HTTP app (uses its own app context)
+  if (process.env.SEED_ENABLED === 'true') {
+    await seedDatabase();
+  }
+
   const app = await NestFactory.create(AppModule);
   const host = process.env.HOST ?? 'localhost';
   const port = parseInt(process.env.PORT ?? '3000', 10);

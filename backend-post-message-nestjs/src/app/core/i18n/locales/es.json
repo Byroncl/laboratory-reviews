@@ -17,7 +17,13 @@
     "email_already_exists": "El email ya existe",
     "username_already_exists": "El nombre de usuario ya existe",
     "language_updated": "Preferencia de idioma actualizada exitosamente",
-    "language_invalid": "Idioma inválido. Soportados: en, es"
+    "language_invalid": "Idioma inválido. Soportados: en, es",
+    "role_assigned": "Rol asignado al usuario exitosamente",
+    "password_changed": "Contraseña cambiada exitosamente",
+    "activated": "Usuario activado exitosamente",
+    "deactivated": "Usuario desactivado exitosamente",
+    "invalid_password": "Contraseña inválida",
+    "passwords_do_not_match": "Las contraseñas no coinciden"
   },
   "posts": {
     "created": "Post creado exitosamente",
@@ -29,7 +35,20 @@
     "created": "Comentario creado exitosamente",
     "updated": "Comentario actualizado exitosamente",
     "deleted": "Comentario eliminado exitosamente",
-    "not_found": "Comentario no encontrado"
+    "not_found": "Comentario no encontrado",
+    "user_joined": "{0} se unió a los comentarios",
+    "reaction_added": "Reacción agregada exitosamente",
+    "reaction_removed": "Reacción eliminada exitosamente",
+    "invalid_emoji": "Emoji inválido. Permitidos: 👍, ❤️, 😂, 😮, 😢, 😡",
+    "reply_created": "Respuesta creada exitosamente",
+    "parent_not_found": "Comentario padre no encontrado",
+    "max_nesting_level": "No se puede responder a una respuesta. El nivel máximo de anidamiento es 2",
+    "thread_retrieved": "Hilo recuperado exitosamente"
+  },
+  "socket": {
+    "connected": "Socket conectado",
+    "disconnected": "Socket desconectado",
+    "error": "Ocurrió un error en socket"
   },
   "clients": {
     "created": "Cliente creado exitosamente",
@@ -41,7 +60,8 @@
     "created": "Rol creado exitosamente",
     "updated": "Rol actualizado exitosamente",
     "deleted": "Rol eliminado exitosamente",
-    "not_found": "Rol no encontrado"
+    "not_found": "Rol no encontrado",
+    "permissions_assigned": "Permisos asignados al rol exitosamente"
   },
   "permissions": {
     "created": "Permiso creado exitosamente",
@@ -54,7 +74,9 @@
     "upload_failed": "La carga del archivo falló",
     "deleted": "Archivo eliminado exitosamente",
     "invalid_type": "Tipo de archivo inválido",
-    "too_large": "El archivo excede el tamaño máximo"
+    "too_large": "El archivo excede el tamaño máximo",
+    "invalid_audio_type": "Formato de audio inválido. Soportados: MP3, WAV, OGG, WebM",
+    "audio_too_large": "El archivo de audio excede el límite de 20MB"
   },
   "validation": {
     "required": "Este campo es obligatorio",
@@ -64,6 +86,34 @@
     "not_found": "Recurso no encontrado",
     "already_exists": "Este recurso ya existe",
     "invalid_type": "Tipo de archivo inválido"
+  },
+  "notifications": {
+    "comment_created": "{0} comentó en tu post",
+    "reply_created": "{0} respondió a tu comentario",
+    "reaction_added": "{0} reaccionó con {1} a tu comentario",
+    "user_joined": "{0} se unió a los comentarios",
+    "marked_read": "Notificación marcada como leída",
+    "all_marked_read": "Todas las notificaciones marcadas como leídas",
+    "deleted": "Notificación eliminada exitosamente"
+  },
+  "categories": {
+    "created": "Categoría creada exitosamente",
+    "updated": "Categoría actualizada exitosamente",
+    "deleted": "Categoría eliminada exitosamente",
+    "not_found": "Categoría no encontrada"
+  },
+  "audit": {
+    "logged": "Entrada de auditoría registrada",
+    "not_found": "Entrada de auditoría no encontrada",
+    "action_create": "Recurso creado",
+    "action_update": "Recurso actualizado",
+    "action_delete": "Recurso eliminado",
+    "action_login": "Usuario inició sesión",
+    "action_logout": "Usuario cerró sesión",
+    "action_assign": "Asignación realizada",
+    "action_activate": "Recurso activado",
+    "action_deactivate": "Recurso desactivado",
+    "permission_name": "Ver Auditorías"
   },
   "common": {
     "success": "Éxito",

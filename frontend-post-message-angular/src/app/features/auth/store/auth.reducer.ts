@@ -1,5 +1,5 @@
 import { createReducer, on } from '@ngrx/store';
-import { AuthState } from '../models/auth.model';
+import { AuthState, AuthUser } from '../models/auth.model';
 import * as AuthActions from './auth.actions';
 
 const initialState: AuthState = {
@@ -9,6 +9,12 @@ const initialState: AuthState = {
   isAuthenticated: false,
   token: null,
 };
+
+function isValidAuthUser(parsed: unknown): parsed is AuthUser {
+  if (!parsed || typeof parsed !== 'object') return false;
+  const u = parsed as Record<string, unknown>;
+  return typeof u['username'] === 'string' && typeof u['role'] === 'string';
+}
 
 export const authReducer = createReducer(
   initialState,
@@ -55,18 +61,29 @@ export const authReducer = createReducer(
     }
 
     const token = localStorage.getItem('auth_token');
-    const user = localStorage.getItem('auth_user');
+    const userRaw = localStorage.getItem('auth_user');
 
-    if (token && user) {
+    if (token && userRaw) {
       try {
+        const parsed: unknown = JSON.parse(userRaw);
+
+        if (!isValidAuthUser(parsed)) {
+          // Legacy shape (email/name) or invalid — clear and stay logged out
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
+          return { ...initialState };
+        }
+
         return {
           ...state,
           token,
-          user: JSON.parse(user),
+          user: parsed,
           isAuthenticated: true,
         };
       } catch {
-        return state;
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+        return { ...initialState };
       }
     }
 
