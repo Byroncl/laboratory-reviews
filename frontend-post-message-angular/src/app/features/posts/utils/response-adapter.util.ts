@@ -1,4 +1,5 @@
 import { IPost, IPostListResponse } from '../interfaces';
+import { POSTS_PAGINATION_DEFAULTS } from '../constants/pagination.constants';
 
 /**
  * Raw backend list response shape from GET /posts.
@@ -30,7 +31,7 @@ interface RawApiResponse<T> {
 
 const FALLBACK_POST_LIST: IPostListResponse = {
   data: [],
-  pagination: { skip: 0, limit: 0, total: 0 },
+  pagination: { skip: 0, limit: POSTS_PAGINATION_DEFAULTS.LIMIT, total: 0 },
   message: '',
 };
 
@@ -60,7 +61,7 @@ export function adaptPostListResponse(raw: unknown): IPostListResponse {
 
     const items = Array.isArray(inner.items) ? inner.items : [];
     const skip = typeof inner.skip === 'number' ? inner.skip : 0;
-    const limit = typeof inner.limit === 'number' ? inner.limit : 0;
+    const limit = typeof inner.limit === 'number' ? inner.limit : POSTS_PAGINATION_DEFAULTS.LIMIT;
     const total = typeof inner.total === 'number' ? inner.total : 0;
 
     return {
