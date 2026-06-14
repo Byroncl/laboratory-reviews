@@ -457,7 +457,13 @@ export class I18nService {
         postCard: {
           by: 'por'
         },
-        retry: 'Reintentar'
+        retry: 'Reintentar',
+        categories: 'Categorías',
+        allPosts: 'Todos los Posts',
+        featuredUsers: 'Usuarios Destacados',
+        noUsers: 'Sin usuarios destacados',
+        about: 'Acerca de',
+        aboutText: '¡Bienvenido a nuestra comunidad! Explora posts, participa en discusiones y conecta con otros que comparten tus intereses.'
       },
       posts: {
         postCard: {
@@ -589,6 +595,26 @@ export class I18nService {
         name: 'Nombre',
         lastname: 'Apellido',
         email: 'Email'
+      },
+      navigation: {
+        menu: 'Menú',
+        myPosts: 'Mis Posts',
+        myFavorites: 'Mis Favoritos',
+        myComments: 'Mis Comentarios',
+        myProfile: 'Mi Perfil'
+      },
+      activity: {
+        recentActivity: 'Actividad Reciente',
+        noActivity: 'Sin actividad reciente'
+      },
+      stats: {
+        yourStats: 'Tus Estadísticas',
+        posts: 'Posts',
+        comments: 'Comentarios',
+        favorites: 'Favoritos'
+      },
+      trending: {
+        trending: 'Tendencias'
       }
     },
     en: {
@@ -1036,7 +1062,13 @@ export class I18nService {
         postCard: {
           by: 'by'
         },
-        retry: 'Retry'
+        retry: 'Retry',
+        categories: 'Categories',
+        allPosts: 'All Posts',
+        featuredUsers: 'Featured Users',
+        noUsers: 'No featured users',
+        about: 'About',
+        aboutText: 'Welcome to our community! Explore posts, join discussions, and connect with others who share your interests.'
       },
       posts: {
         postCard: {
@@ -1168,6 +1200,26 @@ export class I18nService {
         name: 'Name',
         lastname: 'Last name',
         email: 'Email'
+      },
+      navigation: {
+        menu: 'Menu',
+        myPosts: 'My Posts',
+        myFavorites: 'My Favorites',
+        myComments: 'My Comments',
+        myProfile: 'My Profile'
+      },
+      activity: {
+        recentActivity: 'Recent Activity',
+        noActivity: 'No recent activity'
+      },
+      stats: {
+        yourStats: 'Your Stats',
+        posts: 'Posts',
+        comments: 'Comments',
+        favorites: 'Favorites'
+      },
+      trending: {
+        trending: 'Trending'
       }
     }
   };

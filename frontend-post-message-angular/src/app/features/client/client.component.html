@@ -1,32 +1,107 @@
+<div class="reddit-layout">
+  <!-- Left Sidebar -->
+  <aside class="left-sidebar">
+    <div class="sidebar-content">
+      <nav class="nav-menu">
+        <h3 class="sidebar-title">{{ 'navigation.menu' | t }}</h3>
+        <ul>
+          <li *appHasPermission="['create_posts', 'manage_posts']">
+            <a routerLink="/client/my-posts" routerLinkActive="active" class="nav-link">
+              <span class="icon">📝</span>
+              <span>{{ 'navigation.myPosts' | t }}</span>
+            </a>
+          </li>
 
-    <div class="client-layout">
-      <div class="sidebar">
-        <nav class="nav-menu">
-          <ul>
-            <!-- Solo visible si tiene permiso de crear_posts O es admin -->
-            <li *appHasPermission="['create_posts', 'manage_posts']">
-              <a routerLink="/client/my-posts" routerLinkActive="active">Mis Posts</a>
-            </li>
+          <li *appHasPermission="'create_favorites'">
+            <a routerLink="/client/my-favorites" routerLinkActive="active" class="nav-link">
+              <span class="icon">⭐</span>
+              <span>{{ 'navigation.myFavorites' | t }}</span>
+            </a>
+          </li>
 
-            <!-- Solo visible si tiene permiso de crear_favoritos O es admin -->
-            <li *appHasPermission="'create_favorites'">
-              <a routerLink="/client/my-favorites" routerLinkActive="active">Mis Favoritos</a>
-            </li>
+          <li>
+            <a routerLink="/client/my-comments" routerLinkActive="active" class="nav-link">
+              <span class="icon">💬</span>
+              <span>{{ 'navigation.myComments' | t }}</span>
+            </a>
+          </li>
 
-            <!-- Siempre visible para clientes -->
-            <li>
-              <a routerLink="/client/my-comments" routerLinkActive="active">Mis Comentarios</a>
-            </li>
+          <li>
+            <a routerLink="/client/profile" routerLinkActive="active" class="nav-link">
+              <span class="icon">👤</span>
+              <span>{{ 'navigation.myProfile' | t }}</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
 
-            <!-- Siempre visible -->
-            <li>
-              <a routerLink="/client/profile" routerLinkActive="active">Mi Perfil</a>
-            </li>
-          </ul>
-        </nav>
+  <!-- Main Content -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Right Sidebar -->
+  <aside class="right-sidebar">
+    <div class="sidebar-content">
+      <!-- Activity widget -->
+      <div class="widget">
+        <h3 class="widget-title">{{ 'activity.recentActivity' | t }}</h3>
+        <div class="activity-list">
+          @for (activity of recentActivity(); track activity.id) {
+            <div class="activity-item">
+              <div class="activity-avatar">
+                @if (activity.user && activity.user.avatar) {
+                  <img [src]="activity.user.avatar" [alt]="activity.user.name" />
+                } @else {
+                  <div class="avatar-placeholder">{{ activity.user?.name?.charAt(0) || 'U' | uppercase }}</div>
+                }
+              </div>
+              <div class="activity-content">
+                <p class="activity-user">{{ activity.user?.name }}</p>
+                <p class="activity-text">{{ activity.text }}</p>
+                <p class="activity-time">{{ activity.createdAt | date: 'short' }}</p>
+              </div>
+            </div>
+          }
+          @if (recentActivity().length === 0) {
+            <p class="text-gray-400 text-center py-4">{{ 'activity.noActivity' | t }}</p>
+          }
+        </div>
       </div>
 
-      <div class="main-content">
-        <router-outlet></router-outlet>
+      <!-- Stats widget -->
+      <div class="widget">
+        <h3 class="widget-title">{{ 'stats.yourStats' | t }}</h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value">{{ userStats().postCount }}</div>
+            <div class="stat-label">{{ 'stats.posts' | t }}</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ userStats().commentCount }}</div>
+            <div class="stat-label">{{ 'stats.comments' | t }}</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ userStats().favoriteCount }}</div>
+            <div class="stat-label">{{ 'stats.favorites' | t }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trending widget -->
+      <div class="widget">
+        <h3 class="widget-title">{{ 'trending.trending' | t }}</h3>
+        <div class="trending-list">
+          @for (tag of trendingTags(); track tag.id) {
+            <a [href]="'#'" class="trending-item">
+              <span class="trending-name">{{ tag.name }}</span>
+              <span class="trending-count">{{ tag.count }}</span>
+            </a>
+          }
+        </div>
       </div>
     </div>
+  </aside>
+</div>
