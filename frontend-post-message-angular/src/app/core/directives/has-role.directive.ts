@@ -25,7 +25,7 @@ export class HasRoleDirective implements OnInit {
   }
 
   private updateView(): void {
-    const hasRole = this.roles.some(role => this.permissionsService.hasRole(role));
+    const hasRole = this.roles.some(role => this.permissionsService.hasRole());
 
     if (hasRole) {
       this.viewContainer.createEmbeddedView(this.templateRef);

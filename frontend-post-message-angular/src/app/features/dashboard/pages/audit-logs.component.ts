@@ -1,4 +1,5 @@
 import { Component, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
@@ -18,6 +19,7 @@ import { sortByField } from '../../admin';
   selector: 'app-audit-logs',
   standalone: true,
   imports: [
+    CommonModule,
     FormsModule,
     TranslatePipe,
     TableComponent,

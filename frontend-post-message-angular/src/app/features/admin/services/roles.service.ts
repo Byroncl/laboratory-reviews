@@ -17,11 +17,11 @@ export class RolesService extends AdminBaseService<Role> {
   }
 
   createRole(dto: CreateRoleDto): Observable<{ data: Role; message: string }> {
-    return this.createItem(dto) as Observable<any>;
+    return this.createItem(dto as any) as Observable<any>;
   }
 
   updateRole(id: string, dto: UpdateRoleDto): Observable<{ data: Role; message: string }> {
-    return this.updateItem(id, dto) as Observable<any>;
+    return this.updateItem(id, dto as any) as Observable<any>;
   }
 
   deleteRole(id: string): Observable<{ message: string }> {

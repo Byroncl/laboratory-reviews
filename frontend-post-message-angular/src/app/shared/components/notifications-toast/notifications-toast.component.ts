@@ -39,7 +39,8 @@ export class NotificationsToastComponent implements OnInit {
     return icons[type] || icons['default'];
   }
 
-  dismissNotification(notificationId: string): void {
+  dismissNotification(notificationId: string | undefined): void {
+    if (!notificationId) return;
     this.notificationsService.notifications$.update(list =>
       list.filter(n => (n._id || n.id) !== notificationId),
     );

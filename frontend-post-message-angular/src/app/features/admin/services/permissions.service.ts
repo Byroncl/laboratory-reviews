@@ -16,11 +16,11 @@ export class PermissionsService extends AdminBaseService<Permission> {
   }
 
   createPermission(dto: CreatePermissionDto): Observable<{ data: Permission; message: string }> {
-    return this.createItem(dto) as Observable<any>;
+    return this.createItem(dto as any) as Observable<any>;
   }
 
   updatePermission(id: string, dto: UpdatePermissionDto): Observable<{ data: Permission; message: string }> {
-    return this.updateItem(id, dto) as Observable<any>;
+    return this.updateItem(id, dto as any) as Observable<any>;
   }
 
   deletePermission(id: string): Observable<{ message: string }> {

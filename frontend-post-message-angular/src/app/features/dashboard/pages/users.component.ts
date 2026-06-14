@@ -75,13 +75,13 @@ export class UsersComponent {
       status: this.statusFilter$() || undefined
     };
 
-    let filtered = filterUsers(users, filters);
+    let filtered = filterUsers(users as any, filters);
     filtered = applyColumnFilters(filtered, this.columnFilters$());
 
     if (this.sortState$().sortBy) {
       filtered = sortByField(
         filtered,
-        this.sortState$().sortBy as keyof User,
+        this.sortState$().sortBy as any,
         this.sortState$().sortOrder
       );
     }
@@ -127,7 +127,7 @@ export class UsersComponent {
       next: response => {
         this.totalUsersCount.set(response.data.total);
         this.activeCount.set(response.data.active);
-        this.adminCount.set(response.data.admin ?? 0);
+        this.adminCount.set((response.data as any).admin ?? 0);
       },
       error: () => {}
     });

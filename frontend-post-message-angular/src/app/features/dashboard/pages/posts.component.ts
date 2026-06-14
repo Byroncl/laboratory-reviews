@@ -155,7 +155,7 @@ export class PostsComponent {
   viewPost(post: Post): void {
     this.notificationService.toast('Post abierto', 'success');
     this.modalService
-      .openConfirm(post.title, `Autor: ${post.author}\nVistas: ${post.views}\nCreado: ${post.createdAt}`)
+      .openConfirm(post.title, `Autor: ${post.author}\nVistas: ${(post as any).views || 0}\nCreado: ${post.createdAt}`)
       .pipe(takeUntilDestroyed())
       .subscribe();
   }

@@ -1,11 +1,12 @@
 import { Component, input, output } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { CommentDto } from '../../types';
 
 @Component({
   selector: 'app-comment-card',
   standalone: true,
-  imports: [TranslatePipe],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './comment-card.component.html',
   styleUrl: './comment-card.component.scss',
 })

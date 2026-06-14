@@ -23,11 +23,11 @@ export class UsersService extends AdminBaseService<User> {
   }
 
   createUser(dto: CreateUserDto): Observable<{ data: User; message: string }> {
-    return this.createItem(dto) as Observable<any>;
+    return this.createItem(dto as any) as Observable<any>;
   }
 
   updateUser(id: string, dto: UpdateUserDto): Observable<{ data: User; message: string }> {
-    return this.updateItem(id, dto) as Observable<any>;
+    return this.updateItem(id, dto as any) as Observable<any>;
   }
 
   deleteUser(id: string): Observable<{ message: string }> {

@@ -44,7 +44,7 @@ export class PasswordStrengthDirective implements OnInit {
 
     // Insert after input
     this.renderer.insertBefore(this.el.nativeElement.parentNode, this.strengthBar, this.el.nativeElement.nextSibling);
-    this.renderer.insertBefore(this.el.nativeElement.parentNode, this.strengthLabel, this.strengthBar.nextSibling);
+    this.renderer.insertBefore(this.el.nativeElement.parentNode, this.strengthLabel, this.strengthBar?.nextSibling || null);
   }
 
   private updateStrength(): void {
@@ -75,7 +75,7 @@ export class PasswordStrengthDirective implements OnInit {
 
     this.renderer.setStyle(this.strengthBar, 'background-color', config.color);
     this.renderer.setStyle(this.strengthBar, 'width', percentage + '%');
-    this.renderer.setTextContent(this.strengthLabel, config.label);
+    this.renderer.setProperty(this.strengthLabel, 'textContent', config.label);
     this.renderer.setStyle(this.strengthLabel, 'color', config.color);
   }
 
@@ -83,6 +83,6 @@ export class PasswordStrengthDirective implements OnInit {
     if (!this.strengthBar || !this.strengthLabel) return;
     this.renderer.setStyle(this.strengthBar, 'width', '0%');
     this.renderer.setStyle(this.strengthBar, 'background-color', '#e5e7eb');
-    this.renderer.setTextContent(this.strengthLabel, '');
+    this.renderer.setProperty(this.strengthLabel, 'textContent', '');
   }
 }

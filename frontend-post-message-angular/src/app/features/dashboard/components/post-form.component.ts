@@ -68,8 +68,8 @@ export class PostFormComponent implements OnInit, OnDestroy {
   }
 
   private loadPostData(): void {
-    const posts = this.postsService.posts();
-    const post = posts.find(p => (p._id ?? p.id) === this.editingPostId);
+    const posts = this.postsService.posts$() as any[];
+    const post = posts.find((p: any) => (p._id ?? p.id) === this.editingPostId);
     if (post) {
       this.form.patchValue({
         title: post.title,
