@@ -1,23 +1,23 @@
 ---
 sidebar_position: 2
-title: Users Module
-description: User management with Clean Architecture
+title: Módulo Users
+description: Gestión de usuarios con Arquitectura Limpia
 ---
 
-# Users Module 👥
+# Módulo Users 👥
 
-The Users module manages user accounts with full **Clean Architecture** implementation.
+El módulo Users gestiona las cuentas de usuario con implementación completa de **Arquitectura Limpia**.
 
-## Overview
+## Descripción General
 
-This is the **only module** in the codebase that implements the complete domain-driven design pattern with use cases and repositories.
+Este es el **único módulo** en el código que implementa el patrón completo de diseño orientado al dominio con casos de uso y repositorios.
 
 ```mermaid
 graph TB
     Controller["UsersController"]
-    Service["UsersService<br/>(Orchestrator)"]
+    Service["UsersService<br/>(Orquestador)"]
     
-    subgraph "Use Cases"
+    subgraph "Casos de Uso"
         CreateUC["CreateUserUseCase"]
         FindAllUC["FindAllUsersUseCase"]
         FindByIdUC["FindUserByIdUseCase"]
@@ -27,12 +27,12 @@ graph TB
         UpdateLangUC["UpdateLanguagePreferenceUseCase"]
     end
     
-    subgraph "Repository Pattern"
-        IRepository["IUserRepository<br/>(Abstract)"]
-        MongoRepo["UserMongoRepository<br/>(Implementation)"]
+    subgraph "Patrón Repositorio"
+        IRepository["IUserRepository<br/>(Abstracto)"]
+        MongoRepo["UserMongoRepository<br/>(Implementación)"]
     end
     
-    Model["User Mongoose Model"]
+    Model["Modelo Mongoose de Usuario"]
     
     Controller --> Service
     Service --> CreateUC
@@ -51,18 +51,18 @@ graph TB
     RemoveUC --> IRepository
     UpdateLangUC --> IRepository
     
-    IRepository -.->|implements| MongoRepo
+    IRepository -.->|implementa| MongoRepo
     MongoRepo --> Model
 ```
 
-## Module Structure
+## Estructura del Módulo
 
 ```
 src/app/modules/users/
 ├── controllers/
 │   └── users.controller.ts
 ├── services/
-│   └── users.service.ts              # Orchestrator
+│   └── users.service.ts              # Orquestador
 ├── use-cases/
 │   ├── create-user.use-case.ts
 │   ├── find-all-users.use-case.ts
@@ -72,8 +72,8 @@ src/app/modules/users/
 │   ├── remove-user.use-case.ts
 │   └── update-language-preference.use-case.ts
 ├── repositories/
-│   ├── user.repository.ts            # Abstract interface
-│   └── user.mongo.repository.ts      # MongoDB implementation
+│   ├── user.repository.ts            # Interfaz abstracta
+│   └── user.mongo.repository.ts      # Implementación con MongoDB
 ├── schemas/
 │   └── user.schema.ts
 ├── dtos/
@@ -84,7 +84,7 @@ src/app/modules/users/
 └── users.module.ts
 ```
 
-## User Schema
+## Schema de Usuario
 
 ```typescript
 @Schema({ timestamps: true })
@@ -124,11 +124,11 @@ export class User {
 }
 ```
 
-**Location**: `src/app/modules/users/schemas/user.schema.ts`
+**Ubicación**: `src/app/modules/users/schemas/user.schema.ts`
 
-## Services
+## Servicios
 
-### UsersService (Orchestrator)
+### UsersService (Orquestador)
 
 ```typescript
 @Injectable()
@@ -175,11 +175,11 @@ export class UsersService {
 }
 ```
 
-**Location**: `src/app/modules/users/services/users.service.ts`
+**Ubicación**: `src/app/modules/users/services/users.service.ts`
 
-## Use Cases
+## Casos de Uso
 
-Each use case handles a specific business operation:
+Cada caso de uso maneja una operación de negocio específica:
 
 ### CreateUserUseCase
 
@@ -193,7 +193,7 @@ export class CreateUserUseCase {
   ) {}
 
   async execute(createUserDto: CreateUserDto) {
-    // Check if username already exists
+    // Verificar si el username ya existe
     const existingUser = await this.userRepository.findByUsername(
       createUserDto.username,
     );
@@ -201,12 +201,12 @@ export class CreateUserUseCase {
       throw new ConflictException('Username already exists');
     }
 
-    // Hash password
+    // Hashear contraseña
     const hashedPassword = await this.cryptoUtils.hashPassword(
       createUserDto.password,
     );
 
-    // Create user
+    // Crear usuario
     return this.userRepository.create({
       ...createUserDto,
       password_hash: hashedPassword,
@@ -215,7 +215,7 @@ export class CreateUserUseCase {
 }
 ```
 
-**Location**: `src/app/modules/users/use-cases/create-user.use-case.ts`
+**Ubicación**: `src/app/modules/users/use-cases/create-user.use-case.ts`
 
 ### FindUserByIdUseCase
 
@@ -237,19 +237,19 @@ export class FindUserByIdUseCase {
 }
 ```
 
-### Other Use Cases
+### Otros Casos de Uso
 
-- `FindAllUsersUseCase` — Retrieve all users
-- `FindUserByUsernameUseCase` — Find user by username
-- `UpdateUserUseCase` — Update user data
-- `RemoveUserUseCase` — Soft delete user
-- `UpdateLanguagePreferenceUseCase` — Update preferred language
+- `FindAllUsersUseCase` — Obtener todos los usuarios
+- `FindUserByUsernameUseCase` — Buscar usuario por username
+- `UpdateUserUseCase` — Actualizar datos del usuario
+- `RemoveUserUseCase` — Borrado lógico del usuario
+- `UpdateLanguagePreferenceUseCase` — Actualizar idioma preferido
 
-**Location**: `src/app/modules/users/use-cases/`
+**Ubicación**: `src/app/modules/users/use-cases/`
 
-## Repositories
+## Repositorios
 
-### IUserRepository (Abstract)
+### IUserRepository (Abstracto)
 
 ```typescript
 export interface IUserRepository {
@@ -262,9 +262,9 @@ export interface IUserRepository {
 }
 ```
 
-**Location**: `src/app/modules/users/repositories/user.repository.ts`
+**Ubicación**: `src/app/modules/users/repositories/user.repository.ts`
 
-### UserMongoRepository (Implementation)
+### UserMongoRepository (Implementación)
 
 ```typescript
 @Injectable()
@@ -298,9 +298,9 @@ export class UserMongoRepository implements IUserRepository {
 }
 ```
 
-**Location**: `src/app/modules/users/repositories/user.mongo.repository.ts`
+**Ubicación**: `src/app/modules/users/repositories/user.mongo.repository.ts`
 
-## Controller
+## Controlador
 
 ```typescript
 @Controller('users')
@@ -308,37 +308,37 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Post()
-  @Auth()  // Protected - admin only
+  @Auth()  // Protegido - solo admin
   createUser(@Body() createUserDto: CreateUserDto) {
     return this.usersService.createUser(createUserDto);
   }
 
   @Get()
-  @Auth()  // Protected
+  @Auth()  // Protegido
   findAll() {
     return this.usersService.findAll();
   }
 
   @Get(':id')
-  @Auth()  // Protected
+  @Auth()  // Protegido
   findOne(@Param('id') id: string) {
     return this.usersService.findUserById(id);
   }
 
   @Patch(':id')
-  @Auth()  // Protected
+  @Auth()  // Protegido
   updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.updateUser(id, updateUserDto);
   }
 
   @Delete(':id')
-  @Auth()  // Protected - admin only
+  @Auth()  // Protegido - solo admin
   removeUser(@Param('id') id: string) {
     return this.usersService.removeUser(id);
   }
 
   @Patch(':id/language')
-  @Auth()  // Protected
+  @Auth()  // Protegido
   updateLanguagePreference(
     @Param('id') id: string,
     @Body() { language }: { language: string },
@@ -348,7 +348,7 @@ export class UsersController {
 }
 ```
 
-**Location**: `src/app/modules/users/controllers/users.controller.ts`
+**Ubicación**: `src/app/modules/users/controllers/users.controller.ts`
 
 ## DTOs
 
@@ -401,9 +401,9 @@ export class UpdateUserDto {
 }
 ```
 
-**Location**: `src/app/modules/users/dtos/`
+**Ubicación**: `src/app/modules/users/dtos/`
 
-## Module Registration
+## Registro del Módulo
 
 ```typescript
 @Module({
@@ -432,24 +432,24 @@ export class UsersModule {}
 
 ## Endpoints
 
-| Endpoint | Method | Auth | Purpose |
+| Endpoint | Método | Auth | Propósito |
 |----------|--------|------|---------|
-| `/users` | POST | ✅ Admin | Create user |
-| `/users` | GET | ✅ | Get all users |
-| `/users/:id` | GET | ✅ | Get user by ID |
-| `/users/:id` | PATCH | ✅ | Update user |
-| `/users/:id` | DELETE | ✅ Admin | Delete user |
-| `/users/:id/language` | PATCH | ✅ | Update language preference |
+| `/users` | POST | ✅ Admin | Crear usuario |
+| `/users` | GET | ✅ | Obtener todos los usuarios |
+| `/users/:id` | GET | ✅ | Obtener usuario por ID |
+| `/users/:id` | PATCH | ✅ | Actualizar usuario |
+| `/users/:id` | DELETE | ✅ Admin | Eliminar usuario |
+| `/users/:id/language` | PATCH | ✅ | Actualizar preferencia de idioma |
 
-## Benefits of Clean Architecture
+## Beneficios de la Arquitectura Limpia
 
-1. **Testability**: Use cases can be tested independently with mock repositories
-2. **Maintainability**: Clear separation of concerns
-3. **Flexibility**: Easy to swap MongoDB for PostgreSQL (implement new Repository)
-4. **Scalability**: Can add new use cases without modifying existing code
-5. **Domain Focus**: Business logic is decoupled from infrastructure
+1. **Testabilidad**: Los casos de uso pueden probarse de forma independiente con repositorios mock
+2. **Mantenibilidad**: Clara separación de responsabilidades
+3. **Flexibilidad**: Fácil de cambiar MongoDB por PostgreSQL (implementar nuevo Repositorio)
+4. **Escalabilidad**: Se pueden agregar nuevos casos de uso sin modificar el código existente
+5. **Enfoque en el Dominio**: La lógica de negocio está desacoplada de la infraestructura
 
-## Example: Testing a Use Case
+## Ejemplo: Probar un Caso de Uso
 
 ```typescript
 describe('CreateUserUseCase', () => {
@@ -486,4 +486,4 @@ describe('CreateUserUseCase', () => {
 
 ---
 
-**Next**: [Posts Module →](./posts.md)
+**Siguiente**: [Módulo Posts →](./posts.md)

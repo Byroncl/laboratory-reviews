@@ -1,21 +1,21 @@
 ---
 sidebar_position: 3
-title: Posts Module
-description: Post CRUD operations with image support
+title: Módulo Posts
+description: Operaciones CRUD de posts con soporte de imágenes
 ---
 
-# Posts Module 📝
+# Módulo Posts 📝
 
-Manages blog posts with optional image uploads.
+Gestiona los posts del blog con soporte para subida de imágenes opcionales.
 
-## Quick Overview
+## Descripción Rápida
 
 ```mermaid
 graph TB
-    Controller["PostsController<br/>CRUD endpoints"]
-    Service["PostsService<br/>Business logic"]
-    Model["Post Mongoose Model"]
-    Database["MongoDB<br/>posts collection"]
+    Controller["PostsController<br/>Endpoints CRUD"]
+    Service["PostsService<br/>Lógica de negocio"]
+    Model["Modelo Mongoose de Post"]
+    Database["MongoDB<br/>colección posts"]
     
     Controller --> Service
     Service --> Model
@@ -53,7 +53,7 @@ export class Post {
 }
 ```
 
-## Controller
+## Controlador
 
 ```typescript
 @Controller('posts')
@@ -100,7 +100,7 @@ export class PostsController {
 }
 ```
 
-## Service
+## Servicio
 
 ```typescript
 @Injectable()
@@ -139,7 +139,7 @@ export class PostsService {
   async updatePost(id: string, updatePostDto: UpdatePostDto, userId: string) {
     const post = await this.findById(id);
     
-    // Check authorization
+    // Verificar autorización
     if (post.author._id.toString() !== userId) {
       throw new ForbiddenException('You can only edit your own posts');
     }
@@ -205,20 +205,20 @@ export class UpdatePostDto {
 
 ## Endpoints
 
-| Endpoint | Method | Auth | Purpose |
+| Endpoint | Método | Auth | Propósito |
 |----------|--------|------|---------|
-| `/posts` | POST | ✅ | Create post |
-| `/posts` | GET | ❌ | Get all posts |
-| `/posts/:id` | GET | ❌ | Get post by ID |
-| `/posts/:id` | PATCH | ✅ | Update post (owner only) |
-| `/posts/:id` | DELETE | ✅ | Delete post (owner only) |
+| `/posts` | POST | ✅ | Crear post |
+| `/posts` | GET | ❌ | Obtener todos los posts |
+| `/posts/:id` | GET | ❌ | Obtener post por ID |
+| `/posts/:id` | PATCH | ✅ | Actualizar post (solo el dueño) |
+| `/posts/:id` | DELETE | ✅ | Eliminar post (solo el dueño) |
 
-## Architecture Note
+## Nota Arquitectónica
 
-This module uses a **flat architecture** (Service → Model). 
+Este módulo usa una **arquitectura plana** (Servicio → Modelo).
 
-For consistency with the codebase, consider moving to Clean Architecture like the Users module when refactoring.
+Para consistencia con el resto del código, considerar migrar a Arquitectura Limpia como el módulo Users al refactorizar.
 
 ---
 
-**Next**: [Comments Module →](./comments.md)
+**Siguiente**: [Módulo Comments →](./comments.md)

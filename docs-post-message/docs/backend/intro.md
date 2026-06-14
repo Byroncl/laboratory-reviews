@@ -1,73 +1,73 @@
 ---
 sidebar_position: 1
-title: Backend Introduction
-description: Post-Message Backend Overview
+title: Introducción al Backend
+description: Descripción general del backend de Post-Message
 ---
 
-# 🚀 Backend Overview
+# 🚀 Descripción General del Backend
 
-Welcome to the Post-Message backend documentation. This guide covers the NestJS application architecture, modules, services, utilities, and configuration.
+Bienvenido a la documentación del backend de Post-Message. Esta guía cubre la arquitectura de la aplicación NestJS, módulos, servicios, utilidades y configuración.
 
-## Quick Start
+## Inicio Rápido
 
-The backend is a **NestJS 11** application with the following stack:
+El backend es una aplicación **NestJS 11** con el siguiente stack:
 
 - **Framework**: NestJS 11
-- **Database**: MongoDB (Mongoose ODM)
-- **Real-Time**: Socket.IO for live comments
-- **File Storage**: MinIO object storage
-- **Authentication**: JWT tokens
-- **Internationalization**: i18n (English/Spanish)
+- **Base de datos**: MongoDB (Mongoose ODM)
+- **Tiempo real**: Socket.IO para comentarios en vivo
+- **Almacenamiento de archivos**: MinIO object storage
+- **Autenticación**: Tokens JWT
+- **Internacionalización**: i18n (Inglés/Español)
 
-## Project Structure
+## Estructura del Proyecto
 
 ```
 backend-post-message-nestjs/
 ├── src/
 │   └── app/
-│       ├── core/                    # Core infrastructure
-│       │   ├── guards/             # Auth, permissions, WebSocket guards
-│       │   ├── interceptors/       # Response transformation
-│       │   ├── filters/            # Exception handling
-│       │   ├── decorators/         # Custom @Auth, @CurrentUser, etc.
-│       │   ├── middleware/         # i18n language detection
-│       │   ├── services/           # Generic utilities (pagination, queries)
-│       │   ├── utils/              # Helpers (crypto, files, strings)
-│       │   ├── i18n/               # Internationalization
-│       │   ├── plugins/            # Mongoose plugins (audit)
-│       │   └── constants/          # App-wide constants
+│       ├── core/                    # Infraestructura central
+│       │   ├── guards/             # Guards de autenticación, permisos y WebSocket
+│       │   ├── interceptors/       # Transformación de respuestas
+│       │   ├── filters/            # Manejo de excepciones
+│       │   ├── decorators/         # @Auth, @CurrentUser, etc. personalizados
+│       │   ├── middleware/         # Detección de idioma i18n
+│       │   ├── services/           # Utilidades genéricas (paginación, consultas)
+│       │   ├── utils/              # Helpers (crypto, archivos, strings)
+│       │   ├── i18n/               # Internacionalización
+│       │   ├── plugins/            # Plugins de Mongoose (auditoría)
+│       │   └── constants/          # Constantes de la aplicación
 │       │
-│       └── modules/                 # Feature modules
-│           ├── auth/               # Authentication
-│           ├── users/              # User management (Clean Architecture)
-│           ├── posts/              # Post CRUD
-│           ├── comments/           # Comments + WebSocket gateway
-│           ├── clients/            # Client management
-│           ├── files/              # File upload/storage
-│           ├── roles/              # Role management
-│           ├── permissions/        # Permission management
-│           └── i18n/               # Translation endpoints
+│       └── modules/                 # Módulos de funcionalidades
+│           ├── auth/               # Autenticación
+│           ├── users/              # Gestión de usuarios (Arquitectura Limpia)
+│           ├── posts/              # CRUD de posts
+│           ├── comments/           # Comentarios + gateway WebSocket
+│           ├── clients/            # Gestión de clientes
+│           ├── files/              # Subida/almacenamiento de archivos
+│           ├── roles/              # Gestión de roles
+│           ├── permissions/        # Gestión de permisos
+│           └── i18n/               # Endpoints de traducción
 │
 ├── config/
 │   └── env/
-│       ├── default.ts             # Default env variables
-│       └── production.ts          # Production overrides
+│       ├── default.ts             # Variables de entorno por defecto
+│       └── production.ts          # Overrides de producción
 │
-├── main.ts                         # Application entry point
-└── app.module.ts                   # Root module
+├── main.ts                         # Punto de entrada de la aplicación
+└── app.module.ts                   # Módulo raíz
 ```
 
-## Architecture Overview
+## Descripción de la Arquitectura
 
 ```mermaid
 graph TB
-    Client["Client<br/>(Angular)"]
-    API["HTTP API<br/>(NestJS)"]
-    Auth["JWT Auth<br/>Guards"]
-    Services["Services<br/>(Business Logic)"]
+    Client["Cliente<br/>(Angular)"]
+    API["API HTTP<br/>(NestJS)"]
+    Auth["Auth JWT<br/>Guards"]
+    Services["Servicios<br/>(Lógica de Negocio)"]
     DB["MongoDB<br/>(Mongoose)"]
-    Storage["MinIO<br/>(Files)"]
-    Socket["Socket.IO<br/>(Real-time)"]
+    Storage["MinIO<br/>(Archivos)"]
+    Socket["Socket.IO<br/>(Tiempo real)"]
     
     Client -->|REST API| API
     Client -->|WebSocket| Socket
@@ -79,54 +79,54 @@ graph TB
     Socket --> Services
 ```
 
-## Core Concepts
+## Conceptos Clave
 
-### 1. **Authentication & Authorization**
-- JWT-based authentication
-- Role-based access control (RBAC)
-- Permission system with granular control
-- `@Auth()` decorator for route protection
+### 1. **Autenticación y Autorización**
+- Autenticación basada en JWT
+- Control de acceso basado en roles (RBAC)
+- Sistema de permisos con control granular
+- Decorador `@Auth()` para proteger rutas
 
-### 2. **Layer Architecture**
-- **Controllers**: Handle HTTP requests/responses
-- **Services**: Contain business logic
-- **Models/Schemas**: MongoDB data structures
-- **Guards**: Protect routes with auth/permissions
-- **Filters**: Global exception handling
-- **Interceptors**: Transform responses
+### 2. **Arquitectura en Capas**
+- **Controladores**: Manejan peticiones/respuestas HTTP
+- **Servicios**: Contienen la lógica de negocio
+- **Modelos/Schemas**: Estructuras de datos en MongoDB
+- **Guards**: Protegen rutas con autenticación/permisos
+- **Filtros**: Manejo global de excepciones
+- **Interceptores**: Transforman respuestas
 
-### 3. **Real-Time Features**
-- Socket.IO gateway for live comments
-- Event-driven architecture
-- User presence tracking
+### 3. **Funcionalidades en Tiempo Real**
+- Gateway Socket.IO para comentarios en vivo
+- Arquitectura orientada a eventos
+- Seguimiento de presencia de usuarios
 
-### 4. **File Management**
-- MinIO for object storage
-- UUID-based file naming
-- Public URL generation
+### 4. **Gestión de Archivos**
+- MinIO para object storage
+- Nomenclatura de archivos basada en UUID
+- Generación de URLs públicas
 
-### 5. **Internationalization**
-- Dual i18n systems (Singleton + Request-scoped)
-- Support for English and Spanish
-- Language detection from `Accept-Language` header
+### 5. **Internacionalización**
+- Dos sistemas i18n (Singleton + Scoped por petición)
+- Soporte para inglés y español
+- Detección de idioma desde el header `Accept-Language`
 
-## Key Modules
+## Módulos Principales
 
-| Module | Purpose | Pattern |
+| Módulo | Propósito | Patrón |
 |--------|---------|---------|
-| **Auth** | JWT login/validation | Standard NestJS |
-| **Users** | User management | Clean Architecture (Domain + UseCases) |
-| **Posts** | CRUD posts with images | Flat Service pattern |
-| **Comments** | CRUD comments + WebSocket | Flat Service + Gateway |
-| **Clients** | Client management | Flat Service pattern |
-| **Files** | MinIO file operations | Flat Service pattern |
-| **Roles** | Role CRUD | Flat Service pattern |
-| **Permissions** | Permission CRUD | Flat Service pattern |
-| **I18n** | Translation endpoints | Service + Controller |
+| **Auth** | Login/validación JWT | NestJS estándar |
+| **Users** | Gestión de usuarios | Arquitectura Limpia (Dominio + Casos de Uso) |
+| **Posts** | CRUD de posts con imágenes | Patrón Servicio plano |
+| **Comments** | CRUD comentarios + WebSocket | Servicio plano + Gateway |
+| **Clients** | Gestión de clientes | Patrón Servicio plano |
+| **Files** | Operaciones de archivos en MinIO | Patrón Servicio plano |
+| **Roles** | CRUD de roles | Patrón Servicio plano |
+| **Permissions** | CRUD de permisos | Patrón Servicio plano |
+| **I18n** | Endpoints de traducción | Servicio + Controlador |
 
-## API Response Format
+## Formato de Respuesta de la API
 
-All responses follow a consistent envelope:
+Todas las respuestas siguen un envelope consistente:
 
 ```json
 {
@@ -137,35 +137,35 @@ All responses follow a consistent envelope:
 }
 ```
 
-Errors:
+Errores:
 
 ```json
 {
   "statusCode": 400,
   "message": "Validation failed",
-  "errors": [ /* validation errors */ ],
+  "errors": [ /* errores de validación */ ],
   "timestamp": "2024-06-13T12:34:56.789Z",
   "path": "/api/endpoint",
   "success": false
 }
 ```
 
-## Database
+## Base de Datos
 
-- **Type**: MongoDB
+- **Tipo**: MongoDB
 - **ODM**: Mongoose
-- **Collections**: users, posts, comments, clients, roles, permissions
-- **Relationships**: Role references, Post/Comment references
+- **Colecciones**: users, posts, comments, clients, roles, permissions
+- **Relaciones**: Referencias de roles, referencias de posts/comentarios
 
-See [Schemas Documentation](../database/schemas.md) for detailed structure.
+Ver [Documentación de Schemas](../database/schemas.md) para la estructura detallada.
 
-## Getting Started
+## Comenzando
 
-1. [Environment Setup](../config/setup.md)
-2. [Architecture Overview](./architecture/overview.md)
-3. [Module Breakdown](./modules/auth.md)
-4. [Explore Core Features](./core/guards.md)
+1. [Configuración del Entorno](../config/setup.md)
+2. [Descripción de la Arquitectura](./architecture/overview.md)
+3. [Desglose de Módulos](./modules/auth.md)
+4. [Explorar Funcionalidades Principales](./core/guards.md)
 
 ---
 
-**Next**: [Architecture Overview →](./architecture/overview.md)
+**Siguiente**: [Descripción de la Arquitectura →](./architecture/overview.md)
