@@ -1,108 +1,126 @@
+// pages/post-detail.component.spec.ts
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { PostDetailComponent } from './post-detail.component';
-import { provideMockStore, MockStore } from '@ngrx/store/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { selectIsAuthenticated } from '../../auth/store/auth.selectors';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, provideRouter } from '@angular/router';
+import { signal, computed } from '@angular/core';
 import { of } from 'rxjs';
+import { ParamMap, convertToParamMap } from '@angular/router';
+
+import { PostDetailComponent } from './post-detail.component';
 import { PostsService } from '../services/posts.service';
 import { CommentsService } from '../services/comments.service';
-import { signal } from '@angular/core';
-import { Post } from '../../../shared/models/post.model';
+import { IPost, IComment, IPagination, ICreateCommentDTO } from '../interfaces';
 
-const mockPost: Post = {
+const mockPost: IPost = {
   _id: 'p1',
-  title: 'Hello',
-  content: 'World',
-  author: 'alice',
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z',
+  id: 'p1',
+  title: 'Hello World',
+  body: 'Post body content',
+  author: 'Alice',
+  status: 'published',
+};
+
+const mockComment: IComment = {
+  _id: 'c1',
+  postId: 'p1',
+  name: 'Reviewer',
+  email: 'rev@example.com',
+  body: 'Great post!',
 };
 
 class MockPostsService {
-  selectedPost = signal<Post | null>(mockPost);
-  loading = signal(false);
-  getPost = () => of({ data: mockPost, message: 'ok' });
+  getPost = jasmine.createSpy('getPost').and.returnValue(of({ data: mockPost, message: 'ok' }));
 }
 
 class MockCommentsService {
-  comments = signal<any[]>([]);
-  loading = signal(false);
-  getCommentsByPost = () => of(null);
+  private _comments = signal<IComment[]>([]);
+  private _loading = signal(false);
+  private _error = signal<string | null>(null);
+  private _pagination = signal<IPagination>({ skip: 0, limit: 5, total: 0 });
+
+  comments = computed(() => this._comments());
+  isLoading = computed(() => this._loading());
+  hasError = computed(() => this._error() !== null);
+  errorMessage = computed(() => this._error());
+  pagination$ = computed(() => this._pagination());
+  totalPages = computed(() => 0);
+  currentPage = computed(() => 1);
+  filteredComments = computed(() => this._comments());
+
+  loadCommentsByPost = jasmine.createSpy('loadCommentsByPost').and.returnValue(
+    of({ data: [], pagination: { skip: 0, limit: 5, total: 0 }, message: 'ok' }),
+  );
+  createComment = jasmine.createSpy('createComment').and.returnValue(
+    of({ data: mockComment, message: 'ok' }),
+  );
+  nextPage = jasmine.createSpy('nextPage');
+  prevPage = jasmine.createSpy('prevPage');
 }
 
-describe('PostDetailComponent — auth gating', () => {
-  let fixture: ComponentFixture<PostDetailComponent>;
+describe('PostDetailComponent', () => {
   let component: PostDetailComponent;
-  let store: MockStore;
+  let fixture: ComponentFixture<PostDetailComponent>;
+  let postsService: MockPostsService;
+  let commentsService: MockCommentsService;
 
-  async function setup(isAuthenticated: boolean) {
+  beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        PostDetailComponent,
-        RouterTestingModule,
-        HttpClientTestingModule,
-      ],
+      imports: [PostDetailComponent],
       providers: [
-        provideMockStore({
-          initialState: {
-            auth: {
-              user: isAuthenticated ? { id: 'u1', username: 'alice', role: 'user' } : null,
-              isLoading: false,
-              error: null,
-              isAuthenticated,
-              token: isAuthenticated ? 'tok' : null,
-            },
-          },
-        }),
+        provideRouter([]),
         { provide: PostsService, useClass: MockPostsService },
         { provide: CommentsService, useClass: MockCommentsService },
         {
           provide: ActivatedRoute,
-          useValue: { params: of({ id: 'p1' }), snapshot: { queryParams: {} } },
+          useValue: {
+            paramMap: of(convertToParamMap({ id: 'p1' })),
+          },
         },
       ],
     }).compileComponents();
 
-    store = TestBed.inject(MockStore);
     fixture = TestBed.createComponent(PostDetailComponent);
     component = fixture.componentInstance;
-  }
-
-  it('hides comment form when user is not authenticated', fakeAsync(async () => {
-    await setup(false);
+    postsService = TestBed.inject(PostsService) as unknown as MockPostsService;
+    commentsService = TestBed.inject(CommentsService) as unknown as MockCommentsService;
     fixture.detectChanges();
-    tick();
-    fixture.detectChanges();
+  });
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    const form = compiled.querySelector('[data-cy="comment-form"]');
-    expect(form).toBeNull();
-  }));
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
 
-  it('shows comment form when user is authenticated', fakeAsync(async () => {
-    await setup(true);
-    fixture.detectChanges();
-    tick();
-    fixture.detectChanges();
+  it('should load post on init with route param id', () => {
+    expect(postsService.getPost).toHaveBeenCalledWith('p1');
+  });
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    const form = compiled.querySelector('[data-cy="comment-form"]');
-    expect(form).not.toBeNull();
-  }));
+  it('should load comments on init with route param id', () => {
+    expect(commentsService.loadCommentsByPost).toHaveBeenCalledWith('p1');
+  });
 
-  it('back link points to / not /dashboard/posts', fakeAsync(async () => {
-    await setup(true);
-    fixture.detectChanges();
-    tick();
-    fixture.detectChanges();
+  it('should set post signal after loadPost resolves', () => {
+    expect(component.post()).toEqual(mockPost);
+  });
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    const backLink = compiled.querySelector('a[href="/"]') ?? compiled.querySelector('a[routerLink="/"]');
-    // Either href or routerLink should be /
-    const links = compiled.querySelectorAll('a');
-    const backHref = Array.from(links).find(l => l.textContent?.includes('Back'));
-    expect(backHref?.getAttribute('routerLink') ?? backHref?.getAttribute('href')).toBe('/');
-  }));
+  it('should call createComment when onCommentSubmit is called', () => {
+    const dto: ICreateCommentDTO = {
+      postId: 'p1',
+      name: 'Alice',
+      email: 'a@example.com',
+      body: 'Nice!',
+    };
+    component.onCommentSubmit(dto);
+    expect(commentsService.createComment).toHaveBeenCalledWith(dto);
+  });
+
+  it('should call nextPage and reload comments on onNextPage', () => {
+    component.onNextPage();
+    expect(commentsService.nextPage).toHaveBeenCalled();
+    expect(commentsService.loadCommentsByPost).toHaveBeenCalledWith('p1');
+  });
+
+  it('should call prevPage and reload comments on onPrevPage', () => {
+    component.onPrevPage();
+    expect(commentsService.prevPage).toHaveBeenCalled();
+    expect(commentsService.loadCommentsByPost).toHaveBeenCalledWith('p1');
+  });
 });

@@ -1,3 +1,4 @@
+// services/posts.service.spec.ts
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { PostsService } from './posts.service';
@@ -192,5 +193,102 @@ describe('PostsService', () => {
     expect(service.posts$().length).toBe(2);
     expect(service.pagination().total).toBe(20);
     expect(service.totalPages()).toBe(2);
+  }));
+
+  // ─── Additional tests ─────────────────────────────────────────────────────
+
+  it('getPost should load a single post and sync it into items$', fakeAsync(() => {
+    service.items$.set([...mockPosts]);
+
+    const updatedPost: IPost = { ...mockPosts[0], title: 'Updated Angular Post' };
+    service.getPost('1').subscribe();
+
+    const req = httpMock.expectOne(r => r.url.includes('/posts/1') && r.method === 'GET');
+    req.flush({ data: updatedPost, message: 'OK' });
+
+    tick();
+    const found = service.posts$().find(p => p._id === '1');
+    expect(found?.title).toBe('Updated Angular Post');
+  }));
+
+  it('publishPost should call updatePost with status published', fakeAsync(() => {
+    service.items$.set([...mockPosts]);
+    service.pagination.set({ skip: 0, limit: 10, total: 2 });
+
+    const published: IPost = { ...mockPosts[0], status: 'published' };
+    service.publishPost('1').subscribe();
+
+    const req = httpMock.expectOne(r => r.url.includes('/posts/1') && r.method === 'PUT');
+    expect(req.request.body).toEqual({ status: 'published' });
+    req.flush({ data: published, message: 'OK' });
+    tick();
+  }));
+
+  it('archivePost should call updatePost with status archived', fakeAsync(() => {
+    service.items$.set([...mockPosts]);
+    service.pagination.set({ skip: 0, limit: 10, total: 2 });
+
+    const archived: IPost = { ...mockPosts[0], status: 'archived' };
+    service.archivePost('1').subscribe();
+
+    const req = httpMock.expectOne(r => r.url.includes('/posts/1') && r.method === 'PUT');
+    expect(req.request.body).toEqual({ status: 'archived' });
+    req.flush({ data: archived, message: 'OK' });
+    tick();
+  }));
+
+  it('updateFilters should update filter state', fakeAsync(() => {
+    service.loadPosts().subscribe();
+    const req = httpMock.expectOne(r => r.url.includes('/posts'));
+    req.flush({ data: mockPosts, pagination: { skip: 0, limit: 10, total: 2 }, message: 'OK' });
+
+    service.updateFilters({ searchTerm: 'Angular', status: 'published' });
+
+    expect(service.getFilters()).toEqual({ searchTerm: 'Angular', status: 'published' });
+    expect(service.filteredPosts$().length).toBe(1);
+  }));
+
+  it('_buildLoadParams should append filter params to request URL', fakeAsync(() => {
+    service.loadPosts({ searchTerm: 'test', author: 'Alice', status: 'draft' }).subscribe();
+
+    const req = httpMock.expectOne(r => r.url.includes('/posts'));
+    expect(req.request.params.get('search')).toBe('test');
+    expect(req.request.params.get('author')).toBe('Alice');
+    expect(req.request.params.get('status')).toBe('draft');
+    req.flush({ data: [], pagination: { skip: 0, limit: 10, total: 0 }, message: 'OK' });
+    tick();
+  }));
+
+  it('nextPage should advance pagination skip', () => {
+    service.pagination.set({ skip: 0, limit: 10, total: 25 });
+    service.nextPage();
+    expect(service.pagination().skip).toBe(10);
+  });
+
+  it('prevPage should decrement pagination skip', () => {
+    service.pagination.set({ skip: 10, limit: 10, total: 25 });
+    service.prevPage();
+    expect(service.pagination().skip).toBe(0);
+  });
+
+  it('isLoadingPosts should reflect loading state', fakeAsync(() => {
+    service.loadPosts().subscribe();
+    expect(service.isLoadingPosts()).toBeTrue();
+
+    const req = httpMock.expectOne(r => r.url.includes('/posts'));
+    req.flush({ data: [], pagination: { skip: 0, limit: 10, total: 0 }, message: 'OK' });
+    tick();
+
+    expect(service.isLoadingPosts()).toBeFalse();
+  }));
+
+  it('postError should reflect error state on failure', fakeAsync(() => {
+    service.loadPosts().subscribe({ error: () => {} });
+
+    const reqs = httpMock.match(r => r.url.includes('/posts'));
+    reqs.forEach(r => r.flush('Error', { status: 500, statusText: 'Server Error' }));
+
+    tick();
+    expect(service.postError()).not.toBeNull();
   }));
 });

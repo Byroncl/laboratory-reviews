@@ -1,181 +1,116 @@
+// pages/posts-list.component.spec.ts
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { signal, computed } from '@angular/core';
+import { of } from 'rxjs';
+
 import { PostsListComponent } from './posts-list.component';
 import { PostsService } from '../services/posts.service';
-import { NotificationService } from '../../../shared/services/notification.service';
-import { Post } from '../../../shared/models/post.model';
+import { IPost, IPagination } from '../interfaces';
+
+const mockPosts: IPost[] = [
+  {
+    _id: '1',
+    title: 'Angular Post',
+    body: 'Content about Angular',
+    author: 'Alice',
+    status: 'published',
+  },
+  {
+    _id: '2',
+    title: 'NestJS Post',
+    body: 'Content about NestJS',
+    author: 'Bob',
+    status: 'draft',
+  },
+];
+
+class MockPostsService {
+  items$ = signal<IPost[]>([]);
+  posts$ = computed(() => this.items$());
+  filteredPosts$ = computed(() => this.items$());
+  isLoadingPosts = computed(() => false);
+  postError = computed(() => null as string | null);
+  pagination$ = computed(() => ({ skip: 0, limit: 10, total: 0 } as IPagination));
+  pagination = signal<IPagination>({ skip: 0, limit: 10, total: 0 });
+
+  loadPosts = jasmine.createSpy('loadPosts').and.returnValue(
+    of({ data: [], pagination: { skip: 0, limit: 10, total: 0 }, message: 'OK' }),
+  );
+  updateFilters = jasmine.createSpy('updateFilters');
+  clearFilters = jasmine.createSpy('clearFilters');
+  deletePost = jasmine.createSpy('deletePost').and.returnValue(of({}));
+  publishPost = jasmine.createSpy('publishPost').and.returnValue(of({ data: mockPosts[0], message: 'ok' }));
+  archivePost = jasmine.createSpy('archivePost').and.returnValue(of({ data: mockPosts[0], message: 'ok' }));
+  nextPage = jasmine.createSpy('nextPage');
+  prevPage = jasmine.createSpy('prevPage');
+  getFilters = jasmine.createSpy('getFilters').and.returnValue({});
+}
 
 describe('PostsListComponent', () => {
   let component: PostsListComponent;
   let fixture: ComponentFixture<PostsListComponent>;
-  let postsService: PostsService;
-  let httpMock: HttpTestingController;
-
-  const mockPosts: Post[] = [
-    {
-      _id: '1',
-      title: 'Angular Post',
-      content: 'Content about Angular',
-      author: 'Alice',
-      userId: 'u1',
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
-    },
-    {
-      _id: '2',
-      title: 'NestJS Post',
-      content: 'Content about NestJS',
-      author: 'Bob',
-      userId: 'u2',
-      createdAt: '2024-01-02T00:00:00.000Z',
-      updatedAt: '2024-01-02T00:00:00.000Z',
-    },
-  ];
+  let postsService: MockPostsService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        PostsListComponent,
-        HttpClientTestingModule,
-      ],
+      imports: [PostsListComponent],
       providers: [
         provideRouter([]),
-        PostsService,
-        {
-          provide: NotificationService,
-          useValue: { error: jasmine.createSpy('error'), toast: jasmine.createSpy('toast') },
-        },
+        { provide: PostsService, useClass: MockPostsService },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PostsListComponent);
     component = fixture.componentInstance;
-    postsService = TestBed.inject(PostsService);
-    httpMock = TestBed.inject(HttpTestingController);
-  });
-
-  afterEach(() => {
-    httpMock.verify();
-  });
-
-  it('should create', fakeAsync(() => {
+    postsService = TestBed.inject(PostsService) as unknown as MockPostsService;
     fixture.detectChanges();
-    tick(300);
-    const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: [], message: 'OK' });
-    tick(300);
+  });
+
+  it('should create', () => {
     expect(component).toBeTruthy();
-  }));
+  });
 
-  it('should display loading skeleton while loading', fakeAsync(() => {
-    postsService.loading.set(true);
-    fixture.detectChanges();
-    tick();
+  it('should call loadPosts on ngOnInit', () => {
+    expect(postsService.loadPosts).toHaveBeenCalled();
+  });
 
-    const skeleton = fixture.nativeElement.querySelector('app-loading-skeleton');
-    expect(skeleton).toBeTruthy();
+  it('should call updateFilters when onFilterChange is triggered', () => {
+    const filters = { searchTerm: 'test' };
+    component.onFilterChange(filters);
+    expect(postsService.updateFilters).toHaveBeenCalledWith(filters);
+  });
 
-    // clean up pending request
-    const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: [], message: 'OK' });
-    tick(300);
-  }));
+  it('should call clearFilters when onFilterReset is triggered', () => {
+    component.onFilterReset();
+    expect(postsService.clearFilters).toHaveBeenCalled();
+  });
 
-  it('should display empty state when no posts match', fakeAsync(() => {
-    fixture.detectChanges();
-    tick();
+  it('should call deletePost when onPostDelete is triggered', () => {
+    component.onPostDelete('post-1');
+    expect(postsService.deletePost).toHaveBeenCalledWith('post-1');
+  });
 
-    const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: [], message: 'OK' });
-    tick(300);
+  it('should call publishPost when onPostPublish is triggered', () => {
+    component.onPostPublish('post-1');
+    expect(postsService.publishPost).toHaveBeenCalledWith('post-1');
+  });
 
-    postsService.loading.set(false);
-    fixture.detectChanges();
+  it('should call archivePost when onPostArchive is triggered', () => {
+    component.onPostArchive('post-1');
+    expect(postsService.archivePost).toHaveBeenCalledWith('post-1');
+  });
 
-    const emptyState = fixture.nativeElement.querySelector('app-empty-state');
-    expect(emptyState).toBeTruthy();
-  }));
+  it('should call nextPage and reload on onNextPage', () => {
+    component.onNextPage();
+    expect(postsService.nextPage).toHaveBeenCalled();
+    expect(postsService.loadPosts).toHaveBeenCalledTimes(2); // once on init, once on nextPage
+    expect(postsService.getFilters).toHaveBeenCalled();
+  });
 
-  it('should update filteredPosts when search query is set', fakeAsync(() => {
-    fixture.detectChanges();
-    tick();
-
-    const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: mockPosts, message: 'OK' });
-    tick(300);
-
-    postsService.setSearch('Angular');
-    fixture.detectChanges();
-
-    expect(postsService.filteredPosts().length).toBe(1);
-    expect(postsService.filteredPosts()[0].title).toContain('Angular');
-  }));
-
-  it('should update filteredPosts when author filter is set', fakeAsync(() => {
-    fixture.detectChanges();
-    tick();
-
-    const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: mockPosts, message: 'OK' });
-    tick(300);
-
-    postsService.filterAuthor.set('Alice');
-    fixture.detectChanges();
-
-    expect(postsService.filteredPosts().length).toBe(1);
-    expect(postsService.filteredPosts()[0].author).toBe('Alice');
-  }));
-
-  it('should call resetFilters when clear filters button is clicked', fakeAsync(() => {
-    fixture.detectChanges();
-    tick();
-
-    const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: mockPosts, message: 'OK' });
-    tick(300);
-
-    postsService.filterAuthor.set('Alice');
-    fixture.detectChanges();
-    expect(postsService.filteredPosts().length).toBe(1);
-
-    const clearBtn = fixture.nativeElement.querySelector('button[class*="bg-gray-400"]') as HTMLButtonElement;
-    clearBtn?.click();
-    fixture.detectChanges();
-
-    expect(postsService.filterAuthor()).toBe('');
-    expect(postsService.filteredPosts().length).toBe(2);
-  }));
-
-  it('should display post cards when posts are loaded', fakeAsync(() => {
-    fixture.detectChanges();
-    tick();
-
-    const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: mockPosts, message: 'OK' });
-    tick(300);
-
-    postsService.loading.set(false);
-    fixture.detectChanges();
-
-    const cards = fixture.nativeElement.querySelectorAll('[data-cy="post-card"]');
-    expect(cards.length).toBe(2);
-  }));
-
-  it('should show pagination controls when posts are loaded', fakeAsync(() => {
-    fixture.detectChanges();
-    tick();
-
-    const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: { items: mockPosts, total: 20 }, message: 'OK' });
-    tick(300);
-
-    postsService.loading.set(false);
-    fixture.detectChanges();
-
-    const nextBtn = fixture.nativeElement.querySelector('[data-cy="next-button"]');
-    const prevBtn = fixture.nativeElement.querySelector('[data-cy="prev-button"]');
-    expect(nextBtn).toBeTruthy();
-    expect(prevBtn).toBeTruthy();
-  }));
+  it('should call prevPage and reload on onPrevPage', () => {
+    component.onPrevPage();
+    expect(postsService.prevPage).toHaveBeenCalled();
+    expect(postsService.getFilters).toHaveBeenCalled();
+  });
 });
