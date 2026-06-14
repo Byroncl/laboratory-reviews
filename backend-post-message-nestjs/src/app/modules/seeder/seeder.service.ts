@@ -30,21 +30,21 @@ export class SeederService implements OnModuleInit {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    const seedEnv = process.env.SEED_DATABASE;
-    this.logger.log(`SEED_DATABASE env value: "${seedEnv}" (type: ${typeof seedEnv})`);
-    const shouldSeed = seedEnv === 'true';
-    if (!shouldSeed) {
-      this.logger.log('Seeding disabled');
-      return;
-    }
-
-    this.logger.log('🌱 Starting database seeding...');
     try {
+      const seedEnv = process.env.SEED_DATABASE;
+      this.logger.log(`SEED_DATABASE env value: "${seedEnv}" (type: ${typeof seedEnv})`);
+      const shouldSeed = seedEnv === 'true';
+      if (!shouldSeed) {
+        this.logger.log('Seeding disabled');
+        return;
+      }
+
+      this.logger.log('🌱 Starting database seeding...');
       await this.seed();
       this.logger.log('✅ Database seeding completed successfully');
     } catch (error) {
-      this.logger.error('❌ Seeding failed:', error);
-      throw error;
+      this.logger.error('❌ Seeding failed:', error instanceof Error ? error.message : error);
+      // Don't throw to allow app to continue running
     }
   }
 
