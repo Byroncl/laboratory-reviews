@@ -58,7 +58,6 @@ export class HomeComponent implements OnInit {
     this.loading.set(true);
     this.loadError.set(null);
     this.postsService.loadPosts().pipe(
-      takeUntilDestroyed(this.destroyRef),
       catchError(err => {
         this.loading.set(false);
         this.loadError.set(err?.message ?? 'Error loading posts');
