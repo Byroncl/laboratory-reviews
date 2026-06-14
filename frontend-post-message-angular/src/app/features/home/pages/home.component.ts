@@ -1,8 +1,9 @@
-import { Component, OnInit, signal, inject, computed } from '@angular/core';
+import { Component, OnInit, signal, inject, computed, DestroyRef } from '@angular/core';
 import { CommonModule, AsyncPipe } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { catchError, of } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { PostsService } from '../../posts/services/posts.service';
 import { PostCardComponent } from '../components/post-card/post-card.component';
@@ -13,7 +14,7 @@ import { selectIsAuthenticated } from '../../auth/store/auth.selectors';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, AsyncPipe, FormsModule, PostCardComponent, HeaderComponent],
+  imports: [CommonModule, RouterModule, AsyncPipe, ReactiveFormsModule, PostCardComponent, HeaderComponent],
   template: `
     <app-header />
 
@@ -48,7 +49,7 @@ import { selectIsAuthenticated } from '../../auth/store/auth.selectors';
         <input
           type="text"
           placeholder="Search posts..."
-          [(ngModel)]="searchQuery"
+          [formControl]="searchControl"
           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           data-cy="search-input"
         />
@@ -96,12 +97,15 @@ export class HomeComponent implements OnInit {
   private readonly postsService = inject(PostsService);
   private readonly store = inject(Store);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly isAuthenticated$ = this.store.select(selectIsAuthenticated);
   readonly loading = signal(false);
   readonly loadError = signal<string | null>(null);
   readonly postViewModels = signal<PostViewModel[]>([]);
   readonly searchQuery = signal('');
+
+  readonly searchControl = new FormControl<string>('', { nonNullable: true });
 
   readonly filteredPosts = computed(() => {
     const query = this.searchQuery().toLowerCase();
@@ -111,6 +115,12 @@ export class HomeComponent implements OnInit {
       post.preview.toLowerCase().includes(query)
     );
   });
+
+  constructor() {
+    this.searchControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(value => this.searchQuery.set(value ?? ''));
+  }
 
   /** Expose raw posts signal for tests */
   get posts() {
@@ -125,6 +135,7 @@ export class HomeComponent implements OnInit {
     this.loading.set(true);
     this.loadError.set(null);
     this.postsService.loadPosts().pipe(
+      takeUntilDestroyed(this.destroyRef),
       catchError(err => {
         this.loading.set(false);
         this.loadError.set(err?.message ?? 'Error loading posts');
