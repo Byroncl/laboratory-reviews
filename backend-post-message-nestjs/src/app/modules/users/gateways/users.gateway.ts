@@ -8,7 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
-import { TranslationService } from '../../../core/utils/translation.service';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 @WebSocketGateway({
   namespace: 'users',
@@ -26,7 +26,7 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(
     private readonly usersService: UsersService,
-    private readonly i18n: TranslationService,
+    private readonly i18n: I18nService,
   ) {}
 
   handleConnection(client: Socket): void {

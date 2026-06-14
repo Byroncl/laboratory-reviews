@@ -207,7 +207,7 @@ export class CommentsService {
   // ─── Private helpers ───────────────────────────────────────────────────────
 
   private async buildCommentTree(
-    comment: Comment & Document,
+    comment: CommentDocument,
   ): Promise<CommentTreeNodeDto> {
     const replies = await this.commentModel
       .find({ parentCommentId: (comment as any)._id.toString() })
@@ -219,7 +219,7 @@ export class CommentsService {
     return {
       ...dto,
       replies: replies.map((r) => ({
-        ...this.commentToResponseDto(r),
+        ...this.commentToResponseDto(r as any),
         replies: [],
         replyCount: 0,
       })),
@@ -240,7 +240,7 @@ export class CommentsService {
     return count;
   }
 
-  commentToResponseDto(comment: Comment & Document): CommentResponseDto {
+  commentToResponseDto(comment: CommentDocument | any): CommentResponseDto {
     const raw = (comment as any);
     return {
       id: raw._id?.toString(),

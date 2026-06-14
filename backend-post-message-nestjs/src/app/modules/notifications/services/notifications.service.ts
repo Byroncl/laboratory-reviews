@@ -21,9 +21,8 @@ export class NotificationsService {
     userId: string,
     pagination?: PaginationQueryDto,
   ): Promise<{ items: Notification[]; total: number; unread: number }> {
-    const page = pagination?.page ?? 1;
+    const skip = pagination?.skip ?? 0;
     const limit = pagination?.limit ?? 20;
-    const skip = (page - 1) * limit;
 
     const [items, total, unread] = await Promise.all([
       this.notificationModel
@@ -46,12 +45,12 @@ export class NotificationsService {
       .exec();
   }
 
-  async markAsRead(notificationId: string): Promise<Notification> {
+  async markAsRead(notificationId: string): Promise<Notification | null> {
     return this.notificationModel.findByIdAndUpdate(
       notificationId,
       { read: true, readAt: new Date() },
       { new: true },
-    );
+    ).exec();
   }
 
   async markAllAsRead(userId: string): Promise<void> {
