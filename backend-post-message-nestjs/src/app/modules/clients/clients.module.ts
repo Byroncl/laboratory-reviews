@@ -16,6 +16,7 @@ import {
 } from './application/use-cases/client.use-cases';
 import { ClientOrAdminGuard } from './guards/client-or-admin.guard';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { ClientsService } from './services/clients.service';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
   ],
   controllers: [ClientsController],
   providers: [
+    ClientsService,
     ClientMapper,
     ClientRepository,
     CreateClientUseCase,
@@ -36,6 +38,6 @@ import { I18nService } from '../../core/i18n/i18n.service';
     ClientOrAdminGuard,
     I18nService,
   ],
-  exports: [ClientRepository, ClientUseCaseFactory],
+  exports: [ClientsService, ClientRepository, ClientUseCaseFactory],
 })
 export class ClientsModule {}

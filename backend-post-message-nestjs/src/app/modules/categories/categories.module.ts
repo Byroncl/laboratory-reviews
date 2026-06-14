@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Category, CategorySchema } from './schemas/category.schema';
 import { CategoriesController } from './controllers/categories.controller';
+import { CategoriesService } from './services/categories.service';
 import { CategoryRepository } from './infrastructure/repositories/category.repository';
 import { CategoryMapper } from './infrastructure/mappers/category.mapper';
 import {
@@ -24,6 +25,7 @@ import {
   ],
   controllers: [CategoriesController],
   providers: [
+    CategoriesService,
     CategoryMapper,
     CategoryRepository,
     CreateCategoryUseCase,
@@ -36,6 +38,6 @@ import {
     BulkCreateCategoriesUseCase,
     CategoryUseCaseFactory,
   ],
-  exports: [CategoryRepository, CategoryUseCaseFactory],
+  exports: [CategoriesService, CategoryRepository, CategoryUseCaseFactory],
 })
 export class CategoriesModule {}
