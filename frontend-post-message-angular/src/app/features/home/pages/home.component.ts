@@ -1,9 +1,10 @@
-import { Component, OnInit, signal, inject, computed, DestroyRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, inject, computed, DestroyRef, OnDestroy } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
-import { catchError, of } from 'rxjs';
+import { catchError, of, Subject } from 'rxjs';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntil } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { PostsService } from '../../posts/services/posts.service';
 import { PostCardComponent } from '../components/post-card/post-card.component';
@@ -14,24 +15,32 @@ import { selectIsAuthenticated } from '../../auth/store/auth.selectors';
 import { PostViewModel } from '../types';
 import { filterPosts } from '../utils';
 import { HOME_ROUTES } from '../constants';
+import { CategoriesService, Category } from '../services/categories.service';
+import { FeaturedUsersService, FeaturedUser } from '../services/featured-users.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, PostCardComponent, HeaderComponent, TranslatePipe],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, PostCardComponent, HeaderComponent, TranslatePipe, DatePipe],
   templateUrl: './home.component.html',
+  styleUrl: './home.component.scss',
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   private readonly postsService = inject(PostsService);
+  private readonly categoriesService = inject(CategoriesService);
+  private readonly featuredUsersService = inject(FeaturedUsersService);
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private destroy$ = new Subject<void>();
 
   readonly isAuthenticated = toSignal(this.store.select(selectIsAuthenticated), { initialValue: false });
   readonly loading = signal(false);
   readonly loadError = signal<string | null>(null);
   readonly postViewModels = signal<PostViewModel[]>([]);
   readonly searchQuery = signal('');
+  readonly categories = signal<Category[]>([]);
+  readonly featuredUsers = signal<FeaturedUser[]>([]);
 
   readonly searchControl = new FormControl<string>('', { nonNullable: true });
 
@@ -52,6 +61,12 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadData();
+    this.loadSidebarData();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadData(): void {
@@ -70,6 +85,24 @@ export class HomeComponent implements OnInit {
       }
       this.loading.set(false);
     });
+  }
+
+  private loadSidebarData(): void {
+    this.categoriesService.getCategories()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: cats => this.categories.set(cats),
+        error: () => this.categories.set([]),
+      });
+
+    if (this.isAuthenticated()) {
+      this.featuredUsersService.getFeaturedUsers(5)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: users => this.featuredUsers.set(users),
+          error: () => this.featuredUsers.set([]),
+        });
+    }
   }
 
   retry(): void {
