@@ -36,7 +36,7 @@ describe('HomeComponent', () => {
   let component: HomeComponent;
   let fixture: ComponentFixture<HomeComponent>;
 
-  describe('successful load', () => {
+  describe('successful load (guest state)', () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
         imports: [HomeComponent, RouterTestingModule],
@@ -81,7 +81,18 @@ describe('HomeComponent', () => {
       expect(component.posts.length).toBe(2);
     }));
 
-    // Task 1.3: search input filters via FormControl
+    // isAuthenticated signal — guest CTA
+    it('renders "Sign in to Comment" CTA when guest (isAuthenticated signal = false)', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      const cta = fixture.nativeElement.querySelector('[data-cy="hero-cta"]');
+      expect(cta).toBeTruthy();
+      expect(cta.textContent.trim()).toBe('Sign in to Comment');
+    }));
+
+    // Task 1.3 / 2.5: search input filters via FormControl + filterPosts util
     it('filters posts when search control has a value', fakeAsync(() => {
       fixture.detectChanges();
       tick();
@@ -119,6 +130,38 @@ describe('HomeComponent', () => {
       expect(component.filteredPosts().length).toBe(0);
       expect(fixture.nativeElement.textContent).toContain('No posts match your search.');
     }));
+  });
+
+  describe('successful load (authenticated state)', () => {
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [HomeComponent, RouterTestingModule],
+        providers: [
+          { provide: PostsService, useClass: MockPostsService },
+          provideMockStore({
+            selectors: [{ selector: selectIsAuthenticated, value: true }],
+          }),
+        ],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(HomeComponent);
+      component = fixture.componentInstance;
+    });
+
+    it('renders "Create Post" CTA when authenticated (isAuthenticated signal = true)', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+
+      const cta = fixture.nativeElement.querySelector('[data-cy="hero-cta"]');
+      expect(cta).toBeTruthy();
+      expect(cta.textContent.trim()).toBe('Create Post');
+    }));
+
+    it('isAuthenticated signal reads true from MockStore', () => {
+      fixture.detectChanges();
+      expect(component.isAuthenticated()).toBeTrue();
+    });
   });
 
   describe('error state', () => {

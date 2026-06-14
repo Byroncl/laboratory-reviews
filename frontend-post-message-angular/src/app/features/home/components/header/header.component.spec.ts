@@ -40,36 +40,32 @@ describe('HeaderComponent', () => {
       expect(component).toBeDefined();
     });
 
-    it('renders Sign in button when not authenticated', fakeAsync(() => {
-      tick();
-      fixture.detectChanges();
+    it('isAuthenticated signal returns false in guest state', () => {
+      expect(component.isAuthenticated()).toBeFalse();
+    });
 
+    it('user signal returns null in guest state', () => {
+      expect(component.user()).toBeNull();
+    });
+
+    it('renders Sign in button when not authenticated', () => {
       const signInBtn = fixture.nativeElement.querySelector('[data-cy="sign-in-btn"]');
       expect(signInBtn).toBeTruthy();
       expect(signInBtn.textContent.trim()).toBe('Sign in');
-    }));
+    });
 
-    it('renders Register button when not authenticated', fakeAsync(() => {
-      tick();
-      fixture.detectChanges();
-
+    it('renders Register button when not authenticated', () => {
       const registerBtn = fixture.nativeElement.querySelector('[data-cy="register-btn"]');
       expect(registerBtn).toBeTruthy();
       expect(registerBtn.textContent.trim()).toBe('Register');
-    }));
+    });
 
-    it('does NOT render user menu when not authenticated', fakeAsync(() => {
-      tick();
-      fixture.detectChanges();
-
+    it('does NOT render user menu when not authenticated', () => {
       const userMenu = fixture.nativeElement.querySelector('[data-cy="user-menu-trigger"]');
       expect(userMenu).toBeFalsy();
-    }));
+    });
 
     it('navigates to /auth/login with returnUrl when Sign in clicked', fakeAsync(() => {
-      tick();
-      fixture.detectChanges();
-
       spyOn(router, 'navigate');
       const signInBtn = fixture.nativeElement.querySelector('[data-cy="sign-in-btn"]');
       signInBtn.click();
@@ -82,9 +78,6 @@ describe('HeaderComponent', () => {
     }));
 
     it('navigates to /auth/register with returnUrl when Register clicked', fakeAsync(() => {
-      tick();
-      fixture.detectChanges();
-
       spyOn(router, 'navigate');
       const registerBtn = fixture.nativeElement.querySelector('[data-cy="register-btn"]');
       registerBtn.click();
@@ -123,29 +116,28 @@ describe('HeaderComponent', () => {
       fixture.detectChanges();
     });
 
-    it('renders username when authenticated', fakeAsync(() => {
-      tick();
-      fixture.detectChanges();
+    it('isAuthenticated signal returns true in authenticated state', () => {
+      expect(component.isAuthenticated()).toBeTrue();
+    });
 
+    it('user signal returns the mock user', () => {
+      expect(component.user()?.username).toBe('testuser');
+    });
+
+    it('renders username when authenticated', () => {
       const usernameEl = fixture.nativeElement.querySelector('[data-cy="username"]');
       expect(usernameEl).toBeTruthy();
       expect(usernameEl.textContent.trim()).toBe('testuser');
-    }));
+    });
 
-    it('does NOT render Sign in/Register when authenticated', fakeAsync(() => {
-      tick();
-      fixture.detectChanges();
-
+    it('does NOT render Sign in/Register when authenticated', () => {
       const signInBtn = fixture.nativeElement.querySelector('[data-cy="sign-in-btn"]');
       const registerBtn = fixture.nativeElement.querySelector('[data-cy="register-btn"]');
       expect(signInBtn).toBeFalsy();
       expect(registerBtn).toBeFalsy();
-    }));
+    });
 
     it('dispatches logout action and navigates to / on logout click', fakeAsync(() => {
-      tick();
-      fixture.detectChanges();
-
       spyOn(store, 'dispatch');
       spyOn(router, 'navigate');
 
@@ -162,5 +154,32 @@ describe('HeaderComponent', () => {
       expect(store.dispatch).toHaveBeenCalledWith(logout());
       expect(router.navigate).toHaveBeenCalledWith(['/']);
     }));
+
+    it('closes menu when click-outside event fires', () => {
+      // Open menu
+      component.menuOpen.set(true);
+      fixture.detectChanges();
+
+      // Simulate outside click by dispatching on the document body
+      document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      fixture.detectChanges();
+
+      expect(component.menuOpen()).toBeFalse();
+    });
+
+    it('menuOpen toggles on trigger click', () => {
+      expect(component.menuOpen()).toBeFalse();
+
+      const trigger = fixture.nativeElement.querySelector('[data-cy="user-menu-trigger"]');
+      trigger.click();
+      fixture.detectChanges();
+
+      expect(component.menuOpen()).toBeTrue();
+
+      trigger.click();
+      fixture.detectChanges();
+
+      expect(component.menuOpen()).toBeFalse();
+    });
   });
 });
