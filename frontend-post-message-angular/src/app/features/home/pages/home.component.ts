@@ -114,7 +114,7 @@ export class HomeComponent implements OnInit {
 
   /** Expose raw posts signal for tests */
   get posts() {
-    return this.postsService.posts;
+    return this.postsService.posts$();
   }
 
   ngOnInit(): void {
@@ -124,7 +124,7 @@ export class HomeComponent implements OnInit {
   loadData(): void {
     this.loading.set(true);
     this.loadError.set(null);
-    this.postsService.loadPosts(0, 100).pipe(
+    this.postsService.loadPosts().pipe(
       catchError(err => {
         this.loading.set(false);
         this.loadError.set(err?.message ?? 'Error loading posts');
@@ -132,7 +132,7 @@ export class HomeComponent implements OnInit {
       })
     ).subscribe(result => {
       if (result !== null) {
-        const vms = this.postsService.posts().map(p => mapToPostViewModel(p));
+        const vms = this.postsService.posts$().map(p => mapToPostViewModel(p));
         this.postViewModels.set(vms);
       }
       this.loading.set(false);
