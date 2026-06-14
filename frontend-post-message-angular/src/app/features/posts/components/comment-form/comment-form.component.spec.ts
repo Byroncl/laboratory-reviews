@@ -42,6 +42,9 @@ describe('CommentFormComponent', () => {
   let filesService: MockFilesService;
 
   beforeEach(async () => {
+    // Simulate authenticated user so the form branch renders (not the auth gate)
+    mockCurrentUser.set({ id: 'user-1', name: 'Test User' });
+
     await TestBed.configureTestingModule({
       imports: [CommentFormComponent],
       providers: [
@@ -59,6 +62,10 @@ describe('CommentFormComponent', () => {
     commentsService = TestBed.inject(CommentsService) as unknown as MockCommentsService;
     filesService = TestBed.inject(FilesService) as unknown as MockFilesService;
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    mockCurrentUser.set(null);
   });
 
   it('should create', () => {

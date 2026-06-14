@@ -81,4 +81,12 @@ export class RegisterComponent implements OnInit {
   goToLogin(): void {
     this.router.navigate(['/auth/login']);
   }
+
+  goBack(): void {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      this.router.navigate(['/']);
+    }
+  }
 }

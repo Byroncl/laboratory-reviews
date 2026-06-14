@@ -71,7 +71,8 @@ export class I18nService {
           }
         },
         common: {
-          error: 'Error'
+          error: 'Error',
+          back: '← Atrás'
         },
         messages: {
           loginSuccess: 'Sesión iniciada correctamente',
@@ -649,7 +650,8 @@ export class I18nService {
           }
         },
         common: {
-          error: 'Error'
+          error: 'Error',
+          back: '← Back'
         },
         messages: {
           loginSuccess: 'Logged in successfully',
