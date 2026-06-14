@@ -24,6 +24,7 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { SeederModule } from './modules/seeder/seeder.module';
+import { TestingModule } from './modules/testing/testing.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { SeederModule } from './modules/seeder/seeder.module';
     AuditModule,
     FavoritesModule,
     SeederModule,
+    TestingModule,
   ],
   controllers: [AppController],
   providers: [
