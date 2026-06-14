@@ -4,59 +4,84 @@ import { AUTH_STORAGE_KEYS } from '../constants';
 /**
  * Abstraction layer for secure storage operations
  * Can be switched to SessionStorage, IndexedDB, or encrypted storage
+ * SSR-safe: checks if localStorage is available before use
  */
 @Injectable({ providedIn: 'root' })
 export class StorageService {
   constructor() {}
 
+  private isLocalStorageAvailable(): boolean {
+    return typeof localStorage !== 'undefined';
+  }
+
   setToken(token: string): void {
-    localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, token);
+    if (this.isLocalStorageAvailable()) {
+      localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, token);
+    }
   }
 
   getToken(): string | null {
+    if (!this.isLocalStorageAvailable()) return null;
     return localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
   }
 
   removeToken(): void {
-    localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+    if (this.isLocalStorageAvailable()) {
+      localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+    }
   }
 
   setRefreshToken(token: string): void {
-    localStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, token);
+    if (this.isLocalStorageAvailable()) {
+      localStorage.setItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN, token);
+    }
   }
 
   getRefreshToken(): string | null {
+    if (!this.isLocalStorageAvailable()) return null;
     return localStorage.getItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
   }
 
   removeRefreshToken(): void {
-    localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+    if (this.isLocalStorageAvailable()) {
+      localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
+    }
   }
 
   setUser(user: any): void {
-    localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(user));
+    if (this.isLocalStorageAvailable()) {
+      localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(user));
+    }
   }
 
   getUser(): any | null {
+    if (!this.isLocalStorageAvailable()) return null;
     const user = localStorage.getItem(AUTH_STORAGE_KEYS.USER);
     return user ? JSON.parse(user) : null;
   }
 
   removeUser(): void {
-    localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+    if (this.isLocalStorageAvailable()) {
+      localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+    }
   }
 
   setExpiresAt(expiresAt: number): void {
-    localStorage.setItem(AUTH_STORAGE_KEYS.EXPIRES_AT, expiresAt.toString());
+    if (this.isLocalStorageAvailable()) {
+      localStorage.setItem(AUTH_STORAGE_KEYS.EXPIRES_AT, expiresAt.toString());
+    }
   }
 
   getExpiresAt(): number | null {
+    if (!this.isLocalStorageAvailable()) return null;
     const expiresAt = localStorage.getItem(AUTH_STORAGE_KEYS.EXPIRES_AT);
     return expiresAt ? parseInt(expiresAt, 10) : null;
   }
 
   removeExpiresAt(): void {
-    localStorage.removeItem(AUTH_STORAGE_KEYS.EXPIRES_AT);
+    if (this.isLocalStorageAvailable()) {
+      localStorage.removeItem(AUTH_STORAGE_KEYS.EXPIRES_AT);
+    }
   }
 
   clearAll(): void {

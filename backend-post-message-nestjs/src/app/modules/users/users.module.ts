@@ -48,6 +48,6 @@ import { I18nService } from '../../core/i18n/i18n.service';
       useClass: UserMongoRepository,
     },
   ],
-  exports: [UsersService, UsersGateway],
+  exports: [UsersService, UsersGateway, UserRepository],
 })
 export class UsersModule {}

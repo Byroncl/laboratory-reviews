@@ -16,7 +16,8 @@ export class ErrorInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
         let errorMessage = 'Ocurrió un error';
 
-        if (error.error instanceof ErrorEvent) {
+        // Check if ErrorEvent is available (not in SSR context)
+        if (typeof ErrorEvent !== 'undefined' && error.error instanceof ErrorEvent) {
           errorMessage = error.error.message;
         } else {
           errorMessage = error.error?.message || `Error: ${error.status}`;
