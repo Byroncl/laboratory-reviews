@@ -1,0 +1,104 @@
+<div class="post-detail-container">
+  @if (postLoading()) {
+    <div class="post-detail-loading">
+      <p>Loading post...</p>
+    </div>
+  }
+
+  @if (postError()) {
+    <div class="post-detail-error">
+      <p>Error: {{ postError() }}</p>
+    </div>
+  }
+
+  @if (!postLoading() && post()) {
+    <div class="post-detail">
+      <a routerLink="/posts" class="btn btn-secondary">&larr; Back to Posts</a>
+
+      <div class="post-header">
+        <h1>{{ post()!.title }}</h1>
+        <span class="post-status" [ngClass]="'status-' + post()!.status">
+          {{ post()!.status }}
+        </span>
+      </div>
+
+      <div class="post-meta">
+        <span class="meta-item">
+          <strong>Author:</strong> {{ post()!.author }}
+        </span>
+        @if (post()!.createdAt) {
+          <span class="meta-item">
+            <strong>Published:</strong> {{ post()!.createdAt | date: 'long' }}
+          </span>
+        }
+        <span class="meta-item">
+          <strong>Views:</strong> {{ post()!.viewCount || 0 }}
+        </span>
+      </div>
+
+      @if (post()!.tags && post()!.tags!.length > 0) {
+        <div class="post-tags">
+          <strong>Tags:</strong>
+          @for (tag of post()!.tags!; track tag) {
+            <span class="tag">{{ tag }}</span>
+          }
+        </div>
+      }
+
+      <div class="post-body">
+        {{ post()!.body }}
+      </div>
+
+      <div class="comments-section">
+        <h2>Comments ({{ post()!.commentCount || 0 }})</h2>
+
+        <app-comment-form
+          [postId]="post()!.id || ''"
+          [isLoading]="commentsLoading$()"
+          (submit)="onCommentSubmit($event)"
+        ></app-comment-form>
+
+        @if (commentsLoading$()) {
+          <div class="comments-loading">
+            <p>Loading comments...</p>
+          </div>
+        }
+
+        @if (commentsHasError$()) {
+          <div class="comments-error">
+            <p>Failed to load comments</p>
+          </div>
+        }
+
+        @if (!commentsLoading$() && comments$().length > 0) {
+          <div class="comments-list">
+            @for (comment of comments$(); track comment.id) {
+              <div class="comment">
+                <div class="comment-header">
+                  <strong>{{ comment.name }}</strong>
+                  <span class="comment-date">{{ comment.createdAt | date: 'short' }}</span>
+                </div>
+                <p class="comment-body">{{ comment.body }}</p>
+              </div>
+            }
+          </div>
+        }
+
+        @if (!commentsLoading$() && comments$().length === 0) {
+          <div class="comments-empty">
+            <p>No comments yet. Be the first to comment!</p>
+          </div>
+        }
+
+        @if (pagination$()) {
+          <app-pagination
+            [pagination]="pagination$()"
+            [isLoading]="commentsLoading$()"
+            (nextPage)="onNextPage()"
+            (prevPage)="onPrevPage()"
+          ></app-pagination>
+        }
+      </div>
+    </div>
+  }
+</div>

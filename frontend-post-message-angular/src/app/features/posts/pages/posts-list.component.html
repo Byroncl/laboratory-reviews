@@ -1,0 +1,55 @@
+<div class="posts-container">
+  <div class="posts-header">
+    <h1>Posts</h1>
+    <a routerLink="/posts/new" class="btn btn-primary">New Post</a>
+  </div>
+
+  <app-post-filter
+    [isLoading]="loading$()"
+    (filterChange)="onFilterChange($event)"
+    (reset)="onFilterReset()"
+  ></app-post-filter>
+
+  @if (loading$()) {
+    <div class="posts-loading">
+      <p>Loading posts...</p>
+    </div>
+  }
+
+  @if (error$()) {
+    <div class="posts-error">
+      <p>Error: {{ error$() }}</p>
+    </div>
+  }
+
+  @if (!loading$() && filteredPosts$().length > 0) {
+    <div class="posts-list">
+      @for (post of filteredPosts$(); track post.id) {
+        <app-post-card
+          [post]="post"
+          [isLoading]="loading$()"
+          (view)="onPostView($event)"
+          (edit)="onPostEdit($event)"
+          (delete)="onPostDelete($event)"
+          (publish)="onPostPublish($event)"
+          (archive)="onPostArchive($event)"
+        ></app-post-card>
+      }
+    </div>
+  }
+
+  @if (!loading$() && filteredPosts$().length === 0) {
+    <div class="posts-empty">
+      <p>No posts found.</p>
+    </div>
+  }
+
+  @if (pagination$()) {
+    <app-pagination
+      [pagination]="pagination$()"
+      [isLoading]="loading$()"
+      (nextPage)="onNextPage()"
+      (prevPage)="onPrevPage()"
+    ></app-pagination>
+  }
+</div>
