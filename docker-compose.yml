@@ -53,6 +53,7 @@ services:
         condition: service_started
       minio:
         condition: service_started
+    env_file: .env
     environment:
       NODE_ENV: production
       MONGODB_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DB_NAME}?authSource=admin
