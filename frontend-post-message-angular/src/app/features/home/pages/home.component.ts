@@ -12,7 +12,7 @@ import { mapToPostViewModel } from '../../../shared/models/post.model';
 import { selectIsAuthenticated } from '../../auth/store/auth.selectors';
 import { PostViewModel } from '../types';
 import { filterPosts } from '../utils';
-import { HOME_ROUTES } from '../constants';
+import { HOME_ROUTES, HOME_MESSAGES } from '../constants';
 
 @Component({
   selector: 'app-home',
@@ -26,6 +26,7 @@ export class HomeComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly messages = HOME_MESSAGES;
   readonly isAuthenticated = toSignal(this.store.select(selectIsAuthenticated), { initialValue: false });
   readonly loading = signal(false);
   readonly loadError = signal<string | null>(null);
