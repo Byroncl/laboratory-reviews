@@ -20,11 +20,11 @@ describe('ClientsController', () => {
 
   beforeEach(async () => {
     mockUseCase = {
-      create: jest.fn(),
-      findAll: jest.fn(),
-      findOne: jest.fn(),
-      update: jest.fn(),
-      remove: jest.fn(),
+      createClient: jest.fn(),
+      getAllClients: jest.fn(),
+      getClientById: jest.fn(),
+      updateClient: jest.fn(),
+      deleteClient: jest.fn(),
     } as any;
 
     mockI18n = {
@@ -50,19 +50,19 @@ describe('ClientsController', () => {
   describe('create', () => {
     it('should create a client and return wrapped response', async () => {
       const dto: CreateClientDto = { name: 'Acme Corp', email: 'acme@example.com' } as any;
-      mockUseCase.create.mockResolvedValue(mockClient);
+      mockUseCase.createClient.mockResolvedValue(mockClient);
 
       const response = await controller.create(dto);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockClient);
-      expect(mockUseCase.create).toHaveBeenCalledWith(dto);
+      expect(mockUseCase.createClient).toHaveBeenCalledWith(dto);
     });
   });
 
   describe('findAll', () => {
     it('should return all clients', async () => {
-      mockUseCase.findAll.mockResolvedValue([mockClient]);
+      mockUseCase.getAllClients.mockResolvedValue([mockClient]);
 
       const response = await controller.findAll();
 
@@ -71,7 +71,7 @@ describe('ClientsController', () => {
     });
 
     it('should return empty array when no clients', async () => {
-      mockUseCase.findAll.mockResolvedValue([]);
+      mockUseCase.getAllClients.mockResolvedValue([]);
 
       const response = await controller.findAll();
 
@@ -82,20 +82,20 @@ describe('ClientsController', () => {
   describe('findOne', () => {
     it('should return client by id', async () => {
       const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439011' };
-      mockUseCase.findOne.mockResolvedValue(mockClient);
+      mockUseCase.getClientById.mockResolvedValue(mockClient);
 
       const response = await controller.findOne(findOneDto);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockClient);
-      expect(mockUseCase.findOne).toHaveBeenCalledWith(
+      expect(mockUseCase.getClientById).toHaveBeenCalledWith(
         '507f1f77bcf86cd799439011',
       );
     });
 
     it('should return null data when client not found', async () => {
       const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439099' };
-      mockUseCase.findOne.mockResolvedValue(null);
+      mockUseCase.getClientById.mockResolvedValue(null);
 
       const response = await controller.findOne(findOneDto);
 
@@ -108,13 +108,13 @@ describe('ClientsController', () => {
       const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439011' };
       const dto: UpdateClientDto = { name: 'Updated Corp' } as any;
       const updated = { ...mockClient, name: 'Updated Corp' };
-      mockUseCase.update.mockResolvedValue(updated);
+      mockUseCase.updateClient.mockResolvedValue(updated);
 
       const response = await controller.update(findOneDto, dto);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(updated);
-      expect(mockUseCase.update).toHaveBeenCalledWith(
+      expect(mockUseCase.updateClient).toHaveBeenCalledWith(
         '507f1f77bcf86cd799439011',
         dto,
       );
@@ -124,13 +124,13 @@ describe('ClientsController', () => {
   describe('remove', () => {
     it('should delete a client and return success response', async () => {
       const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439011' };
-      mockUseCase.remove.mockResolvedValue(mockClient);
+      mockUseCase.deleteClient.mockResolvedValue(mockClient);
 
       const response = await controller.remove(findOneDto);
 
       expect(response.success).toBe(true);
       expect(response.data).toBeNull();
-      expect(mockUseCase.remove).toHaveBeenCalledWith(
+      expect(mockUseCase.deleteClient).toHaveBeenCalledWith(
         '507f1f77bcf86cd799439011',
       );
     });
