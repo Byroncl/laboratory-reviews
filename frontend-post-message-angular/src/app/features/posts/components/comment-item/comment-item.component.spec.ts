@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { CommentItemComponent } from './comment-item.component';
 import { CommentsService } from '../../services';
 import { FilesService } from '../../../../core/services/files.service';
@@ -9,6 +11,7 @@ import { MEDIA_PREVIEW_LIMIT } from '../../../../shared/constants/media-upload.c
 
 class MockCommentsService {
   getReplies = jasmine.createSpy('getReplies').and.returnValue(of({ data: [], pagination: { skip: 0, limit: 10, total: 0 }, message: '' }));
+  replyToComment = jasmine.createSpy('replyToComment').and.returnValue(of({}));
 }
 
 class MockFilesService {}
@@ -39,6 +42,8 @@ describe('CommentItemComponent', () => {
     await TestBed.configureTestingModule({
       imports: [CommentItemComponent],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         { provide: CommentsService, useClass: MockCommentsService },
         { provide: FilesService, useClass: MockFilesService },
         { provide: ApiService, useClass: MockApiService },

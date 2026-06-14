@@ -1,8 +1,11 @@
 // components/comment-form/comment-form.component.spec.ts
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal, computed } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { CommentFormComponent } from './comment-form.component';
 import { CommentsService } from '../../services';
 import { FilesService } from '../../../../core/services/files.service';
+import { AuthService } from '../../../auth/services/auth.service';
 import { ICreateCommentDTO } from '../../interfaces';
 import { MediaUploadResult } from '../../../../shared/models/media-upload.model';
 import { of, throwError } from 'rxjs';
@@ -24,6 +27,14 @@ class MockFilesService {
 
 class MockApiService {}
 
+const mockCurrentUser = signal<any>(null);
+const mockAuthService = {
+  isAuthenticated: computed(() => !!mockCurrentUser()),
+  currentUser$: mockCurrentUser,
+  isLoading$: signal(false),
+  error$: signal<string | null>(null),
+};
+
 describe('CommentFormComponent', () => {
   let component: CommentFormComponent;
   let fixture: ComponentFixture<CommentFormComponent>;
@@ -37,6 +48,8 @@ describe('CommentFormComponent', () => {
         { provide: CommentsService, useClass: MockCommentsService },
         { provide: FilesService, useClass: MockFilesService },
         { provide: ApiService, useClass: MockApiService },
+        { provide: AuthService, useValue: mockAuthService },
+        provideRouter([]),
       ],
     }).compileComponents();
 
