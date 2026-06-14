@@ -51,6 +51,24 @@ export function filterUsers<T extends { name?: string; email?: string; role?: st
 }
 
 /**
+ * Filter permissions by name
+ */
+export function filterPermissions<T extends { name?: string }>(
+  permissions: T[],
+  filters: { searchTerm?: string }
+): T[] {
+  return permissions.filter(permission => {
+    if (filters.searchTerm) {
+      const term = filters.searchTerm.toLowerCase();
+      const matchesSearch = permission.name?.toLowerCase().includes(term);
+      if (!matchesSearch) return false;
+    }
+
+    return true;
+  });
+}
+
+/**
  * Filter roles by name
  */
 export function filterRoles<T extends { name?: string }>(

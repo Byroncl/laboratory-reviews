@@ -1,6 +1,6 @@
 <div class="my-comments">
   <div class="header">
-    <h2>{{ messages.TITLE | translate }}</h2>
+    <h2>{{ messages.TITLE }}</h2>
     <span class="count">{{ comments$().length }}</span>
   </div>
 
@@ -9,10 +9,10 @@
   }
 
   @if (isLoading$()) {
-    <div class="loading">{{ messages.LOADING | translate }}</div>
+    <div class="loading">{{ messages.LOADING }}</div>
   } @else if (comments$().length === 0) {
     <div class="empty-state">
-      <p>{{ messages.EMPTY | translate }}</p>
+      <p>{{ messages.EMPTY }}</p>
     </div>
   } @else {
     <div class="comments-list">

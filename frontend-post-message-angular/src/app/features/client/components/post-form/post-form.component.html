@@ -1,11 +1,11 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
   <div class="form-group">
-    <label for="title">{{ messages.TITLE_LABEL | translate }}</label>
+    <label for="title">{{ messages.TITLE_LABEL }}</label>
     <input
       id="title"
       type="text"
       formControlName="title"
-      [placeholder]="messages.TITLE_LABEL | translate"
+      [placeholder]="messages.TITLE_LABEL"
       class="form-control"
     />
     @if (getFieldError('title')) {
@@ -16,11 +16,11 @@
   </div>
 
   <div class="form-group">
-    <label for="body">{{ messages.BODY_LABEL | translate }}</label>
+    <label for="body">{{ messages.BODY_LABEL }}</label>
     <textarea
       id="body"
       formControlName="body"
-      [placeholder]="messages.BODY_LABEL | translate"
+      [placeholder]="messages.BODY_LABEL"
       class="form-control"
       rows="6"
     ></textarea>
@@ -32,12 +32,12 @@
   </div>
 
   <div class="form-group">
-    <label for="categoryId">{{ messages.CATEGORY_LABEL | translate }}</label>
+    <label for="categoryId">{{ messages.CATEGORY_LABEL }}</label>
     <input
       id="categoryId"
       type="text"
       formControlName="categoryId"
-      [placeholder]="messages.CATEGORY_LABEL | translate"
+      [placeholder]="messages.CATEGORY_LABEL"
       class="form-control"
     />
   </div>
@@ -47,11 +47,11 @@
       @if (isSubmitting$()) {
         Guardando...
       } @else {
-        {{ (isEditing() ? messages.UPDATE_BUTTON : messages.CREATE_BUTTON) | translate }}
+        {{ (isEditing() ? messages.UPDATE_BUTTON : messages.CREATE_BUTTON) }}
       }
     </button>
     <button type="button" class="btn btn-secondary" (click)="onCancel()">
-      {{ messages.CANCEL_BUTTON | translate }}
+      {{ messages.CANCEL_BUTTON }}
     </button>
   </div>
 

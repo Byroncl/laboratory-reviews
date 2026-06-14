@@ -1,13 +1,13 @@
 <div class="profile">
   <div class="container">
-    <h2>{{ messages.TITLE | translate }}</h2>
+    <h2>{{ messages.TITLE }}</h2>
 
     @if (isLoadingProfile$()) {
-      <div class="loading">{{ messages.LOADING | translate }}</div>
+      <div class="loading">{{ messages.LOADING }}</div>
     } @else {
       <div class="profile-card">
         <div class="section">
-          <h3>{{ messages.PERSONAL_INFO | translate }}</h3>
+          <h3>{{ messages.PERSONAL_INFO }}</h3>
           <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()">
             <div class="form-group">
               <label for="name">Name</label>
@@ -40,7 +40,7 @@
         </div>
 
         <div class="section">
-          <h3>{{ messages.CHANGE_PASSWORD | translate }}</h3>
+          <h3>{{ messages.CHANGE_PASSWORD }}</h3>
           <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
             <div class="form-group">
               <label for="currentPassword">Current password</label>

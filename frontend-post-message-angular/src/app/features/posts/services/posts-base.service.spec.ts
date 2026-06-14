@@ -6,7 +6,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { PostsBaseService } from './posts-base.service';
-import { IPost, IPostListResponse, IPostResponse, IPostFilters } from '../interfaces';
+import { IPost, IPostListResponse, IPostResponse, IPostFilters, ICreatePostDTO, IBulkCreateResponse } from '../interfaces';
 
 // Concrete subclass to test the abstract base
 @Injectable()
@@ -90,29 +90,35 @@ describe('PostsBaseService (via TestPostsService)', () => {
     expect(service.isLoading()).toBeTrue();
 
     const req = httpMock.expectOne(r => r.url.includes('/posts'));
+    // Backend envelope shape: { data: { items, skip, limit, total }, message }
     req.flush({
-      data: [mockPost],
-      pagination: { skip: 0, limit: 10, total: 1 },
+      data: { items: [mockPost], skip: 0, limit: 10, total: 1 },
       message: 'OK',
+      statusCode: 200,
+      success: true,
     });
 
     tick();
     expect(service.isLoading()).toBeFalse();
   }));
 
-  it('should update items$ and pagination on successful load', fakeAsync(() => {
+  it('should update items$ and pagination on successful load — calls adaptPostListResponse', fakeAsync(() => {
     service.loadItemsPublic().subscribe();
 
     const req = httpMock.expectOne(r => r.url.includes('/posts'));
+    // Backend envelope shape: { data: { items, skip, limit, total }, message }
     req.flush({
-      data: [mockPost, mockPost2],
-      pagination: { skip: 0, limit: 10, total: 2 },
+      data: { items: [mockPost, mockPost2], skip: 0, limit: 10, total: 2 },
       message: 'OK',
+      statusCode: 200,
+      success: true,
     });
 
     tick();
     expect(service.items$().length).toBe(2);
     expect(service.pagination().total).toBe(2);
+    expect(service.pagination().skip).toBe(0);
+    expect(service.pagination().limit).toBe(10);
   }));
 
   it('should set error$ on HTTP error', fakeAsync(() => {
@@ -122,10 +128,13 @@ describe('PostsBaseService (via TestPostsService)', () => {
       error: () => { errorThrown = true; },
     });
 
-    const reqs = httpMock.match(r => r.url.includes('/posts'));
-    reqs.forEach(r => r.flush('Server Error', { status: 500, statusText: 'Internal Server Error' }));
+    // retry(2) = 3 total attempts; flush each one
+    for (let i = 0; i < 3; i++) {
+      const reqs = httpMock.match(r => r.url.includes('/posts'));
+      reqs.forEach(r => r.flush('Server Error', { status: 500, statusText: 'Internal Server Error' }));
+      tick();
+    }
 
-    tick();
     expect(service.hasError()).toBeTrue();
     expect(errorThrown).toBeTrue();
   }));
@@ -230,4 +239,62 @@ describe('PostsBaseService (via TestPostsService)', () => {
     expect(params['skip']).toBe(20);
     expect(params['limit']).toBe(5);
   });
+
+  // ─── New method tests (Phase 7.4) ───────────────────────────────────────────
+
+  it('bulkCreatePosts() — should POST to /posts/bulk and return IBulkCreateResponse', fakeAsync(() => {
+    const dtos: ICreatePostDTO[] = [
+      { title: 'Post 1', content: 'Content 1' },
+      { title: 'Post 2', content: 'Content 2' },
+    ];
+
+    const mockResult: IBulkCreateResponse = { created: 2, failed: 0 };
+
+    let result: IBulkCreateResponse | undefined;
+    service.bulkCreatePosts(dtos).subscribe((res) => { result = res; });
+
+    const req = httpMock.expectOne(r => r.url.includes('/posts/bulk') && r.method === 'POST');
+    expect(req.request.body).toEqual(dtos);
+
+    req.flush(mockResult);
+    tick();
+
+    expect(result).toEqual({ created: 2, failed: 0 });
+  }));
+
+  it('updatePostStatus() — should PATCH /posts/:id/status with { status } payload', fakeAsync(() => {
+    const mockUpdated: IPost = { ...mockPost, status: 'archived' };
+
+    let result: IPostResponse | undefined;
+    service.updatePostStatus('post-1', 'archived').subscribe((res: any) => { result = res; });
+
+    const req = httpMock.expectOne(r => r.url.includes('/posts/post-1/status') && r.method === 'PATCH');
+    expect(req.request.body).toEqual({ status: 'archived' });
+
+    req.flush({ data: mockUpdated, message: 'Updated' });
+    tick();
+
+    expect(result).toBeTruthy();
+  }));
+
+  it('_handleLoadSuccess() — adapts raw backend envelope before setting signals', fakeAsync(() => {
+    service.loadItemsPublic().subscribe();
+
+    const req = httpMock.expectOne(r => r.url.includes('/posts'));
+    // Raw backend shape (not frontend IPostListResponse)
+    req.flush({
+      data: { items: [mockPost], skip: 5, limit: 20, total: 100 },
+      statusCode: 200,
+      success: true,
+      message: 'OK',
+    });
+
+    tick();
+
+    // Adapter should have bridged it to frontend signals
+    expect(service.items$().length).toBe(1);
+    expect(service.pagination().skip).toBe(5);
+    expect(service.pagination().limit).toBe(20);
+    expect(service.pagination().total).toBe(100);
+  }));
 });

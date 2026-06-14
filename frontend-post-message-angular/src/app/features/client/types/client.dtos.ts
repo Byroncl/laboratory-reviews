@@ -63,6 +63,8 @@ export interface CreatePostFormData {
   categoryId?: string;
 }
 
+export type UpdatePostFormData = CreatePostFormData;
+
 export interface UpdateProfileFormData {
   name: string;
   lastname: string;

@@ -29,6 +29,19 @@ describe('PostsService', () => {
     },
   ];
 
+  /**
+   * Helper: build the backend envelope shape that adaptPostListResponse expects.
+   * { data: { items, skip, limit, total }, statusCode, success, message }
+   */
+  function backendListFlush(posts: IPost[], total = posts.length, skip = 0, limit = 10) {
+    return {
+      data: { items: posts, skip, limit, total },
+      statusCode: 200,
+      success: true,
+      message: 'OK',
+    };
+  }
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
@@ -55,11 +68,7 @@ describe('PostsService', () => {
     });
 
     const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({
-      data: mockPosts,
-      pagination: { skip: 0, limit: 10, total: 2 },
-      message: 'OK',
-    });
+    req.flush(backendListFlush(mockPosts));
 
     expect(completed).toBeTrue();
     expect(service.posts$().length).toBe(2);
@@ -70,11 +79,7 @@ describe('PostsService', () => {
     service.loadPosts().subscribe();
 
     const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({
-      data: mockPosts,
-      pagination: { skip: 0, limit: 10, total: 2 },
-      message: 'OK',
-    });
+    req.flush(backendListFlush(mockPosts));
 
     service.updateFilters({ searchTerm: 'Angular' });
 
@@ -86,11 +91,7 @@ describe('PostsService', () => {
     service.loadPosts().subscribe();
 
     const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({
-      data: mockPosts,
-      pagination: { skip: 0, limit: 10, total: 2 },
-      message: 'OK',
-    });
+    req.flush(backendListFlush(mockPosts));
 
     service.updateFilters({ author: 'Bob' });
 
@@ -102,11 +103,7 @@ describe('PostsService', () => {
     service.loadPosts().subscribe();
 
     const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({
-      data: mockPosts,
-      pagination: { skip: 0, limit: 10, total: 2 },
-      message: 'OK',
-    });
+    req.flush(backendListFlush(mockPosts));
 
     service.updateFilters({ author: 'Alice' });
     expect(service.filteredPosts$().length).toBe(1);
@@ -184,11 +181,7 @@ describe('PostsService', () => {
     service.loadPosts().subscribe();
 
     const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({
-      data: mockPosts,
-      pagination: { skip: 0, limit: 10, total: 20 },
-      message: 'OK',
-    });
+    req.flush(backendListFlush(mockPosts, 20));
 
     expect(service.posts$().length).toBe(2);
     expect(service.pagination().total).toBe(20);
@@ -240,7 +233,7 @@ describe('PostsService', () => {
   it('updateFilters should update filter state', fakeAsync(() => {
     service.loadPosts().subscribe();
     const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: mockPosts, pagination: { skip: 0, limit: 10, total: 2 }, message: 'OK' });
+    req.flush(backendListFlush(mockPosts));
 
     service.updateFilters({ searchTerm: 'Angular', status: 'published' });
 
@@ -255,7 +248,7 @@ describe('PostsService', () => {
     expect(req.request.params.get('search')).toBe('test');
     expect(req.request.params.get('author')).toBe('Alice');
     expect(req.request.params.get('status')).toBe('draft');
-    req.flush({ data: [], pagination: { skip: 0, limit: 10, total: 0 }, message: 'OK' });
+    req.flush(backendListFlush([], 0));
     tick();
   }));
 
@@ -276,7 +269,7 @@ describe('PostsService', () => {
     expect(service.isLoadingPosts()).toBeTrue();
 
     const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: [], pagination: { skip: 0, limit: 10, total: 0 }, message: 'OK' });
+    req.flush(backendListFlush([], 0));
     tick();
 
     expect(service.isLoadingPosts()).toBeFalse();
@@ -285,10 +278,13 @@ describe('PostsService', () => {
   it('postError should reflect error state on failure', fakeAsync(() => {
     service.loadPosts().subscribe({ error: () => {} });
 
-    const reqs = httpMock.match(r => r.url.includes('/posts'));
-    reqs.forEach(r => r.flush('Error', { status: 500, statusText: 'Server Error' }));
+    // retry(2) = 3 total attempts; flush each one
+    for (let i = 0; i < 3; i++) {
+      const reqs = httpMock.match(r => r.url.includes('/posts'));
+      reqs.forEach(r => r.flush('Error', { status: 500, statusText: 'Server Error' }));
+      tick();
+    }
 
-    tick();
     expect(service.postError()).not.toBeNull();
   }));
 });

@@ -57,7 +57,7 @@ export class RoleFormComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.permissions = this.permissionsService.permissions();
+          this.permissions = this.permissionsService.permissions$();
         },
         error: () => {
           this.notificationService.toast('Error al cargar permisos', 'error');
@@ -80,8 +80,8 @@ export class RoleFormComponent implements OnInit, OnDestroy {
   }
 
   private loadRoleData(): void {
-    const roles = this.rolesService.roles();
-    const role = roles.find(r => (r._id ?? r.id) === this.editingRoleId);
+    const roles = this.rolesService.roles$();
+    const role = roles.find((r: Role) => (r._id ?? r.id) === this.editingRoleId);
     if (role) {
       this.form.patchValue({
         name: role.name

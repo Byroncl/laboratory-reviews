@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { signal, computed } from '@angular/core';
 import { of } from 'rxjs';
-import { ParamMap, convertToParamMap } from '@angular/router';
+import { convertToParamMap } from '@angular/router';
 
 import { PostDetailComponent } from './post-detail.component';
 import { PostsService } from '../services/posts.service';
@@ -99,13 +99,15 @@ describe('PostDetailComponent', () => {
     expect(component.post()).toEqual(mockPost);
   });
 
-  it('should call createComment when onCommentSubmit is called', () => {
-    const dto: ICreateCommentDTO = {
-      content: 'Nice!',
-      post: 'p1',
-    };
-    component.onCommentSubmit(dto);
-    expect(commentsService.createComment).toHaveBeenCalledWith(dto);
+  it('should bind post.content (not post.body) from loaded post', () => {
+    expect(component.post()?.content).toBe('Post body content');
+  });
+
+  it('should call loadCommentsByPost again when onCommentSubmitted is called', () => {
+    const callCountBefore = (commentsService.loadCommentsByPost as jasmine.Spy).calls.count();
+    component.onCommentSubmitted();
+    expect(commentsService.loadCommentsByPost).toHaveBeenCalledWith('p1');
+    expect((commentsService.loadCommentsByPost as jasmine.Spy).calls.count()).toBeGreaterThan(callCountBefore);
   });
 
   it('should call nextPage and reload comments on onNextPage', () => {

@@ -96,7 +96,7 @@
       <app-pagination
         [currentPage]="usersService.currentPage()"
         [totalPages]="usersService.totalPages()"
-        [total]="usersService.totalUsers()"
+        [total]="totalUsersCount()"
         [pageSize]="pageSize"
         (pageChanged)="onPageChange($event)"
       ></app-pagination>

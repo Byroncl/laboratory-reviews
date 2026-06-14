@@ -58,8 +58,8 @@ export class PermissionFormComponent implements OnInit, OnDestroy {
   }
 
   private loadPermissionData(): void {
-    const permissions = this.permissionsService.permissions();
-    const permission = permissions.find(p => (p._id ?? p.id) === this.editingPermissionId);
+    const permissions = this.permissionsService.permissions$();
+    const permission = permissions.find((p: Permission) => (p._id ?? p.id) === this.editingPermissionId);
     if (permission) {
       this.form.patchValue({
         name: permission.name,
