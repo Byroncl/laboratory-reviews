@@ -79,7 +79,13 @@ export class PostsService {
     const sort: Record<string, 1 | -1> = { [sortBy]: sortOrder };
 
     const [items, total] = await Promise.all([
-      this.postModel.find(filter).sort(sort).skip(skip).limit(limit).exec(),
+      this.postModel
+        .find(filter)
+        .populate('categoryId', 'name slug color')
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .exec(),
       this.postModel.countDocuments(filter).exec(),
     ]);
 
@@ -92,7 +98,7 @@ export class PostsService {
   }
 
   async findOne(id: string): Promise<Post | null> {
-    return this.postModel.findById(id).exec();
+    return this.postModel.findById(id).populate('categoryId', 'name slug color').exec();
   }
 
   async findByAuthorId(
@@ -142,7 +148,7 @@ export class PostsService {
     }
 
     if (post?.categoryId && this.categoriesService) {
-      await this.categoriesService.decrementPostsCount(post.categoryId);
+      await this.categoriesService.decrementPostsCount(post.categoryId.toString());
     }
 
     return post;

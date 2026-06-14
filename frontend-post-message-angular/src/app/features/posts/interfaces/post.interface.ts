@@ -1,5 +1,12 @@
 import { PostStatus } from '../types';
 
+export interface ICategory {
+  _id: string;
+  name: string;
+  slug: string;
+  color: string;
+}
+
 export interface IPost {
   id?: string;
   _id?: string;
@@ -12,6 +19,8 @@ export interface IPost {
   tags?: string[];
   viewCount?: number;
   commentCount?: number;
+  categoryId?: ICategory;
+  categoryName?: string;
 }
 
 export interface ICreatePostDTO {

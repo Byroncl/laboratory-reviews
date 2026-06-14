@@ -1,9 +1,20 @@
-<div class="post-card" [class.loading]="isLoading">
+<div
+  class="post-card"
+  [class.loading]="isLoading"
+  [style.border-left-color]="post.categoryId?.color || '#E5E7EB'"
+>
   <div class="post-card-header">
-    <h3 class="post-title">{{ post.title }}</h3>
-    <span class="post-status" [ngClass]="'status-' + post.status">
-      {{ post.status | postStatus }}
-    </span>
+    <div class="header-top">
+      <h3 class="post-title">{{ post.title }}</h3>
+      <span class="post-status" [ngClass]="'status-' + post.status">
+        {{ post.status | postStatus }}
+      </span>
+    </div>
+    @if (post.categoryId) {
+      <span class="category-badge" [ngStyle]="{ backgroundColor: post.categoryId.color }">
+        {{ post.categoryId.name }}
+      </span>
+    }
   </div>
 
   <div class="post-meta">

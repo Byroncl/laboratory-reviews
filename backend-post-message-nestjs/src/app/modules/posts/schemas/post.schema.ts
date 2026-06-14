@@ -32,8 +32,8 @@ export class Post {
   @Prop({ default: false })
   isDeleted: boolean;
 
-  @Prop({ type: String, required: false, index: true })
-  categoryId?: string;
+  @Prop({ type: Types.ObjectId, ref: 'Category', required: false, index: true })
+  categoryId?: Types.ObjectId;
 
   @Prop({ type: String, required: false })
   categoryName?: string;
