@@ -27,7 +27,6 @@ export class ClientMapper {
       lastname: entity.lastname,
       username: entity.username,
       email: entity.email,
-      password_hash: entity.password_hash,
       type: entity.type,
       isActive: entity.isActive,
       createdAt: entity.createdAt,
