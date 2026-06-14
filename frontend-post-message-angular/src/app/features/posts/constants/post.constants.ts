@@ -30,3 +30,11 @@ export const STATUS_FILTER_OPTIONS = [
   { value: POST_STATUSES.PUBLISHED, label: STATUS_DISPLAY_LABELS.published },
   { value: POST_STATUSES.ARCHIVED, label: STATUS_DISPLAY_LABELS.archived },
 ] as const;
+
+// Tag constraints
+export const MAX_TAGS = 10;
+export const MAX_TAG_LENGTH = 30;
+
+// Supported reaction emojis
+export const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😡'] as const;
+export type ReactionEmoji = typeof REACTION_EMOJIS[number];

@@ -23,9 +23,6 @@
       </div>
 
       <div class="post-meta">
-        <span class="meta-item">
-          <strong>Author:</strong> {{ post()!.author }}
-        </span>
         @if (post()!.createdAt) {
           <span class="meta-item">
             <strong>Published:</strong> {{ post()!.createdAt | date: 'long' }}
@@ -46,16 +43,16 @@
       }
 
       <div class="post-body">
-        {{ post()!.body }}
+        {{ post()!.content }}
       </div>
 
       <div class="comments-section">
         <h2>Comments ({{ post()!.commentCount || 0 }})</h2>
 
         <app-comment-form
-          [postId]="post()!.id || ''"
-          [isLoading]="commentsLoading$()"
-          (submit)="onCommentSubmit($event)"
+          [postId]="post()!.id || post()!._id || ''"
+          [disabled]="false"
+          (submitted)="onCommentSubmitted()"
         ></app-comment-form>
 
         @if (commentsLoading$()) {
@@ -75,10 +72,9 @@
             @for (comment of comments$(); track comment.id) {
               <div class="comment">
                 <div class="comment-header">
-                  <strong>{{ comment.name }}</strong>
                   <span class="comment-date">{{ comment.createdAt | date: 'short' }}</span>
                 </div>
-                <p class="comment-body">{{ comment.body }}</p>
+                <p class="comment-body">{{ comment.content }}</p>
               </div>
             }
           </div>

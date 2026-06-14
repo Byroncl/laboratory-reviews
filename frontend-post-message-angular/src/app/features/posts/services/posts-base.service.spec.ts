@@ -45,7 +45,7 @@ class TestPostsService extends PostsBaseService<IPost> {
 const mockPost: IPost = {
   _id: 'post-1',
   title: 'Test Post',
-  body: 'Test content here',
+  content: 'Test content here',
   author: 'Alice',
   status: 'published',
 };
@@ -53,7 +53,7 @@ const mockPost: IPost = {
 const mockPost2: IPost = {
   _id: 'post-2',
   title: 'Second Post',
-  body: 'More content here',
+  content: 'More content here',
   author: 'Bob',
   status: 'draft',
 };
@@ -134,7 +134,7 @@ describe('PostsBaseService (via TestPostsService)', () => {
     service.items$.set([mockPost2]);
     service.pagination.set({ skip: 0, limit: 10, total: 1 });
 
-    service.createItemPublic({ title: 'New', body: 'Content', author: 'C', status: 'draft' }).subscribe();
+    service.createItemPublic({ title: 'New', content: 'Content', status: 'draft' }).subscribe();
 
     const req = httpMock.expectOne(r => r.url.includes('/posts') && r.method === 'POST');
     req.flush({ data: mockPost, message: 'Created' });
@@ -216,7 +216,7 @@ describe('PostsBaseService (via TestPostsService)', () => {
   });
 
   it('should return _id preferring it over id', () => {
-    const post: IPost = { _id: 'from-_id', id: 'from-id', title: 'T', body: 'B', author: 'A', status: 'draft' };
+    const post: IPost = { _id: 'from-_id', id: 'from-id', title: 'T', content: 'B', author: 'A', status: 'draft' };
     expect(service.getIdPublic(post)).toBe('from-_id');
   });
 

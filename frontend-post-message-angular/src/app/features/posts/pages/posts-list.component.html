@@ -4,6 +4,8 @@
     <a routerLink="/posts/new" class="btn btn-primary">New Post</a>
   </div>
 
+  <app-bulk-upload></app-bulk-upload>
+
   <app-post-filter
     [isLoading]="loading$()"
     (filterChange)="onFilterChange($event)"

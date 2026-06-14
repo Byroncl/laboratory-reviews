@@ -6,7 +6,7 @@ import { computed, signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { Post } from '../../../shared/models/post.model';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
-import { selectIsAuthenticated } from '../../auth/store/auth.selectors';
+import { selectIsAuthenticated, selectAuthUser } from '../../auth/store/auth.selectors';
 
 const mockPosts: Post[] = [
   { _id: '1', title: 'Angular Post', content: 'Body about angular framework', author: 'alice', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
@@ -43,7 +43,10 @@ describe('HomeComponent', () => {
         providers: [
           { provide: PostsService, useClass: MockPostsService },
           provideMockStore({
-            selectors: [{ selector: selectIsAuthenticated, value: false }],
+            selectors: [
+              { selector: selectIsAuthenticated, value: false },
+              { selector: selectAuthUser, value: null },
+            ],
           }),
         ],
       }).compileComponents();
@@ -139,7 +142,10 @@ describe('HomeComponent', () => {
         providers: [
           { provide: PostsService, useClass: MockPostsService },
           provideMockStore({
-            selectors: [{ selector: selectIsAuthenticated, value: true }],
+            selectors: [
+              { selector: selectIsAuthenticated, value: true },
+              { selector: selectAuthUser, value: { id: '123', username: 'testuser', role: 'user' } },
+            ],
           }),
         ],
       }).compileComponents();
@@ -171,7 +177,10 @@ describe('HomeComponent', () => {
         providers: [
           { provide: PostsService, useClass: MockPostsServiceWithError },
           provideMockStore({
-            selectors: [{ selector: selectIsAuthenticated, value: false }],
+            selectors: [
+              { selector: selectIsAuthenticated, value: false },
+              { selector: selectAuthUser, value: null },
+            ],
           }),
         ],
       }).compileComponents();

@@ -11,7 +11,7 @@ describe('PostCardComponent', () => {
     id: 'post-1',
     _id: 'post-1',
     title: 'Test Post Title',
-    body: 'This is the test post body content for display.',
+    content: 'This is the test post body content for display.',
     author: 'Alice',
     status: 'draft',
     tags: ['angular'],

@@ -6,7 +6,7 @@
         id="search"
         type="text"
         formControlName="searchTerm"
-        placeholder="Search by title, body, or author..."
+        placeholder="Search by title, content, or author..."
         [attr.disabled]="isLoading ? true : null"
       />
     </div>
@@ -30,6 +30,17 @@
           <option [value]="option.value">{{ option.label }}</option>
         }
       </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="tags">Tags (comma-separated)</label>
+      <input
+        id="tags"
+        type="text"
+        formControlName="tags"
+        placeholder="angular, nestjs..."
+        [attr.disabled]="isLoading ? true : null"
+      />
     </div>
 
     <div class="filter-group">

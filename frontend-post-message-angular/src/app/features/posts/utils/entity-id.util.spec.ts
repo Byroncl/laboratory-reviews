@@ -8,17 +8,17 @@ describe('entity-id.util', () => {
 
   describe('getPostId', () => {
     it('should return _id when present', () => {
-      const post: IPost = { _id: 'abc123', title: 'T', body: 'B', author: 'A', status: 'draft' };
+      const post: IPost = { _id: 'abc123', title: 'T', content: 'B', author: 'A', status: 'draft' };
       expect(getPostId(post)).toBe('abc123');
     });
 
     it('should return id when _id is absent', () => {
-      const post: IPost = { id: 'xyz789', title: 'T', body: 'B', author: 'A', status: 'draft' };
+      const post: IPost = { id: 'xyz789', title: 'T', content: 'B', author: 'A', status: 'draft' };
       expect(getPostId(post)).toBe('xyz789');
     });
 
     it('should prefer _id over id when both are present', () => {
-      const post: IPost = { _id: 'primary', id: 'secondary', title: 'T', body: 'B', author: 'A', status: 'draft' };
+      const post: IPost = { _id: 'primary', id: 'secondary', title: 'T', content: 'B', author: 'A', status: 'draft' };
       expect(getPostId(post)).toBe('primary');
     });
 
@@ -31,7 +31,7 @@ describe('entity-id.util', () => {
     });
 
     it('should return null when both _id and id are absent', () => {
-      const post: IPost = { title: 'T', body: 'B', author: 'A', status: 'draft' };
+      const post: IPost = { title: 'T', content: 'B', author: 'A', status: 'draft' };
       expect(getPostId(post)).toBeNull();
     });
   });
@@ -40,12 +40,12 @@ describe('entity-id.util', () => {
 
   describe('getCommentId', () => {
     it('should return _id when present', () => {
-      const comment: IComment = { _id: 'c1', postId: 'p1', name: 'John', email: 'j@x.com', body: 'Hi' };
+      const comment: IComment = { _id: 'c1', post: 'p1', content: 'Hi' };
       expect(getCommentId(comment)).toBe('c1');
     });
 
     it('should return id when _id is absent', () => {
-      const comment: IComment = { id: 'c2', postId: 'p1', name: 'Jane', email: 'j@x.com', body: 'Hey' };
+      const comment: IComment = { id: 'c2', post: 'p1', content: 'Hey' };
       expect(getCommentId(comment)).toBe('c2');
     });
 

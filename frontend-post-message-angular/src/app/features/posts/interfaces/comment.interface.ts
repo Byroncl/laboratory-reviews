@@ -1,25 +1,25 @@
 export interface IComment {
   id?: string;
   _id?: string;
-  postId: string;
-  name: string;
-  email: string;
-  body: string;
+  post: string;
+  content: string;
+  author?: string;
   replies?: IComment[];
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export interface ICreateCommentDTO {
-  postId: string;
-  name: string;
-  email: string;
-  body: string;
+  content: string;
+  post: string;
 }
 
 export interface ICommentResponse {
-  data: IComment;
+  statusCode: number;
+  success: boolean;
   message: string;
+  data: IComment;
+  timestamp?: string;
 }
 
 export interface ICommentListResponse {
@@ -30,4 +30,27 @@ export interface ICommentListResponse {
     total: number;
   };
   message: string;
+}
+
+export interface IReactionSummary {
+  emoji: string;
+  count: number;
+  reactedByMe?: boolean;
+}
+
+export interface IReaction {
+  id?: string;
+  _id?: string;
+  commentId: string;
+  emoji: string;
+  userId?: string;
+  createdAt?: Date;
+}
+
+export interface IReactionResponse {
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: IReaction;
+  timestamp?: string;
 }

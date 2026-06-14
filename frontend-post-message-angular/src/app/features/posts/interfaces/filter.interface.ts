@@ -11,7 +11,7 @@ export interface IPostFilters {
 
 export interface ICommentFilters {
   searchTerm?: string;
-  email?: string;
+  author?: string;
   postId?: string;
   dateFrom?: Date;
   dateTo?: Date;

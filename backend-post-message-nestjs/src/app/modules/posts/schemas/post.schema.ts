@@ -37,6 +37,16 @@ export class Post {
 
   @Prop({ type: String, required: false })
   categoryName?: string;
+
+  @Prop({
+    type: String,
+    enum: ['draft', 'published', 'archived'],
+    default: 'draft',
+  })
+  status?: string;
+
+  @Prop({ type: [String], default: [] })
+  tags?: string[];
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);

@@ -4,7 +4,8 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PostsService } from '../services';
 import { ICreatePostDTO, IUpdatePostDTO } from '../interfaces';
-import { POST_VALIDATION } from '../constants';
+import { POST_VALIDATION, POST_STATUSES, STATUS_FILTER_OPTIONS, MAX_TAGS, MAX_TAG_LENGTH } from '../constants';
+import { PostStatus } from '../types';
 
 @Component({
   selector: 'app-post-form',
@@ -26,11 +27,13 @@ export class PostFormComponent implements OnInit {
   editPostId = signal<string | null>(null);
   error = signal<string | null>(null);
 
+  readonly statusOptions = STATUS_FILTER_OPTIONS;
+
   ngOnInit(): void {
     this.postForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(POST_VALIDATION.TITLE_MIN)]],
-      body: ['', [Validators.required, Validators.minLength(POST_VALIDATION.BODY_MIN)]],
-      author: ['', [Validators.required, Validators.minLength(POST_VALIDATION.AUTHOR_MIN)]],
+      content: ['', [Validators.required, Validators.minLength(POST_VALIDATION.BODY_MIN)]],
+      status: [''],
       tags: [''],
     });
 
@@ -51,8 +54,8 @@ export class PostFormComponent implements OnInit {
         const post = response.data;
         this.postForm.patchValue({
           title: post.title,
-          body: post.body,
-          author: post.author,
+          content: post.content,
+          status: post.status ?? '',
           tags: post.tags?.join(', ') || '',
         });
       },
@@ -68,33 +71,49 @@ export class PostFormComponent implements OnInit {
   onSubmit(): void {
     this.submitted = true;
 
-    if (this.postForm.valid) {
-      this.isLoading.set(true);
-      const formValue = this.postForm.value;
-      const data = {
-        title: formValue.title,
-        body: formValue.body,
-        author: formValue.author,
-        tags: formValue.tags
-          ? formValue.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
-          : [],
-      };
-
-      const request = this.isEditMode()
-        ? this.postsService.updatePost(this.editPostId()!, data as IUpdatePostDTO)
-        : this.postsService.createPost(data as ICreatePostDTO);
-
-      request.subscribe({
-        next: () => {
-          this.router.navigate(['/posts']);
-        },
-        error: (err) => {
-          this.error.set('Failed to save post');
-          console.error(err);
-          this.isLoading.set(false);
-        },
-      });
+    if (this.postForm.invalid) {
+      return;
     }
+
+    this.isLoading.set(true);
+    const formValue = this.postForm.value;
+
+    const parsedTags: string[] = formValue.tags
+      ? formValue.tags
+          .split(',')
+          .map((t: string) => t.trim())
+          .filter(Boolean)
+          .slice(0, MAX_TAGS)
+          .map((t: string) => t.substring(0, MAX_TAG_LENGTH))
+      : [];
+
+    const data: ICreatePostDTO = {
+      title: formValue.title,
+      content: formValue.content,
+    };
+
+    if (formValue.status) {
+      data.status = formValue.status as PostStatus;
+    }
+
+    if (parsedTags.length > 0) {
+      data.tags = parsedTags;
+    }
+
+    const request = this.isEditMode()
+      ? this.postsService.updatePost(this.editPostId()!, data as IUpdatePostDTO)
+      : this.postsService.createPost(data);
+
+    request.subscribe({
+      next: () => {
+        this.router.navigate(['/posts']);
+      },
+      error: (err) => {
+        this.error.set('Failed to save post');
+        console.error(err);
+        this.isLoading.set(false);
+      },
+    });
   }
 
   onCancel(): void {

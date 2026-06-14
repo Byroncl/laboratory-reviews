@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PostsService, CommentsService } from '../services';
 import { CommentFormComponent, PaginationComponent } from '../components';
-import { ICreateCommentDTO, IPost } from '../interfaces';
+import { IPost } from '../interfaces';
 
 @Component({
   selector: 'app-post-detail',
@@ -58,26 +58,26 @@ export class PostDetailComponent implements OnInit {
     });
   }
 
-  onCommentSubmit(data: ICreateCommentDTO): void {
-    this.commentsService.createComment(data).subscribe({
-      next: () => console.log('Comment added'),
-      error: (err) => console.error('Failed to add comment:', err),
-    });
+  onCommentSubmitted(): void {
+    const currentPost = this.post();
+    if (currentPost?.id || currentPost?._id) {
+      this.loadComments((currentPost.id || currentPost._id)!);
+    }
   }
 
   onNextPage(): void {
     this.commentsService.nextPage();
     const currentPost = this.post();
-    if (currentPost?.id) {
-      this.loadComments(currentPost.id);
+    if (currentPost?.id || currentPost?._id) {
+      this.loadComments((currentPost.id || currentPost._id)!);
     }
   }
 
   onPrevPage(): void {
     this.commentsService.prevPage();
     const currentPost = this.post();
-    if (currentPost?.id) {
-      this.loadComments(currentPost.id);
+    if (currentPost?.id || currentPost?._id) {
+      this.loadComments((currentPost.id || currentPost._id)!);
     }
   }
 }

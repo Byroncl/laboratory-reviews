@@ -6,8 +6,10 @@ import {
   Param,
   Delete,
   Put,
+  Patch,
   Query,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PaginationQueryDto } from '../../../core/dto/pagination.dto';
 import {
@@ -35,6 +37,7 @@ import {
   POSTS_RESPONSE_DESCRIPTIONS,
   POSTS_PARAM_DESCRIPTIONS,
   POSTS_MESSAGES,
+  POST_STATUSES,
 } from '../constants/posts.constants';
 
 @ApiTags('posts')
@@ -112,6 +115,7 @@ export class PostsController {
     @Query() paginationDto: PaginationQueryDto,
     @Query('categoryId') categoryId?: string,
     @Query('status') status?: string,
+    @Query('tags') tags?: string,
     @Query('author') author?: string,
     @Query('search') search?: string,
     @Query('sortBy') sortBy?: string,
@@ -120,7 +124,7 @@ export class PostsController {
     const result = await this.postsService.findAllPaginated(
       paginationDto.skip,
       paginationDto.limit,
-      { categoryId, status, author, search, sortBy, sortOrder },
+      { categoryId, status, tags, author, search, sortBy, sortOrder },
     );
     return ApiRes.success(result);
   }
@@ -209,6 +213,44 @@ export class PostsController {
     await this.postsService.remove(findOneDto.id);
     this.postsGateway.notifyPostDeleted(findOneDto.id, currentUser.username);
     return ApiRes.success(null, this.i18n.translate(POSTS_MESSAGES.DELETED));
+  }
+
+  @Auth()
+  @ApiOperation({ summary: 'Update post status', description: 'Update only the status of a post' })
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: POSTS_PARAM_DESCRIPTIONS.ID,
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['status'],
+      properties: {
+        status: { type: 'string', enum: ['draft', 'published', 'archived'] },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: POSTS_RESPONSE_DESCRIPTIONS.UPDATED,
+    type: PostResponseDto,
+  })
+  @ApiResponse({ status: 400, description: POSTS_RESPONSE_DESCRIPTIONS.VALIDATION_FAILED })
+  @ApiResponse({ status: 401, description: POSTS_RESPONSE_DESCRIPTIONS.UNAUTHORIZED })
+  @ApiResponse({ status: 404, description: POSTS_RESPONSE_DESCRIPTIONS.NOT_FOUND })
+  @Patch(':id/status')
+  async updateStatus(
+    @Param() findOneDto: FindOneDto,
+    @Body('status') status: string,
+  ) {
+    if (!POST_STATUSES.includes(status as any)) {
+      throw new BadRequestException(
+        `Status must be one of: ${POST_STATUSES.join(', ')}`,
+      );
+    }
+    const post = await this.postsService.updateStatus(findOneDto.id, status);
+    return ApiRes.success(post, this.i18n.translate(POSTS_MESSAGES.UPDATED));
   }
 
   @Auth()

@@ -23,7 +23,7 @@
   </div>
 
   <div class="post-body">
-    <p>{{ post.body | slice: 0:150 }}...</p>
+    <p>{{ post.content | slice: 0:150 }}...</p>
   </div>
 
   @if (post.tags && post.tags.length > 0) {

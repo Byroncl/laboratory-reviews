@@ -1,7 +1,7 @@
 import { IPost, IComment, IPostFilters, ICommentFilters } from '../interfaces';
 
 /**
- * Filters posts by search term (title + body + author)
+ * Filters posts by search term (title + content + author)
  */
 export function filterPostsBySearchTerm(posts: IPost[], searchTerm: string): IPost[] {
   if (!searchTerm || !searchTerm.trim()) {
@@ -12,7 +12,7 @@ export function filterPostsBySearchTerm(posts: IPost[], searchTerm: string): IPo
   return posts.filter(
     (post) =>
       post.title.toLowerCase().includes(term) ||
-      post.body.toLowerCase().includes(term) ||
+      post.content.toLowerCase().includes(term) ||
       post.author.toLowerCase().includes(term),
   );
 }
@@ -75,7 +75,7 @@ export function applyPostFilters(posts: IPost[], filters: IPostFilters): IPost[]
 }
 
 /**
- * Filters comments by search term (name + email + body)
+ * Filters comments by search term (content + author)
  */
 export function filterCommentsBySearchTerm(comments: IComment[], searchTerm: string): IComment[] {
   if (!searchTerm || !searchTerm.trim()) {
@@ -85,26 +85,31 @@ export function filterCommentsBySearchTerm(comments: IComment[], searchTerm: str
   const term = searchTerm.toLowerCase();
   return comments.filter(
     (comment) =>
-      comment.name.toLowerCase().includes(term) ||
-      comment.email.toLowerCase().includes(term) ||
-      comment.body.toLowerCase().includes(term),
+      comment.content.toLowerCase().includes(term) ||
+      (comment.author?.toLowerCase().includes(term) ?? false),
   );
 }
 
 /**
- * Filters comments by email
+ * Filters comments by author
  */
-export function filterCommentsByEmail(comments: IComment[], email: string | undefined): IComment[] {
-  if (!email) return comments;
-  return comments.filter((comment) => comment.email.toLowerCase() === email.toLowerCase());
+export function filterCommentsByAuthor(
+  comments: IComment[],
+  author: string | undefined,
+): IComment[] {
+  if (!author) return comments;
+  return comments.filter((comment) => comment.author?.toLowerCase() === author.toLowerCase());
 }
 
 /**
  * Filters comments by post ID
  */
-export function filterCommentsByPostId(comments: IComment[], postId: string | undefined): IComment[] {
+export function filterCommentsByPostId(
+  comments: IComment[],
+  postId: string | undefined,
+): IComment[] {
   if (!postId) return comments;
-  return comments.filter((comment) => comment.postId === postId);
+  return comments.filter((comment) => comment.post === postId);
 }
 
 /**
@@ -130,7 +135,7 @@ export function filterCommentsByDateRange(
 export function applyCommentFilters(comments: IComment[], filters: ICommentFilters): IComment[] {
   let result = comments;
   result = filterCommentsBySearchTerm(result, filters.searchTerm || '');
-  result = filterCommentsByEmail(result, filters.email);
+  result = filterCommentsByAuthor(result, filters.author);
   result = filterCommentsByPostId(result, filters.postId);
   result = filterCommentsByDateRange(result, filters.dateFrom, filters.dateTo);
   return result;

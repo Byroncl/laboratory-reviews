@@ -12,7 +12,7 @@ describe('PostsService', () => {
     {
       _id: '1',
       title: 'Angular Post',
-      body: 'Content 1',
+      content: 'Content 1',
       author: 'Alice',
       status: 'published',
       createdAt: new Date('2024-01-01T00:00:00.000Z'),
@@ -21,7 +21,7 @@ describe('PostsService', () => {
     {
       _id: '2',
       title: 'NestJS Post',
-      body: 'Content 2',
+      content: 'Content 2',
       author: 'Bob',
       status: 'published',
       createdAt: new Date('2024-01-02T00:00:00.000Z'),
@@ -124,7 +124,7 @@ describe('PostsService', () => {
     const newPost: IPost = {
       _id: '3',
       title: 'New Post',
-      body: 'New Content',
+      content: 'New Content',
       author: 'Charlie',
       status: 'draft',
       createdAt: new Date('2024-01-03T00:00:00.000Z'),
@@ -132,7 +132,7 @@ describe('PostsService', () => {
     };
 
     let completed = false;
-    service.createPost({ title: 'New Post', body: 'New Content', author: 'Charlie' }).subscribe(() => {
+    service.createPost({ title: 'New Post', content: 'New Content' }).subscribe(() => {
       completed = true;
     });
 

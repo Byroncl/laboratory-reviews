@@ -9,8 +9,11 @@ import {
   IPostResponse,
   IPagination,
   IPostFilters,
+  ICreatePostDTO,
+  IBulkCreateResponse,
 } from '../interfaces';
 import { POSTS_PAGINATION_DEFAULTS, POSTS_API_ENDPOINTS } from '../constants';
+import { PostStatus } from '../types';
 import {
   calculateTotalPages,
   calculateCurrentPage,
@@ -20,6 +23,7 @@ import {
   getPreviousPageSkip,
   resetPagination,
 } from '../utils/pagination.util';
+import { adaptPostListResponse } from '../utils/response-adapter.util';
 
 @Injectable({
   providedIn: 'root',
@@ -55,7 +59,9 @@ export abstract class PostsBaseService<T extends { _id?: string; id?: string }> 
   }
 
   /**
-   * Loads items from API with pagination
+   * Loads items from API with pagination.
+   * The raw response is passed through adaptPostListResponse inside _handleLoadSuccess,
+   * so we type the HTTP call as unknown to reflect the real backend envelope.
    */
   protected loadItems(filters?: IPostFilters): Observable<IPostListResponse> {
     this.loading$.set(true);
@@ -69,14 +75,14 @@ export abstract class PostsBaseService<T extends { _id?: string; id?: string }> 
       }
     }
 
-    return this.http
-      .get<IPostListResponse>(`${this.baseUrl}${POSTS_API_ENDPOINTS.LIST}`, { params })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (this.http.get<any>(`${this.baseUrl}${POSTS_API_ENDPOINTS.LIST}`, { params }) as Observable<unknown>)
       .pipe(
         retry(this.retryAttempts),
         tap((response) => this._handleLoadSuccess(response)),
         catchError((err) => this._handleError(err, 'Failed to load items')),
         finalize(() => this.loading$.set(false)),
-      );
+      ) as unknown as Observable<IPostListResponse>;
   }
 
   /**
@@ -130,6 +136,42 @@ export abstract class PostsBaseService<T extends { _id?: string; id?: string }> 
         retry(this.retryAttempts),
         tap(() => this._handleDeleteSuccess(id)),
         catchError((err) => this._handleError(err, 'Failed to delete item')),
+        finalize(() => this.loading$.set(false)),
+      );
+  }
+
+  /**
+   * Bulk-creates posts via POST /posts/bulk.
+   * Reuses the existing _handleError pattern for consistency.
+   */
+  public bulkCreatePosts(posts: ICreatePostDTO[]): Observable<IBulkCreateResponse> {
+    this.loading$.set(true);
+    this.error$.set(null);
+
+    return this.http
+      .post<IBulkCreateResponse>(`${this.baseUrl}${POSTS_API_ENDPOINTS.BULK}`, posts)
+      .pipe(
+        tap(() => this.error$.set(null)),
+        catchError((err) => this._handleError(err, 'Failed to bulk create posts')),
+        finalize(() => this.loading$.set(false)),
+      );
+  }
+
+  /**
+   * Updates a post's status via PATCH /posts/:id/status.
+   * Only sends { status } in the request body.
+   */
+  public updatePostStatus(id: string, status: PostStatus): Observable<IPostResponse> {
+    this.loading$.set(true);
+    this.error$.set(null);
+
+    const url = `${this.baseUrl}${POSTS_API_ENDPOINTS.STATUS.replace(':id', id)}`;
+
+    return this.http
+      .patch<IPostResponse>(url, { status })
+      .pipe(
+        tap((response) => this._handleUpdateSuccess(response)),
+        catchError((err) => this._handleError(err, 'Failed to update post status')),
         finalize(() => this.loading$.set(false)),
       );
   }
@@ -189,14 +231,17 @@ export abstract class PostsBaseService<T extends { _id?: string; id?: string }> 
   }
 
   /**
-   * Handles successful load response
+   * Handles successful load response.
+   * Uses adaptPostListResponse() to bridge the raw backend envelope
+   * ({ data: { items, skip, limit, total } }) into the frontend IPostListResponse shape.
    */
-  protected _handleLoadSuccess(response: IPostListResponse): void {
-    this.items$.set(response.data as unknown as T[]);
+  protected _handleLoadSuccess(response: unknown): void {
+    const adapted = adaptPostListResponse(response);
+    this.items$.set(adapted.data as unknown as T[]);
     this.pagination.set({
-      skip: response.pagination.skip,
-      limit: response.pagination.limit,
-      total: response.pagination.total,
+      skip: adapted.pagination.skip,
+      limit: adapted.pagination.limit,
+      total: adapted.pagination.total,
     });
     this.error$.set(null);
   }

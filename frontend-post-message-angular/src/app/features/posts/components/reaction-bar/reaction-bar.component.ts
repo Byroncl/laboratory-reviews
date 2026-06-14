@@ -1,0 +1,103 @@
+import { Component, Input, OnInit, inject, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactionsService } from '../../services';
+import { IReactionSummary } from '../../interfaces';
+import { REACTION_EMOJIS } from '../../constants';
+
+@Component({
+  selector: 'app-reaction-bar',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './reaction-bar.component.html',
+  styleUrls: ['./reaction-bar.component.css'],
+})
+export class ReactionBarComponent implements OnInit {
+  @Input() commentId!: string;
+
+  private reactionsService = inject(ReactionsService);
+
+  readonly availableEmojis = REACTION_EMOJIS;
+
+  /** Local signal for the current summary — updated optimistically */
+  readonly summary = signal<IReactionSummary[]>([]);
+  /** Track which emojis the current user has reacted with (optimistic) */
+  readonly reactedEmojis = signal<Set<string>>(new Set());
+
+  ngOnInit(): void {
+    this.reactionsService.getReactions(this.commentId).subscribe({
+      next: (data) => {
+        this.summary.set(data);
+        this.reactionsService.setLocalReactions(this.commentId, data);
+      },
+      error: (err) => console.error('[ReactionBarComponent] getReactions error:', err),
+    });
+  }
+
+  getCount(emoji: string): number {
+    return this.summary().find((r) => r.emoji === emoji)?.count ?? 0;
+  }
+
+  hasReacted(emoji: string): boolean {
+    return this.reactedEmojis().has(emoji);
+  }
+
+  toggleReaction(emoji: string): void {
+    if (this.hasReacted(emoji)) {
+      this._removeReaction(emoji);
+    } else {
+      this._addReaction(emoji);
+    }
+  }
+
+  private _addReaction(emoji: string): void {
+    // Optimistic update
+    this._updateSummaryCount(emoji, 1);
+    this.reactedEmojis.set(new Set([...this.reactedEmojis(), emoji]));
+
+    this.reactionsService.addReaction(this.commentId, emoji).subscribe({
+      error: (err) => {
+        // Rollback on error
+        this._updateSummaryCount(emoji, -1);
+        const updated = new Set(this.reactedEmojis());
+        updated.delete(emoji);
+        this.reactedEmojis.set(updated);
+        console.error('[ReactionBarComponent] addReaction error:', err);
+      },
+    });
+  }
+
+  private _removeReaction(emoji: string): void {
+    // Optimistic update
+    this._updateSummaryCount(emoji, -1);
+    const updated = new Set(this.reactedEmojis());
+    updated.delete(emoji);
+    this.reactedEmojis.set(updated);
+
+    this.reactionsService.removeReaction(this.commentId, emoji).subscribe({
+      error: (err) => {
+        // Rollback on error
+        this._updateSummaryCount(emoji, 1);
+        this.reactedEmojis.set(new Set([...this.reactedEmojis(), emoji]));
+        console.error('[ReactionBarComponent] removeReaction error:', err);
+      },
+    });
+  }
+
+  private _updateSummaryCount(emoji: string, delta: number): void {
+    const current = this.summary();
+    const idx = current.findIndex((r) => r.emoji === emoji);
+
+    if (idx >= 0) {
+      const updated = [...current];
+      const newCount = Math.max(0, updated[idx].count + delta);
+      if (newCount === 0) {
+        updated.splice(idx, 1);
+      } else {
+        updated[idx] = { ...updated[idx], count: newCount };
+      }
+      this.summary.set(updated);
+    } else if (delta > 0) {
+      this.summary.set([...current, { emoji, count: delta }]);
+    }
+  }
+}

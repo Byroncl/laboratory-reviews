@@ -14,17 +14,15 @@ const mockPost: IPost = {
   _id: 'p1',
   id: 'p1',
   title: 'Hello World',
-  body: 'Post body content',
+  content: 'Post body content',
   author: 'Alice',
   status: 'published',
 };
 
 const mockComment: IComment = {
   _id: 'c1',
-  postId: 'p1',
-  name: 'Reviewer',
-  email: 'rev@example.com',
-  body: 'Great post!',
+  post: 'p1',
+  content: 'Great post!',
 };
 
 class MockPostsService {
@@ -103,10 +101,8 @@ describe('PostDetailComponent', () => {
 
   it('should call createComment when onCommentSubmit is called', () => {
     const dto: ICreateCommentDTO = {
-      postId: 'p1',
-      name: 'Alice',
-      email: 'a@example.com',
-      body: 'Nice!',
+      content: 'Nice!',
+      post: 'p1',
     };
     component.onCommentSubmit(dto);
     expect(commentsService.createComment).toHaveBeenCalledWith(dto);

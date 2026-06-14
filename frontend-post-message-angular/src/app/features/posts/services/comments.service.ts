@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { tap, catchError, retry, finalize } from 'rxjs/operators';
+import { tap, catchError, retry, finalize, map } from 'rxjs/operators';
 
 import {
   IComment,
@@ -60,13 +60,14 @@ export class CommentsService {
   );
 
   /**
-   * Load comments with optional filters
+   * Load comments scoped to a specific post.
+   * postId is required — calling without it is a compile-time error.
    */
-  public loadComments(filters?: ICommentFilters): Observable<ICommentListResponse> {
+  public loadComments(postId: string, filters?: Omit<ICommentFilters, 'postId'>): Observable<ICommentListResponse> {
     this.loading$.set(true);
     this.error$.set(null);
 
-    const rawParams = this._buildLoadParams(filters);
+    const rawParams = this._buildLoadParams({ ...filters, postId });
     let params = new HttpParams();
     for (const [key, value] of Object.entries(rawParams)) {
       if (value !== undefined && value !== null) {
@@ -85,13 +86,23 @@ export class CommentsService {
   }
 
   /**
-   * Load comments scoped to a specific post
+   * Load comments scoped to a specific post — alias kept for backwards compatibility.
    */
   public loadCommentsByPost(
     postId: string,
-    filters?: ICommentFilters,
+    filters?: Omit<ICommentFilters, 'postId'>,
   ): Observable<ICommentListResponse> {
-    return this.loadComments({ ...filters, postId });
+    return this.loadComments(postId, filters);
+  }
+
+  /**
+   * Returns the raw comment array for a given post.
+   * Calls GET /comments?postId={postId} and unwraps to IComment[].
+   */
+  public getCommentsByPostId(postId: string): Observable<IComment[]> {
+    return this.loadComments(postId).pipe(
+      map((response) => response.data),
+    );
   }
 
   /**
@@ -154,7 +165,7 @@ export class CommentsService {
    */
   public replyToComment(
     commentId: string,
-    data: Omit<ICreateCommentDTO, 'postId'>,
+    data: ICreateCommentDTO,
   ): Observable<ICommentResponse> {
     this.loading$.set(true);
     this.error$.set(null);
@@ -222,7 +233,7 @@ export class CommentsService {
     };
 
     if (filters?.searchTerm) params['search'] = filters.searchTerm;
-    if (filters?.email) params['email'] = filters.email;
+    if (filters?.author) params['author'] = filters.author;
     if (filters?.postId) params['postId'] = filters.postId;
     if (filters?.dateFrom) params['dateFrom'] = filters.dateFrom.toISOString();
     if (filters?.dateTo) params['dateTo'] = filters.dateTo.toISOString();

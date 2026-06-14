@@ -13,7 +13,7 @@ const mockPost: IPost = {
   _id: 'post-1',
   id: 'post-1',
   title: 'Existing Post',
-  body: 'Existing body content that is long enough to be valid',
+  content: 'Existing body content that is long enough to be valid',
   author: 'Alice',
   status: 'draft',
   tags: ['angular', 'frontend'],

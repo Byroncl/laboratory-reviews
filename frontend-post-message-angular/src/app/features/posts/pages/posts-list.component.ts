@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PostsService } from '../services';
-import { PostCardComponent, PostFilterComponent, PaginationComponent } from '../components';
+import { PostCardComponent, PostFilterComponent, PaginationComponent, BulkUploadComponent } from '../components';
 import { IPostFilters } from '../interfaces';
 
 @Component({
@@ -14,6 +14,7 @@ import { IPostFilters } from '../interfaces';
     PostCardComponent,
     PostFilterComponent,
     PaginationComponent,
+    BulkUploadComponent,
   ],
   templateUrl: './posts-list.component.html',
   styleUrls: ['./posts-list.component.css'],
@@ -39,10 +40,12 @@ export class PostsListComponent implements OnInit {
 
   onFilterChange(filters: IPostFilters): void {
     this.postsService.updateFilters(filters);
+    this.loadPosts(filters);
   }
 
   onFilterReset(): void {
     this.postsService.clearFilters();
+    this.loadPosts();
   }
 
   onPostView(postId: string): void {

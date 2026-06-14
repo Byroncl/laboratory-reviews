@@ -1,0 +1,59 @@
+<div class="bulk-upload">
+  <h3>Bulk Upload Posts</h3>
+
+  <div class="upload-controls">
+    <label for="bulk-file" class="btn btn-secondary">
+      Choose JSON File
+    </label>
+    <input
+      id="bulk-file"
+      type="file"
+      accept=".json"
+      class="file-input"
+      (change)="onFileSelected($event)"
+    />
+
+    @if (parsedCount() > 0) {
+      <span class="parsed-info">{{ parsedCount() }} valid post(s) ready</span>
+    }
+
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="onUpload()"
+      [disabled]="!canUpload"
+    >
+      {{ isLoading() ? 'Uploading...' : 'Upload Posts' }}
+    </button>
+  </div>
+
+  @if (parseError()) {
+    <div class="alert alert-error">
+      <p>{{ parseError() }}</p>
+    </div>
+  }
+
+  @if (invalidRows().length > 0) {
+    <div class="alert alert-warning">
+      <p><strong>{{ invalidRows().length }} invalid row(s) found. Fix before uploading:</strong></p>
+      <ul>
+        @for (row of invalidRows(); track row.index) {
+          <li>Row {{ row.index }}: {{ row.reason }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (uploadResult()) {
+    <div class="alert" [class.alert-success]="uploadResult()!.failed === 0" [class.alert-warning]="uploadResult()!.failed > 0">
+      <p>{{ uploadResult()!.created }} created, {{ uploadResult()!.failed }} failed.</p>
+      @if (uploadResult()!.errors && uploadResult()!.errors!.length > 0) {
+        <ul>
+          @for (err of uploadResult()!.errors!; track $index) {
+            <li>{{ err }}</li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</div>

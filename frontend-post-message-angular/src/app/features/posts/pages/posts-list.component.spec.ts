@@ -12,14 +12,14 @@ const mockPosts: IPost[] = [
   {
     _id: '1',
     title: 'Angular Post',
-    body: 'Content about Angular',
+    content: 'Content about Angular',
     author: 'Alice',
     status: 'published',
   },
   {
     _id: '2',
     title: 'NestJS Post',
-    body: 'Content about NestJS',
+    content: 'Content about NestJS',
     author: 'Bob',
     status: 'draft',
   },

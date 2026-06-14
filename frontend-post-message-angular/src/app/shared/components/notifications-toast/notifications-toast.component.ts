@@ -21,9 +21,11 @@ import { trigger, transition, style, animate } from '@angular/animations';
   ],
 })
 export class NotificationsToastComponent implements OnInit {
-  notifications = this.notificationsService.notifications$;
+  notifications: NotificationsService['notifications$'];
 
-  constructor(private notificationsService: NotificationsService) {}
+  constructor(private notificationsService: NotificationsService) {
+    this.notifications = this.notificationsService.notifications$;
+  }
 
   ngOnInit(): void {}
 

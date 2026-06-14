@@ -42,6 +42,7 @@ export class PostsService {
     filters?: {
       categoryId?: string;
       status?: string;
+      tags?: string;
       author?: string;
       search?: string;
       sortBy?: string;
@@ -58,6 +59,9 @@ export class PostsService {
     }
     if (filters?.status) {
       filter.status = filters.status;
+    }
+    if (filters?.tags) {
+      filter.tags = { $in: filters.tags.split(',').map((t) => t.trim()) };
     }
     if (filters?.author) {
       filter.author = { $regex: filters.author, $options: 'i' };
@@ -142,6 +146,12 @@ export class PostsService {
     }
 
     return post;
+  }
+
+  async updateStatus(id: string, status: string): Promise<Post | null> {
+    return this.postModel
+      .findByIdAndUpdate(id, { status }, { new: true })
+      .exec();
   }
 
   async bulkCreate(createPostDtos: CreatePostDto[]): Promise<any> {

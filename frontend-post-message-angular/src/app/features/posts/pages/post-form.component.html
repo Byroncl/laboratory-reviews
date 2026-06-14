@@ -25,31 +25,31 @@
     </div>
 
     <div class="form-group">
-      <label for="author">Author</label>
-      <input
-        id="author"
-        type="text"
-        formControlName="author"
-        placeholder="Author name..."
-        [attr.disabled]="isLoading() ? true : null"
-      />
-      @if (getFieldError('author')) {
-        <span class="error">{{ getFieldError('author') }}</span>
-      }
-    </div>
-
-    <div class="form-group">
-      <label for="body">Content</label>
+      <label for="content">Content</label>
       <textarea
-        id="body"
-        formControlName="body"
+        id="content"
+        formControlName="content"
         placeholder="Post content..."
         rows="10"
         [attr.disabled]="isLoading() ? true : null"
       ></textarea>
-      @if (getFieldError('body')) {
-        <span class="error">{{ getFieldError('body') }}</span>
+      @if (getFieldError('content')) {
+        <span class="error">{{ getFieldError('content') }}</span>
       }
+    </div>
+
+    <div class="form-group">
+      <label for="status">Status</label>
+      <select
+        id="status"
+        formControlName="status"
+        [attr.disabled]="isLoading() ? true : null"
+      >
+        <option value="">No status (draft)</option>
+        @for (option of statusOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
     </div>
 
     <div class="form-group">

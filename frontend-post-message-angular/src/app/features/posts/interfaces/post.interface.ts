@@ -4,7 +4,7 @@ export interface IPost {
   id?: string;
   _id?: string;
   title: string;
-  body: string;
+  content: string;
   author: string;
   status: PostStatus;
   createdAt?: Date;
@@ -16,17 +16,22 @@ export interface IPost {
 
 export interface ICreatePostDTO {
   title: string;
-  body: string;
-  author: string;
+  content: string;
+  status?: PostStatus;
   tags?: string[];
 }
 
 export interface IUpdatePostDTO {
   title?: string;
-  body?: string;
-  author?: string;
+  content?: string;
   status?: PostStatus;
   tags?: string[];
+}
+
+export interface IBulkCreateResponse {
+  created: number;
+  failed: number;
+  errors?: unknown[];
 }
 
 export interface IPostResponse {

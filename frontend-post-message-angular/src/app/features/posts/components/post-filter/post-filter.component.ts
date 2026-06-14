@@ -26,15 +26,24 @@ export class PostFilterComponent implements OnInit {
       searchTerm: [''],
       author: [''],
       status: [''],
+      tags: [''],
       dateFrom: [''],
       dateTo: [''],
     });
 
     this.filterForm.valueChanges.subscribe((values) => {
+      const parsedTags: string[] = values.tags
+        ? values.tags
+            .split(',')
+            .map((t: string) => t.trim())
+            .filter(Boolean)
+        : [];
+
       const filters: IPostFilters = {
         searchTerm: values.searchTerm || undefined,
         author: values.author || undefined,
         status: values.status || undefined,
+        tags: parsedTags.length > 0 ? parsedTags : undefined,
         dateFrom: values.dateFrom ? new Date(values.dateFrom) : undefined,
         dateTo: values.dateTo ? new Date(values.dateTo) : undefined,
       };

@@ -7,7 +7,7 @@ import {
   filterPostsByTags,
   applyPostFilters,
   filterCommentsBySearchTerm,
-  filterCommentsByEmail,
+  filterCommentsByAuthor,
   filterCommentsByPostId,
   filterCommentsByDateRange,
   applyCommentFilters,
@@ -18,7 +18,7 @@ const makePosts = (): IPost[] => [
   {
     _id: '1',
     title: 'Angular Guide',
-    body: 'Learning Angular framework',
+    content: 'Learning Angular framework',
     author: 'Alice',
     status: 'published',
     createdAt: new Date('2024-03-15'),
@@ -27,7 +27,7 @@ const makePosts = (): IPost[] => [
   {
     _id: '2',
     title: 'NestJS API',
-    body: 'Building REST APIs with NestJS',
+    content: 'Building REST APIs with NestJS',
     author: 'Bob',
     status: 'draft',
     createdAt: new Date('2024-01-10'),
@@ -36,7 +36,7 @@ const makePosts = (): IPost[] => [
   {
     _id: '3',
     title: 'TypeScript Tips',
-    body: 'Advanced TypeScript patterns',
+    content: 'Advanced TypeScript patterns',
     author: 'Alice',
     status: 'archived',
     createdAt: new Date('2024-05-20'),
@@ -47,26 +47,23 @@ const makePosts = (): IPost[] => [
 const makeComments = (): IComment[] => [
   {
     _id: 'c1',
-    postId: 'post-1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    body: 'Great article!',
+    post: 'post-1',
+    author: 'John Doe',
+    content: 'Great article!',
     createdAt: new Date('2024-02-01'),
   },
   {
     _id: 'c2',
-    postId: 'post-2',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    body: 'Very helpful content',
+    post: 'post-2',
+    author: 'Jane Smith',
+    content: 'Very helpful content',
     createdAt: new Date('2024-04-10'),
   },
   {
     _id: 'c3',
-    postId: 'post-1',
-    name: 'Bob Brown',
-    email: 'bob@test.org',
-    body: 'Thanks for the info',
+    post: 'post-1',
+    author: 'Bob Brown',
+    content: 'Thanks for the info',
     createdAt: new Date('2024-06-05'),
   },
 ];
@@ -82,7 +79,7 @@ describe('filter.util', () => {
       expect(result[0]._id).toBe('1');
     });
 
-    it('should match by body', () => {
+    it('should match by content', () => {
       const result = filterPostsBySearchTerm(makePosts(), 'REST APIs');
       expect(result.length).toBe(1);
       expect(result[0]._id).toBe('2');
@@ -181,7 +178,7 @@ describe('filter.util', () => {
     });
 
     it('should include post without createdAt', () => {
-      const postWithoutDate: IPost = { _id: '9', title: 'T', body: 'B', author: 'A', status: 'draft' };
+      const postWithoutDate: IPost = { _id: '9', title: 'T', content: 'B', author: 'A', status: 'draft' };
       const result = filterPostsByDateRange(
         [postWithoutDate],
         new Date('2024-01-01'),
@@ -216,7 +213,7 @@ describe('filter.util', () => {
     });
 
     it('should exclude post with no tags field', () => {
-      const postNoTags: IPost = { _id: '10', title: 'T', body: 'B', author: 'A', status: 'draft' };
+      const postNoTags: IPost = { _id: '10', title: 'T', content: 'B', author: 'A', status: 'draft' };
       const result = filterPostsByTags([postNoTags], ['angular']);
       expect(result.length).toBe(0);
     });
@@ -244,18 +241,12 @@ describe('filter.util', () => {
   // ─── filterCommentsBySearchTerm ──────────────────────────────────────────────
 
   describe('filterCommentsBySearchTerm', () => {
-    it('should match by name', () => {
+    it('should match by author', () => {
       const result = filterCommentsBySearchTerm(makeComments(), 'John');
       expect(result.some(c => c._id === 'c1')).toBeTrue();
     });
 
-    it('should match by email', () => {
-      const result = filterCommentsBySearchTerm(makeComments(), 'jane@example.com');
-      expect(result.length).toBe(1);
-      expect(result[0]._id).toBe('c2');
-    });
-
-    it('should match by body', () => {
+    it('should match by content', () => {
       const result = filterCommentsBySearchTerm(makeComments(), 'Very helpful');
       expect(result.length).toBe(1);
       expect(result[0]._id).toBe('c2');
@@ -265,19 +256,24 @@ describe('filter.util', () => {
       const result = filterCommentsBySearchTerm(makeComments(), '');
       expect(result.length).toBe(3);
     });
+
+    it('should return empty when no match', () => {
+      const result = filterCommentsBySearchTerm(makeComments(), 'zzz-no-match');
+      expect(result.length).toBe(0);
+    });
   });
 
-  // ─── filterCommentsByEmail ───────────────────────────────────────────────────
+  // ─── filterCommentsByAuthor ───────────────────────────────────────────────────
 
-  describe('filterCommentsByEmail', () => {
-    it('should filter by exact email case-insensitively', () => {
-      const result = filterCommentsByEmail(makeComments(), 'JOHN@EXAMPLE.COM');
+  describe('filterCommentsByAuthor', () => {
+    it('should filter by author case-insensitively', () => {
+      const result = filterCommentsByAuthor(makeComments(), 'JOHN DOE');
       expect(result.length).toBe(1);
       expect(result[0]._id).toBe('c1');
     });
 
-    it('should return all when email is undefined', () => {
-      const result = filterCommentsByEmail(makeComments(), undefined);
+    it('should return all when author is undefined', () => {
+      const result = filterCommentsByAuthor(makeComments(), undefined);
       expect(result.length).toBe(3);
     });
   });
@@ -285,7 +281,7 @@ describe('filter.util', () => {
   // ─── filterCommentsByPostId ──────────────────────────────────────────────────
 
   describe('filterCommentsByPostId', () => {
-    it('should filter comments by postId', () => {
+    it('should filter comments by post id', () => {
       const result = filterCommentsByPostId(makeComments(), 'post-1');
       expect(result.length).toBe(2);
     });
@@ -310,7 +306,7 @@ describe('filter.util', () => {
     });
 
     it('should include comment without createdAt', () => {
-      const c: IComment = { _id: 'cx', postId: 'p1', name: 'N', email: 'e@e.com', body: 'B' };
+      const c: IComment = { _id: 'cx', post: 'p1', content: 'B' };
       const result = filterCommentsByDateRange([c], new Date('2024-01-01'), new Date('2024-12-31'));
       expect(result.length).toBe(1);
     });
@@ -322,7 +318,7 @@ describe('filter.util', () => {
     it('should compose all comment filters', () => {
       const result = applyCommentFilters(makeComments(), {
         postId: 'post-1',
-        email: 'john@example.com',
+        author: 'John Doe',
       });
       expect(result.length).toBe(1);
       expect(result[0]._id).toBe('c1');
