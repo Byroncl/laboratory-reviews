@@ -71,7 +71,7 @@
   @if (rolesService.loading$()) {
     <app-skeleton type="table"></app-skeleton>
   } @else {
-    @if ((rolesService.roles$() ?? []).length > 0) {
+    @if ((rolesService.roles$()).length > 0) {
       <!-- Table -->
       <app-table
         [columns]="columns"

@@ -54,7 +54,7 @@
   @if (permissionsService.loading$()) {
     <app-skeleton type="table"></app-skeleton>
   } @else {
-    @if ((permissionsService.permissions$() ?? []).length > 0) {
+    @if ((permissionsService.permissions$()).length > 0) {
       <!-- Table -->
       <app-table
         [columns]="columns"

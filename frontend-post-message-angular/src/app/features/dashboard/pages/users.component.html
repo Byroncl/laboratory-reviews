@@ -80,7 +80,7 @@
   @if (usersService.loading$()) {
     <app-skeleton type="table"></app-skeleton>
   } @else {
-    @if ((usersService.users$() ?? []).length > 0) {
+    @if ((usersService.users$()).length > 0) {
       <!-- Users Table -->
       <app-table
         [columns]="columns"
