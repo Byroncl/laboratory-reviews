@@ -27,7 +27,9 @@ export class SeederService implements OnModuleInit {
     private readonly commentsService: CommentsService,
     private readonly favoritesService: FavoritesService,
     private readonly notificationsService: NotificationsService,
-  ) {}
+  ) {
+    this.logger.log('SeederService constructor called - module loading');
+  }
 
   async onModuleInit(): Promise<void> {
     try {

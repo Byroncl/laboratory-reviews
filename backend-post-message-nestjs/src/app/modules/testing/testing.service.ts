@@ -1,8 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
+import { spawn } from 'child_process';
 
 @Injectable()
 export class TestingService implements OnModuleInit {
@@ -18,14 +15,27 @@ export class TestingService implements OnModuleInit {
     }
 
     this.logger.log('🧪 Starting test suite...');
-    try {
-      const { stdout, stderr } = await execAsync('npm test -- --watch=false');
-      if (stdout) this.logger.log(stdout);
-      if (stderr) this.logger.warn(stderr);
-      this.logger.log('✅ Test suite completed successfully');
-    } catch (error) {
-      this.logger.error('❌ Tests failed:', error instanceof Error ? error.message : error);
-      throw error;
-    }
+
+    await new Promise((resolve, reject) => {
+      const jest = spawn('npm', ['test', '--', '--watch=false'], {
+        stdio: 'inherit',
+        cwd: process.cwd(),
+      });
+
+      jest.on('close', (code) => {
+        if (code === 0) {
+          this.logger.log('✅ Test suite completed successfully');
+          resolve(null);
+        } else {
+          this.logger.error(`❌ Tests failed with exit code ${code}`);
+          reject(new Error(`Tests failed with exit code ${code}`));
+        }
+      });
+
+      jest.on('error', (error) => {
+        this.logger.error('❌ Failed to run tests:', error.message);
+        reject(error);
+      });
+    });
   }
 }
