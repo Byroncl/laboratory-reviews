@@ -1,75 +1,31 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getModelToken } from '@nestjs/mongoose';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { CommentsService } from './comments.service';
-import { Comment } from '../schemas/comment.schema';
-import { CreateCommentDto } from '../dto/create-comment.dto';
-import { UpdateCommentDto } from '../dto/update-comment.dto';
-import { TranslationService } from '../../../core/utils/translation.service';
+import { CommentRepository } from '../domain/repositories/comment.repository';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 describe('CommentsService', () => {
   let service: CommentsService;
 
-  const mockSave = jest.fn();
-  const mockExec = jest.fn();
-  const mockCountDocuments = jest.fn();
-
-  const MockCommentModel = jest.fn().mockImplementation((dto) => ({
-    ...dto,
-    save: mockSave,
-  })) as any;
-
-  MockCommentModel.find = jest.fn().mockReturnValue({
-    exec: mockExec,
-    skip: jest.fn().mockReturnThis(),
-    limit: jest.fn().mockReturnThis(),
-    sort: jest.fn().mockReturnThis(),
-  });
-  MockCommentModel.findById = jest.fn().mockReturnValue({ exec: mockExec });
-  MockCommentModel.findByIdAndUpdate = jest.fn().mockReturnValue({ exec: mockExec });
-  MockCommentModel.findByIdAndDelete = jest.fn().mockReturnValue({ exec: mockExec });
-  MockCommentModel.deleteMany = jest.fn().mockResolvedValue({ deletedCount: 1 });
-  MockCommentModel.countDocuments = jest.fn().mockResolvedValue(0);
-
-  const mockComment = {
-    _id: '507f1f77bcf86cd799439011',
-    content: 'Great post!',
-    postId: '507f1f77bcf86cd799439022',
-    parentCommentId: null,
-    childCommentIds: [],
-    mediaUrls: [],
-    mediaTypes: [],
-    mediaFilenames: [],
-    isActive: true,
-    toObject: function () { return { ...this }; },
+  const mockCommentRepository = {
+    create: jest.fn(),
+    findById: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    findAll: jest.fn(),
   };
 
-  const mockI18n = {
+  const mockI18nService = {
     translate: jest.fn((key: string) => key),
   };
 
   beforeEach(async () => {
     jest.clearAllMocks();
 
-    // Reset find mock to have chainable methods
-    const chainableFindMock = {
-      exec: mockExec,
-      skip: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      sort: jest.fn().mockReturnThis(),
-    };
-    MockCommentModel.find = jest.fn().mockReturnValue(chainableFindMock);
-    MockCommentModel.findById = jest.fn().mockReturnValue({ exec: mockExec });
-    MockCommentModel.findByIdAndUpdate = jest.fn().mockReturnValue({ exec: mockExec });
-    MockCommentModel.findByIdAndDelete = jest.fn().mockReturnValue({ exec: mockExec });
-    MockCommentModel.deleteMany = jest.fn().mockResolvedValue({ deletedCount: 1 });
-    MockCommentModel.countDocuments = jest.fn().mockResolvedValue(0);
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CommentsService,
-        { provide: getModelToken(Comment.name), useValue: MockCommentModel },
-        { provide: TranslationService, useValue: mockI18n },
+        { provide: CommentRepository, useValue: mockCommentRepository },
+        { provide: I18nService, useValue: mockI18nService },
       ],
     }).compile();
 
