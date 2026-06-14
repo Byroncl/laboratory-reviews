@@ -7,6 +7,7 @@ import { UpdateCommentDto } from '../dto/update-comment.dto';
 import { CommentMediaDto, CommentResponseDto } from '../dto/comment-response.dto';
 import { CommentTreeNodeDto, CommentThreadDto } from '../dto/comment-tree.dto';
 import { TranslationService } from '../../../core/utils/translation.service';
+import { Post, PostDocument } from '../../posts/schemas/post.schema';
 
 export interface CommentWithMedia {
   media: CommentMediaDto[];
@@ -17,6 +18,7 @@ export interface CommentWithMedia {
 export class CommentsService {
   constructor(
     @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
+    @InjectModel(Post.name) private postModel: Model<PostDocument>,
     private readonly i18n: TranslationService,
   ) {}
 
@@ -55,6 +57,10 @@ export class CommentsService {
     ]);
 
     return { data, total };
+  }
+
+  async getPostByCommentPostId(postId: string): Promise<Post | null> {
+    return this.postModel.findById(postId).exec();
   }
 
   async update(id: string, updateCommentDto: UpdateCommentDto): Promise<Comment | null> {

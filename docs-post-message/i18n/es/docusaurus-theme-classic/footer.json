@@ -1,0 +1,12 @@
+{
+  "link": {
+    "title": "Documentación",
+    "items": [
+      {
+        "label": "Guía Backend",
+        "to": "/docs/backend/intro"
+      }
+    ]
+  },
+  "copyright": "Copyright © {year} Post-Message."
+}

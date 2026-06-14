@@ -1,16 +1,18 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Optional } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Favorite, FavoriteDocument } from '../schemas/favorite.schema';
 import { CreateFavoriteDto } from '../dto/create-favorite.dto';
 import { Post, PostDocument } from '../../posts/schemas/post.schema';
 import { FavoriteResponseDto } from '../dto/favorite-response.dto';
+import { NotificationsGateway } from '../../notifications/gateways/notifications.gateway';
 
 @Injectable()
 export class FavoritesService {
   constructor(
     @InjectModel(Favorite.name) private favoriteModel: Model<FavoriteDocument>,
     @InjectModel(Post.name) private postModel: Model<PostDocument>,
+    @Optional() private notificationsGateway?: NotificationsGateway,
   ) {}
 
   async addFavorite(clientId: string, createFavoriteDto: CreateFavoriteDto): Promise<FavoriteResponseDto> {
@@ -47,6 +49,15 @@ export class FavoritesService {
     });
 
     const saved = await favorite.save();
+
+    if (this.notificationsGateway && postExists.authorId) {
+      this.notificationsGateway.notifyPostFavorited(
+        postExists.authorId.toString(),
+        'A user',
+        postExists.title,
+      );
+    }
+
     return this.populateFavoriteResponse(saved);
   }
 

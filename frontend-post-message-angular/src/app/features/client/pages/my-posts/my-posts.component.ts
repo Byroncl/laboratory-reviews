@@ -4,11 +4,12 @@ import { signal, computed } from '@angular/core';
 import { ClientPostsService } from '../../services/client-posts.service';
 import { PostCardComponent } from '../../components/post-card/post-card.component';
 import { PostFormComponent } from '../../components/post-form/post-form.component';
+import { SearchFilterComponent, SearchFilters } from '../../../../shared/components/search-filter/search-filter.component';
 
 @Component({
   selector: 'app-my-posts',
   standalone: true,
-  imports: [CommonModule, PostCardComponent, PostFormComponent],
+  imports: [CommonModule, PostCardComponent, PostFormComponent, SearchFilterComponent],
   template: `
     <div class="my-posts">
       <div class="header">
@@ -17,6 +18,12 @@ import { PostFormComponent } from '../../components/post-form/post-form.componen
           {{ showForm ? 'Cancelar' : '+ Nuevo Post' }}
         </button>
       </div>
+
+      <app-search-filter
+        [showAuthorFilter]="false"
+        [showCategoryFilter]="true"
+        (filterChange)="onFilterChange($event)"
+      ></app-search-filter>
 
       <div class="form-section" *ngIf="showForm">
         <app-post-form
@@ -161,6 +168,11 @@ export class MyPostsComponent implements OnInit {
   currentPage = signal(1);
   pageSize = signal(10);
   totalPosts = signal(0);
+  filters = signal<SearchFilters>({
+    search: '',
+    sortBy: 'createdAt',
+    sortOrder: 'desc',
+  });
 
   currentEditingPost = computed(() => {
     const postId = this.editingPostId();
@@ -250,5 +262,11 @@ export class MyPostsComponent implements OnInit {
       this.currentPage.set(this.currentPage() + 1);
       this.loadPosts();
     }
+  }
+
+  onFilterChange(newFilters: SearchFilters): void {
+    this.filters.set(newFilters);
+    this.currentPage.set(1);
+    this.loadPosts();
   }
 }

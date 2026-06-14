@@ -39,9 +39,19 @@ export class PostsService {
   async findAllPaginated(
     skip: number,
     limit: number,
-    filters?: { categoryId?: string; status?: string; author?: string }
+    filters?: {
+      categoryId?: string;
+      status?: string;
+      author?: string;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+    },
   ): Promise<PaginatedResponse<Post>> {
-    const filter: Record<string, unknown> = {};
+    const filter: Record<string, unknown> = {
+      isDeleted: false,
+      isActive: true,
+    };
 
     if (filters?.categoryId) {
       filter.categoryId = filters.categoryId;
@@ -52,9 +62,20 @@ export class PostsService {
     if (filters?.author) {
       filter.author = { $regex: filters.author, $options: 'i' };
     }
+    if (filters?.search) {
+      filter.$or = [
+        { title: { $regex: filters.search, $options: 'i' } },
+        { body: { $regex: filters.search, $options: 'i' } },
+        { author: { $regex: filters.search, $options: 'i' } },
+      ];
+    }
+
+    const sortBy = filters?.sortBy || 'createdAt';
+    const sortOrder = (filters?.sortOrder === 'asc' ? 1 : -1) as 1 | -1;
+    const sort: Record<string, 1 | -1> = { [sortBy]: sortOrder };
 
     const [items, total] = await Promise.all([
-      this.postModel.find(filter).skip(skip).limit(limit).exec(),
+      this.postModel.find(filter).sort(sort).skip(skip).limit(limit).exec(),
       this.postModel.countDocuments(filter).exec(),
     ]);
 

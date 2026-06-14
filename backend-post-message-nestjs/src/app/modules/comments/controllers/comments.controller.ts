@@ -20,6 +20,7 @@ import {
 import { CommentsService } from '../services/comments.service';
 import { ReactionsService } from '../services/reactions.service';
 import { CommentsGateway } from '../gateways/comments.gateway';
+import { NotificationsGateway } from '../../notifications/gateways/notifications.gateway';
 import { CreateCommentDto } from '../dto/create-comment.dto';
 import { UpdateCommentDto } from '../dto/update-comment.dto';
 import { CommentResponseDto } from '../dto/comment-response.dto';
@@ -43,6 +44,7 @@ export class CommentsController {
     private readonly commentsService: CommentsService,
     private readonly reactionsService: ReactionsService,
     @Optional() private readonly commentsGateway: CommentsGateway,
+    @Optional() private readonly notificationsGateway: NotificationsGateway,
     private readonly i18n: TranslationService,
   ) {}
 
@@ -54,8 +56,26 @@ export class CommentsController {
   @ApiResponse({ status: 400, description: 'Validation failed' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post()
-  async create(@Body() createCommentDto: CreateCommentDto) {
-    const comment = await this.commentsService.create(createCommentDto);
+  async create(
+    @Body() createCommentDto: CreateCommentDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    const comment = await this.commentsService.create({
+      ...createCommentDto,
+      userId: user.id,
+    });
+
+    if (this.notificationsGateway) {
+      const post = await this.commentsService.getPostByCommentPostId(createCommentDto.post);
+      if (post && (post as any).authorId) {
+        this.notificationsGateway.notifyCommentAdded(
+          (post as any).authorId.toString(),
+          user.username,
+          post.title,
+        );
+      }
+    }
+
     return ApiRes.success(comment, this.i18n.translate('comments.created'));
   }
 

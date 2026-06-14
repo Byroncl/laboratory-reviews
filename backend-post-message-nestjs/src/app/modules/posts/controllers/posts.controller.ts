@@ -84,11 +84,14 @@ export class PostsController {
     @Query('categoryId') categoryId?: string,
     @Query('status') status?: string,
     @Query('author') author?: string,
+    @Query('search') search?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
   ) {
     const result = await this.postsService.findAllPaginated(
       paginationDto.skip,
       paginationDto.limit,
-      { categoryId, status, author },
+      { categoryId, status, author, search, sortBy, sortOrder },
     );
     return ApiRes.success(result);
   }

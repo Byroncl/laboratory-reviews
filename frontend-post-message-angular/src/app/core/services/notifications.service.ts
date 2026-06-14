@@ -3,11 +3,14 @@ import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { Notification } from '../../shared/models/notification.model';
+import { io, Socket } from 'socket.io-client';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
   readonly notifications = signal<Notification[]>([]);
   readonly unreadCount = signal<number>(0);
+
+  private socket: Socket | null = null;
 
   constructor(private api: ApiService) {}
 
@@ -74,6 +77,66 @@ export class NotificationsService {
     this.notifications.update(list => [notification, ...list]);
     if (!notification.read) {
       this.unreadCount.update(count => count + 1);
+    }
+  }
+
+  connectWebSocket(userId: string): void {
+    if (this.socket?.connected) {
+      return;
+    }
+
+    this.socket = io(window.location.origin, {
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5,
+      transports: ['websocket', 'polling'],
+    });
+
+    this.socket.on('connect', () => {
+      console.log('Connected to real-time notifications');
+      this.socket?.emit('user:register', { userId });
+    });
+
+    this.socket.on('notification:post_created', (data: any) => {
+      const notification: Notification = {
+        _id: `post_${data.id}_${Date.now()}`,
+        type: 'post',
+        message: data.message,
+        read: false,
+      };
+      this.addNotification(notification);
+    });
+
+    this.socket.on('notification:post_favorited', (data: any) => {
+      const notification: Notification = {
+        _id: `fav_${data.id}_${Date.now()}`,
+        type: 'favorite',
+        message: data.message,
+        read: false,
+      };
+      this.addNotification(notification);
+    });
+
+    this.socket.on('notification:comment_added', (data: any) => {
+      const notification: Notification = {
+        _id: `comment_${data.id}_${Date.now()}`,
+        type: 'comment',
+        message: data.message,
+        read: false,
+      };
+      this.addNotification(notification);
+    });
+
+    this.socket.on('disconnect', () => {
+      console.log('Disconnected from real-time notifications');
+    });
+  }
+
+  disconnectWebSocket(): void {
+    if (this.socket?.connected) {
+      this.socket.disconnect();
+      this.socket = null;
     }
   }
 }
