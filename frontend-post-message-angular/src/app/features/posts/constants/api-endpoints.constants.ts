@@ -8,6 +8,12 @@ export const POSTS_API_ENDPOINTS = {
   STATUS: '/posts/:id/status',
 } as const;
 
+export const FAVORITES_API_ENDPOINTS = {
+  LIST: '/favorites',
+  ADD: '/favorites',
+  REMOVE: '/favorites/:postId',
+} as const;
+
 export const COMMENTS_API_ENDPOINTS = {
   LIST: '/comments',
   BY_POST: '/posts/:postId/comments',

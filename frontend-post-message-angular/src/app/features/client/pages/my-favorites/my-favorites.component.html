@@ -18,7 +18,7 @@
     <div class="favorites-list">
       @for (fav of favorites$(); track fav._id) {
         <app-post-card
-          [post]="fav.post || fav"
+          [post]="fav"
           [showFavorite]="true"
           [isFavorite]="true"
           (toggleFavorite)="onRemoveFavorite($event)"

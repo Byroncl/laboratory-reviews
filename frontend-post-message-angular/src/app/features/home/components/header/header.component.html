@@ -11,6 +11,25 @@
       <img src="/images/logos/header-logo-2.png" alt="Albatros" class="h-8 w-auto" />
     </a>
 
+    <!-- Language Switcher -->
+    <div class="flex items-center gap-2">
+      <button
+        class="text-sm text-gray-700 hover:text-primary transition"
+        (click)="setLanguage('es')"
+        [class.font-bold]="currentLanguage() === 'es'"
+      >
+        ES
+      </button>
+      <span class="text-gray-300">|</span>
+      <button
+        class="text-sm text-gray-700 hover:text-primary transition"
+        (click)="setLanguage('en')"
+        [class.font-bold]="currentLanguage() === 'en'"
+      >
+        EN
+      </button>
+    </div>
+
     <!-- Nav actions -->
     <nav class="flex items-center gap-3">
       @if (isAuthenticated()) {

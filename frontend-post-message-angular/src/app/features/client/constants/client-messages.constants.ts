@@ -20,6 +20,8 @@ export const CLIENT_MESSAGES = {
     LOADING: 'client.my_favorites.loading',
     PREVIOUS: 'client.my_favorites.pagination_previous',
     NEXT: 'client.my_favorites.pagination_next',
+    LOAD_ERROR: 'client.my_favorites.load_error',
+    REMOVE_ERROR: 'client.my_favorites.remove_error',
   },
   PROFILE: {
     TITLE: 'client.profile.title',

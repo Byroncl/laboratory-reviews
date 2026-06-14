@@ -38,6 +38,15 @@
     <button class="btn btn-primary" (click)="onView()" [disabled]="isLoading">
       {{ 'posts.card.view' | t }}
     </button>
+    <button
+      class="btn btn-sm"
+      [class.btn-favorite]="isFavorited()"
+      (click)="onToggleFavorite()"
+      [disabled]="isLoadingFavorite()"
+      [title]="isFavorited() ? 'Remove from favorites' : 'Add to favorites'"
+    >
+      {{ isFavorited() ? '❤️ Saved' : '🤍 Save' }}
+    </button>
     <button class="btn btn-secondary" (click)="onEdit()" [disabled]="isLoading">
       {{ 'posts.card.edit' | t }}
     </button>

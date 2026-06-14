@@ -8,6 +8,7 @@ import { selectIsAuthenticated, selectAuthUser } from '../../../auth/store/auth.
 import { logout } from '../../../auth/store/auth.actions';
 import { HOME_ROUTES } from '../../constants';
 import { ClickOutsideDirective } from '../../../../shared/directives';
+import { I18nService } from '../../../../core/services/i18n.service';
 
 @Component({
   selector: 'app-header',
@@ -17,10 +18,12 @@ import { ClickOutsideDirective } from '../../../../shared/directives';
 })
 export class HeaderComponent {
   private readonly store = inject(Store);
+  private readonly i18nService = inject(I18nService);
   readonly router = inject(Router);
 
   readonly isAuthenticated = toSignal(this.store.select(selectIsAuthenticated), { initialValue: false });
   readonly user = toSignal(this.store.select(selectAuthUser), { initialValue: null });
+  readonly currentLanguage = toSignal(this.i18nService.language$, { initialValue: this.i18nService.currentLanguage });
 
   readonly menuOpen = signal(false);
 
@@ -39,5 +42,9 @@ export class HeaderComponent {
   onLogout(): void {
     this.store.dispatch(logout());
     this.router.navigate([HOME_ROUTES.ROOT]);
+  }
+
+  setLanguage(lang: 'es' | 'en'): void {
+    this.i18nService.setLanguage(lang);
   }
 }

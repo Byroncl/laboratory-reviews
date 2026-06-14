@@ -1,9 +1,10 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { IPost } from '../../interfaces';
 import { PostStatusPipe } from '../../pipes/post-status.pipe';
 import { I18nService } from '../../../../core/services/i18n.service';
+import { FavoritesService } from '../../services/favorites.service';
 
 @Component({
   selector: 'app-post-card',
@@ -20,6 +21,10 @@ export class PostCardComponent {
   @Output() delete = new EventEmitter<string>();
   @Output() publish = new EventEmitter<string>();
   @Output() archive = new EventEmitter<string>();
+
+  readonly isLoadingFavorite = signal(false);
+
+  private readonly favoritesService = inject(FavoritesService);
 
   constructor(private i18n: I18nService) {}
 
@@ -50,6 +55,31 @@ export class PostCardComponent {
   onArchive(): void {
     if (this.post?.id) {
       this.archive.emit(this.post.id);
+    }
+  }
+
+  isFavorited(): boolean {
+    const postId = this.post.id || this.post._id;
+    return this.favoritesService.isFavorite(postId || '');
+  }
+
+  onToggleFavorite(): void {
+    const postId = this.post.id || this.post._id;
+    if (!postId) return;
+
+    this.isLoadingFavorite.set(true);
+    const isFav = this.isFavorited();
+
+    if (isFav) {
+      this.favoritesService.removeFavorite(postId).subscribe({
+        error: () => this.isLoadingFavorite.set(false),
+        complete: () => this.isLoadingFavorite.set(false),
+      });
+    } else {
+      this.favoritesService.addFavorite(postId).subscribe({
+        error: () => this.isLoadingFavorite.set(false),
+        complete: () => this.isLoadingFavorite.set(false),
+      });
     }
   }
 }

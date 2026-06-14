@@ -1,11 +1,13 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { I18nService } from '../../../../core/services/i18n.service';
 
 import { FavoritesService } from '../../services/favorites.service';
 import { PostCardComponent } from '../../components/post-card/post-card.component';
 
 import { CLIENT_MESSAGES } from '../../constants';
+import { PostDto, FavoriteDto, PaginationResponse } from '../../types';
 import { canGoToNextPage, canGoToPreviousPage } from '../../utils/pagination.utils';
 
 @Component({
@@ -17,12 +19,13 @@ import { canGoToNextPage, canGoToPreviousPage } from '../../utils/pagination.uti
 })
 export class MyFavoritesComponent {
   private readonly favoritesService = inject(FavoritesService);
+  private readonly i18n = inject(I18nService);
 
   readonly currentPage$ = signal(1);
   readonly pageSize$ = signal(10);
   readonly isLoading$ = signal(false);
   readonly error$ = signal<string | null>(null);
-  readonly favorites$ = signal<any[]>([]);
+  readonly favorites$ = signal<PostDto[]>([]);
   readonly totalFavorites$ = signal(0);
 
   readonly totalPages = computed(() =>
@@ -51,13 +54,16 @@ export class MyFavoritesComponent {
       .getMyFavorites(this.currentPage$(), this.pageSize$())
       .pipe(takeUntilDestroyed())
       .subscribe({
-        next: (response: any) => {
-          this.favorites$.set(response.data?.data || response.data || []);
-          this.totalFavorites$.set(response.data?.total || 0);
+        next: (response) => {
+          const paginated = response.data as PaginationResponse<FavoriteDto>;
+          this.favorites$.set(
+            paginated.data?.map((fav) => fav.post).filter((post): post is PostDto => post != null) ?? []
+          );
+          this.totalFavorites$.set(paginated.total ?? 0);
           this.isLoading$.set(false);
         },
         error: () => {
-          this.error$.set('Error loading favorites');
+          this.error$.set(this.i18n.translate(this.messages.LOAD_ERROR));
           this.isLoading$.set(false);
         },
       });
@@ -70,7 +76,7 @@ export class MyFavoritesComponent {
       .subscribe({
         next: () => this.loadFavorites(),
         error: () => {
-          this.error$.set('Error removing favorite');
+          this.error$.set(this.i18n.translate(this.messages.REMOVE_ERROR));
         },
       });
   }

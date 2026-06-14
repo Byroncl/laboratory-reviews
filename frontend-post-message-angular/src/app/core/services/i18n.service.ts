@@ -370,7 +370,9 @@ export class I18nService {
           empty: 'No tienes favoritos aún.',
           loading: 'Cargando...',
           pagination_previous: '← Anterior',
-          pagination_next: 'Siguiente →'
+          pagination_next: 'Siguiente →',
+          load_error: 'Error al cargar los favoritos.',
+          remove_error: 'Error al eliminar el favorito.'
         },
         post_form: {
           create_title: 'Crear Post',
@@ -931,7 +933,9 @@ export class I18nService {
           empty: 'You have no favorites yet.',
           loading: 'Loading...',
           pagination_previous: '← Previous',
-          pagination_next: 'Next →'
+          pagination_next: 'Next →',
+          load_error: 'Error loading favorites.',
+          remove_error: 'Error removing favorite.'
         },
         post_form: {
           create_title: 'Create Post',
