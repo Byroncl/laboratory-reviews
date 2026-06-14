@@ -2,12 +2,27 @@
   "auth": {
     "login_success": "Login successful",
     "login_failed": "Invalid credentials",
+    "login_invalidCredentials": "Invalid username or password",
+    "login_required": "Login is required",
     "logout_success": "Logout successful",
     "unauthorized": "Unauthorized",
     "token_expired": "Token expired",
     "invalid_token": "Invalid token",
     "missing_token": "Missing authentication token",
-    "access_denied": "Access denied"
+    "access_denied": "Access denied",
+    "token_generated": "Token generated successfully",
+    "token_invalid": "Invalid token",
+    "errors_invalidCredentials": "Invalid username or password",
+    "errors_unauthorized": "Unauthorized access",
+    "validation_username_required": "Username is required",
+    "validation_username_mustBeString": "Username must be a string",
+    "validation_username_minLength": "Username must be at least {0} characters",
+    "validation_username_maxLength": "Username must not exceed {0} characters",
+    "validation_username_alphanumeric": "Username must contain only letters and numbers",
+    "validation_password_required": "Password is required",
+    "validation_password_mustBeString": "Password must be a string",
+    "validation_password_minLength": "Password must be at least {0} characters",
+    "validation_password_maxLength": "Password must not exceed {0} characters"
   },
   "users": {
     "created": "User created successfully",
@@ -113,7 +128,13 @@
     "action_assign": "Assignment performed",
     "action_activate": "Resource activated",
     "action_deactivate": "Resource deactivated",
-    "permission_name": "Read Audits"
+    "permission_name": "Read Audits",
+    "validation_userIdRequired": "userId is required",
+    "validation_actionRequired": "action is required",
+    "validation_entityTypeRequired": "entityType is required",
+    "validation_entityIdRequired": "entityId is required",
+    "validation_ipAddressRequired": "ipAddress is required",
+    "validation_userAgentRequired": "userAgent is required"
   },
   "common": {
     "success": "Success",

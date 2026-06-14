@@ -1,14 +1,14 @@
 ---
 sidebar_position: 1
-title: Comments Gateway
-description: Real-time WebSocket communication
+title: Gateway de Comentarios
+description: Comunicación WebSocket en tiempo real
 ---
 
-# Comments Gateway ⚡
+# Gateway de Comentarios ⚡
 
-WebSocket gateway for real-time comment updates.
+Gateway WebSocket para actualizaciones de comentarios en tiempo real.
 
-## Overview
+## Descripción General
 
 ```typescript
 @WebSocketGateway({
@@ -21,35 +21,35 @@ export class CommentsGateway
   @WebSocketServer()
   server: Server;
 
-  // Handlers...
+  // Manejadores...
 }
 ```
 
-**Location**: `src/app/modules/comments/gateways/comments.gateway.ts`
+**Ubicación**: `src/app/modules/comments/gateways/comments.gateway.ts`
 
-## Events
+## Eventos
 
-### User Management
+### Gestión de Usuarios
 
-- **`user:register`** — Register user presence
+- **`user:register`** — Registrar presencia del usuario
   ```typescript
   socket.emit('user:register', { userId: '123', username: 'john' });
-  // Server broadcasts: users:connected
+  // El servidor emite: users:connected
   ```
 
-### Comment Operations
+### Operaciones con Comentarios
 
-- **`comment:create`** — Create new comment
-- **`comment:update`** — Update comment
-- **`comment:delete`** — Delete comment
-- **`comments:list`** — Fetch all comments for post
+- **`comment:create`** — Crear nuevo comentario
+- **`comment:update`** — Actualizar comentario
+- **`comment:delete`** — Eliminar comentario
+- **`comments:list`** — Obtener todos los comentarios de un post
 
-### Typing Indicators
+### Indicadores de Escritura
 
-- **`comment:typing`** — User started typing
-- **`comment:typing:stop`** — User stopped typing
+- **`comment:typing`** — Usuario comenzó a escribir
+- **`comment:typing:stop`** — Usuario dejó de escribir
 
-## Client Implementation (Angular)
+## Implementación en Cliente (Angular)
 
 ```typescript
 import { io, Socket } from 'socket.io-client';
@@ -94,4 +94,4 @@ export class CommentsSocketService {
 
 ---
 
-**Next**: [WebSocket Security →](./security.md)
+**Siguiente**: [Seguridad WebSocket →](./security.md)

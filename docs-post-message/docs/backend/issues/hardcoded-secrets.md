@@ -1,58 +1,58 @@
 ---
 sidebar_position: 1
-title: Hardcoded Secrets Issue
-description: JWT secret hardcoded in source code
+title: Problema de Secretos Hardcodeados
+description: El secreto JWT está hardcodeado en el código fuente
 ---
 
-# Hardcoded Secrets ⚠️ CRITICAL
+# Secretos Hardcodeados ⚠️ CRÍTICO
 
-## Problem
+## Problema
 
-The JWT secret is hardcoded in the source code:
+El secreto JWT está hardcodeado en el código fuente:
 
-**File**: `src/app/modules/auth/auth.module.ts`
+**Archivo**: `src/app/modules/auth/auth.module.ts`
 
 ```typescript
 JwtModule.register({
-  secret: 'yourSecretKey',  // ❌ HARDCODED!
+  secret: 'yourSecretKey',  // ❌ ¡HARDCODEADO!
   signOptions: { expiresIn: '24h' },
 })
 ```
 
-Also in **`src/app/modules/auth/strategies/jwt.strategy.ts`**:
+También en **`src/app/modules/auth/strategies/jwt.strategy.ts`**:
 
 ```typescript
 super({
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   ignoreExpiration: false,
-  secretOrKey: 'yourSecretKey',  // ❌ Also hardcoded!
+  secretOrKey: 'yourSecretKey',  // ❌ ¡También hardcodeado aquí!
 });
 ```
 
-## Risks
+## Riesgos
 
-1. **Source code repository contains secrets** — Anyone with code access can forge tokens
-2. **Same secret in all environments** — Development uses production secret
-3. **Visible in git history** — Even if changed, old secret is recoverable
-4. **No rotation mechanism** — Secret never changes
+1. **El repositorio de código fuente contiene secretos** — Cualquier persona con acceso al código puede falsificar tokens
+2. **El mismo secreto en todos los entornos** — Desarrollo usa el secreto de producción
+3. **Visible en el historial de git** — Aunque se cambie, el secreto anterior es recuperable
+4. **Sin mecanismo de rotación** — El secreto nunca cambia
 
-## Solution
+## Solución
 
-### 1. Use Environment Variable
+### 1. Usar Variable de Entorno
 
-Create `.env`:
+Crear `.env`:
 ```bash
 JWT_SECRET=your-very-secure-random-secret-key-min-32-chars
 JWT_EXPIRES_IN=24h
 ```
 
-### 2. Update auth.module.ts
+### 2. Actualizar auth.module.ts
 
 ```typescript
 @Module({
   imports: [
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'fallback-secret',  // ✅ From env
+      secret: process.env.JWT_SECRET || 'fallback-secret',  // ✅ Desde env
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '24h' },
     }),
   ],
@@ -60,13 +60,13 @@ JWT_EXPIRES_IN=24h
 export class AuthModule {}
 ```
 
-### 3. Update jwt.strategy.ts
+### 3. Actualizar jwt.strategy.ts
 
 ```typescript
 super({
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   ignoreExpiration: false,
-  secretOrKey: process.env.JWT_SECRET || 'fallback-secret',  // ✅ From env
+  secretOrKey: process.env.JWT_SECRET || 'fallback-secret',  // ✅ Desde env
 });
 ```
 
@@ -77,7 +77,7 @@ JWT_SECRET=change-me-in-production-use-strong-random-value
 JWT_EXPIRES_IN=24h
 ```
 
-### 5. Generate Secure Secret
+### 5. Generar Secreto Seguro
 
 ```bash
 # Linux/Mac
@@ -87,19 +87,19 @@ openssl rand -base64 32
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-## Implementation Steps
+## Pasos de Implementación
 
-1. [ ] Update `auth.module.ts` to use `process.env.JWT_SECRET`
-2. [ ] Update `jwt.strategy.ts` to use `process.env.JWT_SECRET`
-3. [ ] Create `.env.example` with placeholder
-4. [ ] Generate strong secret and set in `.env`
-5. [ ] Update deployment environment variables
-6. [ ] Test authentication with new secret
-7. [ ] Revert old secret in git history (if using git-filter-repo)
+1. [ ] Actualizar `auth.module.ts` para usar `process.env.JWT_SECRET`
+2. [ ] Actualizar `jwt.strategy.ts` para usar `process.env.JWT_SECRET`
+3. [ ] Crear `.env.example` con placeholder
+4. [ ] Generar secreto fuerte y configurar en `.env`
+5. [ ] Actualizar variables de entorno de despliegue
+6. [ ] Probar autenticación con el nuevo secreto
+7. [ ] Revertir secreto anterior en historial de git (si se usa git-filter-repo)
 
-## ConfigModule Alternative
+## Alternativa con ConfigModule
 
-Use NestJS ConfigModule for type-safe configuration:
+Usar el ConfigModule de NestJS para configuración con tipos seguros:
 
 ```typescript
 // app.module.ts
@@ -132,22 +132,22 @@ export class AppModule {}
 export class AuthModule {}
 ```
 
-## Verification
+## Verificación
 
-After fix, verify JWT secret is not hardcoded:
+Después de la corrección, verificar que el secreto JWT no está hardcodeado:
 
 ```bash
-# Should not find hardcoded secret
+# No debería encontrar el secreto hardcodeado
 grep -r "yourSecretKey" src/
 
-# Check .env is in .gitignore
+# Verificar que .env está en .gitignore
 cat .gitignore | grep .env
 ```
 
 ---
 
-**Severity**: 🔴 CRITICAL
-**Impact**: Authentication compromise, token forgery
-**Timeline**: Immediate fix required
+**Gravedad**: 🔴 CRÍTICO
+**Impacto**: Compromiso de autenticación, falsificación de tokens
+**Plazo**: Corrección inmediata requerida
 
-**Next**: [Orphaned Modules →](./orphaned-modules.md)
+**Siguiente**: [Módulos Huérfanos →](./orphaned-modules.md)

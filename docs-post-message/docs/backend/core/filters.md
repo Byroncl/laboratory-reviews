@@ -1,12 +1,12 @@
 ---
 sidebar_position: 3
-title: Exception Filters
-description: Global exception handling
+title: Filtros de Excepción
+description: Manejo global de excepciones
 ---
 
-# Exception Filters ❌
+# Filtros de Excepción ❌
 
-Filters catch exceptions globally and format error responses.
+Los filtros capturan excepciones globalmente y formatean las respuestas de error.
 
 ## GlobalExceptionFilter
 
@@ -43,13 +43,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 }
 ```
 
-**Global Registration**:
+**Registro Global**:
 ```typescript
 const app = await NestFactory.create(AppModule);
 app.useGlobalFilters(new GlobalExceptionFilter(translationService));
 ```
 
-## Exception Handling
+## Manejo de Excepciones
 
 ```typescript
 // BadRequestException
@@ -73,4 +73,4 @@ throw new InternalServerErrorException('Database error');
 
 ---
 
-**Next**: [Decorators →](./decorators.md)
+**Siguiente**: [Decoradores →](./decorators.md)

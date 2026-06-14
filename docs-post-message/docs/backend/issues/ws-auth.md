@@ -1,16 +1,16 @@
 ---
 sidebar_position: 3
-title: WebSocket Auth Issue
-description: WsAuthGuard exists but is unused
+title: Problema de Autenticación WebSocket
+description: WsAuthGuard existe pero no se usa
 ---
 
-# WebSocket Authentication Issue ⚠️
+# Problema de Autenticación WebSocket ⚠️
 
-## Problem
+## Problema
 
-The `WsAuthGuard` is defined but never applied to the WebSocket gateway.
+El `WsAuthGuard` está definido pero nunca se aplica al gateway WebSocket.
 
-**File**: `src/app/core/guards/ws-auth.guard.ts`
+**Archivo**: `src/app/core/guards/ws-auth.guard.ts`
 
 ```typescript
 @Injectable()
@@ -37,34 +37,34 @@ export class WsAuthGuard implements CanActivate {
 }
 ```
 
-**But CommentsGateway doesn't use it**:
+**Pero CommentsGateway no lo usa**:
 
 ```typescript
 @WebSocketGateway({
   namespace: '/comments',
 })
-// ❌ No @UseGuards(WsAuthGuard)
+// ❌ Sin @UseGuards(WsAuthGuard)
 export class CommentsGateway {
-  // Can create/update/delete comments without authentication
+  // Puede crear/actualizar/eliminar comentarios sin autenticación
 }
 ```
 
-## Impact
+## Impacto
 
-- **No authentication on WebSocket mutations** — Any client can create/modify/delete comments
-- **Anonymous user tracking** — In-memory user map can be spoofed
-- **Security vulnerability** — No authorization checks on real-time events
+- **Sin autenticación en mutaciones WebSocket** — Cualquier cliente puede crear/modificar/eliminar comentarios
+- **Seguimiento anónimo de usuarios** — El mapa de usuarios en memoria puede ser suplantado
+- **Vulnerabilidad de seguridad** — Sin comprobaciones de autorización en eventos en tiempo real
 
-## Solution
+## Solución
 
-### 1. Apply Guard to Gateway
+### 1. Aplicar Guard al Gateway
 
 ```typescript
 @WebSocketGateway({
   namespace: '/comments',
   cors: { origin: '*' },
 })
-@UseGuards(WsAuthGuard)  // ✅ Add this
+@UseGuards(WsAuthGuard)  // ✅ Agregar esto
 export class CommentsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -72,7 +72,7 @@ export class CommentsGateway
 }
 ```
 
-### 2. Use Authenticated User
+### 2. Usar el Usuario Autenticado
 
 ```typescript
 @SubscribeMessage('comment:create')
@@ -80,14 +80,14 @@ async handleCreateComment(
   @MessageBody() data: CreateCommentDto,
   @ConnectedSocket() client: Socket,
 ) {
-  // ✅ User is now available
+  // ✅ El usuario ahora está disponible
   const user = client.handshake.user;
   
   if (!user) {
     throw new UnauthorizedException();
   }
 
-  // Create comment with verified user
+  // Crear comentario con usuario verificado
   const comment = await this.commentsService.createComment({
     ...data,
     userId: user.userId,
@@ -97,56 +97,56 @@ async handleCreateComment(
 }
 ```
 
-### 3. Update Client Connection
+### 3. Actualizar la Conexión del Cliente
 
-Clients must now send JWT token:
+Los clientes ahora deben enviar el token JWT:
 
 ```typescript
 import { io } from 'socket.io-client';
 
 const socket = io('http://localhost:3000/comments', {
   auth: {
-    token: 'Bearer eyJhbGc...',  // ✅ Include JWT
+    token: 'Bearer eyJhbGc...',  // ✅ Incluir JWT
   },
 });
 ```
 
-## Implementation Steps
+## Pasos de Implementación
 
-1. [ ] Add `@UseGuards(WsAuthGuard)` to `CommentsGateway`
-2. [ ] Update all `@SubscribeMessage()` handlers to use `client.handshake.user`
-3. [ ] Add authorization checks per event
-4. [ ] Update client code to send JWT in handshake
-5. [ ] Test WebSocket authentication
-6. [ ] Document new client requirements
+1. [ ] Agregar `@UseGuards(WsAuthGuard)` a `CommentsGateway`
+2. [ ] Actualizar todos los manejadores `@SubscribeMessage()` para usar `client.handshake.user`
+3. [ ] Agregar comprobaciones de autorización por evento
+4. [ ] Actualizar el código del cliente para enviar JWT en el handshake
+5. [ ] Probar la autenticación WebSocket
+6. [ ] Documentar los nuevos requisitos del cliente
 
-## Testing
+## Pruebas
 
 ```typescript
-// Test with valid token
+// Probar con token válido
 const socket = io('http://localhost:3000/comments', {
   auth: { token: 'Bearer ' + validToken },
 });
 
-socket.emit('comment:create', { ... });  // ✅ Should work
+socket.emit('comment:create', { ... });  // ✅ Debería funcionar
 
-// Test with invalid token
+// Probar con token inválido
 const socket2 = io('http://localhost:3000/comments', {
   auth: { token: 'Bearer invalid' },
 });
 
-socket2.emit('comment:create', { ... });  // ❌ Should fail
+socket2.emit('comment:create', { ... });  // ❌ Debería fallar
 ```
 
-## Related
+## Relacionado
 
-- [WebSocket Security Guide](../websocket/security.md)
-- [Guards Documentation](../core/guards.md)
+- [Guía de Seguridad WebSocket](../websocket/security.md)
+- [Documentación de Guards](../core/guards.md)
 
 ---
 
-**Severity**: 🔴 CRITICAL
-**Impact**: WebSocket endpoint unprotected
-**Timeline**: Immediate fix required
+**Gravedad**: 🔴 CRÍTICO
+**Impacto**: Endpoint WebSocket sin protección
+**Plazo**: Corrección inmediata requerida
 
-**Next**: [I18n Inconsistency →](./i18n-inconsistency.md)
+**Siguiente**: [Inconsistencia I18n →](./i18n-inconsistency.md)

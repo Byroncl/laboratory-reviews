@@ -1,34 +1,45 @@
 import { Injectable } from '@nestjs/common';
-import { UsersService } from '../../users/services/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { CryptoUtils } from '../../../core/utils/crypto.utils';
-import { JwtPayload, LoginResponse } from '../../../core/interfaces/auth.interface';
-import { AuthRole } from '../../../core/types/common.types';
+import { LoginResponse } from '../../../core/interfaces/auth.interface';
+import { ValidateUserUseCase } from '../domain/use-cases/validate-user.use-case';
+import { LoginUseCase } from '../domain/use-cases/login.use-case';
 
+/**
+ * Auth Service acts as an orchestrator that delegates to use cases.
+ * Orchestrates authentication operations: validation, login, and JWT generation.
+ */
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
+    private readonly validateUserUseCase: ValidateUserUseCase,
+    private readonly loginUseCase: LoginUseCase,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOneByUsername(username);
-    if (user && (await CryptoUtils.comparePasswords(pass, user.password_hash))) {
-      const { password_hash, ...result } = user.toObject
-        ? user.toObject()
-        : (user as any);
-      return result;
+  /**
+   * Validate user credentials.
+   * @param username - The username
+   * @param password - The password
+   * @returns User object if valid, null otherwise
+   */
+  async validateUser(username: string, password: string): Promise<any> {
+    try {
+      return await this.validateUserUseCase.execute(username, password);
+    } catch (error) {
+      return null;
     }
-    return null;
   }
 
-  async login(user: any): Promise<LoginResponse> {
-    const payload: JwtPayload = {
-      username: user.username,
-      sub: user._id,
-      type: (user.type as AuthRole) || 'user',
-    };
+  /**
+   * Perform login: generate JWT payload and sign it.
+   * @param userObject - The user object (from LocalStrategy validation)
+   * @returns Login response with access token
+   */
+  async login(userObject: any): Promise<LoginResponse> {
+    const payload = await this.loginUseCase.execute(
+      userObject.username,
+      userObject.password || '',
+    );
     return {
       access_token: this.jwtService.sign(payload),
     };

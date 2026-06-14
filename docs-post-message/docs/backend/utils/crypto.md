@@ -1,12 +1,12 @@
 ---
 sidebar_position: 1
-title: Crypto Utilities
-description: Password hashing and verification
+title: Utilidades Crypto
+description: Hasheo y verificación de contraseñas
 ---
 
-# Crypto Utilities 🔐
+# Utilidades Crypto 🔐
 
-Utilities for password hashing and verification using bcrypt.
+Utilidades para hasheo y verificación de contraseñas usando bcrypt.
 
 ## CryptoUtils
 
@@ -27,11 +27,11 @@ export class CryptoUtils {
 }
 ```
 
-**Location**: `src/app/core/utils/crypto.utils.ts`
+**Ubicación**: `src/app/core/utils/crypto.utils.ts`
 
-## Usage
+## Uso
 
-### In Auth Service
+### En el Servicio Auth
 
 ```typescript
 const hashedPassword = await this.cryptoUtils.hashPassword(plainPassword);
@@ -42,24 +42,24 @@ const isValid = await this.cryptoUtils.comparePasswords(
 );
 ```
 
-### In User Creation
+### En la Creación de Usuario
 
 ```typescript
 const hashedPassword = await this.cryptoUtils.hashPassword(dto.password);
 
 const user = await this.userRepository.create({
   ...dto,
-  password_hash: hashedPassword,  // Store hashed password
+  password_hash: hashedPassword,  // Almacenar contraseña hasheada
 });
 ```
 
-## Security Best Practices
+## Buenas Prácticas de Seguridad
 
-1. **Never store plain text passwords** — Always hash
-2. **Use strong salt** — 10+ rounds
-3. **Verify on login** — Use `comparePasswords()`
-4. **Password policy** — Enforce strong passwords with `@IsStrongPassword()`
+1. **Nunca almacenar contraseñas en texto plano** — Siempre hashear
+2. **Usar salt fuerte** — 10+ rondas
+3. **Verificar en el login** — Usar `comparePasswords()`
+4. **Política de contraseñas** — Aplicar contraseñas fuertes con `@IsStrongPassword()`
 
 ---
 
-**Next**: [File Utilities →](./file.md)
+**Siguiente**: [Utilidades de Archivos →](./file.md)

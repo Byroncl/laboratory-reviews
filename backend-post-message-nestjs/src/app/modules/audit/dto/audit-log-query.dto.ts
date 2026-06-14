@@ -1,25 +1,25 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsInt, IsISO8601, IsOptional, IsString, Max, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { AuditAction, EntityType } from '../schemas/audit-log.schema';
+import { AuditAction, EntityType, AUDIT_PAGINATION, AUDIT_DTO_DESCRIPTIONS } from '../constants/audit.constants';
 
 export class AuditLogQueryDto {
-  @ApiPropertyOptional({ default: 1, minimum: 1 })
+  @ApiPropertyOptional({ default: AUDIT_PAGINATION.DEFAULT_PAGE, minimum: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  page: number = 1;
+  page: number = AUDIT_PAGINATION.DEFAULT_PAGE;
 
-  @ApiPropertyOptional({ default: 20, minimum: 1, maximum: 100 })
+  @ApiPropertyOptional({ default: AUDIT_PAGINATION.DEFAULT_LIMIT, minimum: 1, maximum: AUDIT_PAGINATION.MAX_LIMIT })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(100)
-  limit: number = 20;
+  @Max(AUDIT_PAGINATION.MAX_LIMIT)
+  limit: number = AUDIT_PAGINATION.DEFAULT_LIMIT;
 
-  @ApiPropertyOptional({ description: 'Filter by actor userId' })
+  @ApiPropertyOptional({ description: AUDIT_DTO_DESCRIPTIONS.FILTER_USER_ID })
   @IsOptional()
   @IsString()
   userId?: string;
@@ -34,17 +34,17 @@ export class AuditLogQueryDto {
   @IsEnum(AuditAction)
   action?: AuditAction;
 
-  @ApiPropertyOptional({ description: 'createdAt >= (ISO8601)' })
+  @ApiPropertyOptional({ description: AUDIT_DTO_DESCRIPTIONS.FROM })
   @IsOptional()
   @IsISO8601()
   from?: string;
 
-  @ApiPropertyOptional({ description: 'createdAt <= (ISO8601)' })
+  @ApiPropertyOptional({ description: AUDIT_DTO_DESCRIPTIONS.TO })
   @IsOptional()
   @IsISO8601()
   to?: string;
 
-  @ApiPropertyOptional({ description: 'Full-text match on username or path' })
+  @ApiPropertyOptional({ description: AUDIT_DTO_DESCRIPTIONS.SEARCH })
   @IsOptional()
   @IsString()
   search?: string;

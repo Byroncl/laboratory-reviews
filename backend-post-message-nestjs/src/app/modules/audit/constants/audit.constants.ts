@@ -36,6 +36,16 @@ export const AUDIT_MESSAGES = {
   [AuditAction.PERMISSION_DENIED]: 'Acceso denegado',
 } as const;
 
+// Audit Validation Messages (i18n keys)
+export const AUDIT_VALIDATION_MESSAGES = {
+  USER_ID_REQUIRED: 'audit.validation_userIdRequired',
+  ACTION_REQUIRED: 'audit.validation_actionRequired',
+  ENTITY_TYPE_REQUIRED: 'audit.validation_entityTypeRequired',
+  ENTITY_ID_REQUIRED: 'audit.validation_entityIdRequired',
+  IP_ADDRESS_REQUIRED: 'audit.validation_ipAddressRequired',
+  USER_AGENT_REQUIRED: 'audit.validation_userAgentRequired',
+};
+
 // Audit Status
 export enum AuditStatus {
   SUCCESS = 'SUCCESS',
@@ -65,19 +75,68 @@ export const AUDIT_PAGINATION = {
 // Swagger Documentation
 export const AUDIT_SWAGGER = {
   LOGS_ENDPOINT: {
-    SUMMARY: 'Obtener registros de auditoría',
+    SUMMARY: 'Get paginated audit logs with optional filters',
     DESCRIPTION: 'Retorna los registros de auditoría paginados y filtrados',
   },
   LOG_BY_ID_ENDPOINT: {
-    SUMMARY: 'Obtener un registro de auditoría por ID',
+    SUMMARY: 'Get a single audit log entry by ID',
     DESCRIPTION: 'Retorna un registro específico de auditoría',
   },
-  LOGS_BY_USER_ENDPOINT: {
-    SUMMARY: 'Obtener registros de auditoría por usuario',
-    DESCRIPTION: 'Retorna los registros de auditoría de un usuario específico',
+  LOGS_BY_ENTITY_ENDPOINT: {
+    SUMMARY: 'Get all audit logs for a specific entity',
+    DESCRIPTION: 'Retorna los registros de auditoría de una entidad específica',
   },
   EXPORT_LOGS_ENDPOINT: {
     SUMMARY: 'Exportar registros de auditoría',
     DESCRIPTION: 'Exporta los registros de auditoría a CSV',
   },
+};
+
+// API Response Descriptions
+export const AUDIT_RESPONSE_DESCRIPTIONS = {
+  SUCCESS_200: 'Paginated audit log list',
+  SUCCESS_SINGLE: 'Audit log entry with before/after snapshots',
+  SUCCESS_ENTITY: 'Paginated entity-scoped audit logs',
+  UNAUTHORIZED: 'Unauthorized',
+  FORBIDDEN: 'Forbidden — requires audits:read permission',
+};
+
+// API Parameter Descriptions
+export const AUDIT_PARAM_DESCRIPTIONS = {
+  ID: 'AuditLog MongoDB ObjectId',
+  ENTITY_TYPE: 'Entity type',
+  ENTITY_ID: 'Entity ID',
+};
+
+// DTO Field Descriptions
+export const AUDIT_DTO_DESCRIPTIONS = {
+  // AuditLogResponseDto (single entry)
+  ID: 'ID único del registro de auditoría',
+  USER_ID: 'ID del usuario que realizó la acción',
+  ACTION: 'Acción realizada',
+  ENTITY_TYPE: 'Tipo de entidad afectada',
+  ENTITY_ID: 'ID de la entidad afectada',
+  CHANGES: 'Cambios realizados',
+  BEFORE: 'Estado anterior',
+  AFTER: 'Estado posterior',
+  STATUS: 'Estado de la acción',
+  IP_ADDRESS: 'Dirección IP del cliente',
+  USER_AGENT: 'User Agent del cliente',
+  MESSAGE: 'Mensaje descriptivo',
+  CREATED_AT: 'Fecha de creación',
+  UPDATED_AT: 'Fecha de actualización',
+  ELAPSED_TIME: 'Tiempo transcurrido en milisegundos',
+
+  // AuditLogPageResponseDto (pagination)
+  DATA: 'Array of audit log entries',
+  TOTAL: 'Total number of records',
+  PAGE: 'Número de página',
+  LIMIT: 'Cantidad de registros por página',
+  TOTAL_PAGES: 'Total number of pages',
+
+  // AuditLogQueryDto (filters)
+  FILTER_USER_ID: 'Filter by actor userId',
+  SEARCH: 'Full-text match on username or path',
+  FROM: 'createdAt >= (ISO8601)',
+  TO: 'createdAt <= (ISO8601)',
 };

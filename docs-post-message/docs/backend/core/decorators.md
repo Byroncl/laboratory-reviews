@@ -1,40 +1,40 @@
 ---
 sidebar_position: 4
-title: Custom Decorators
-description: Route protection and metadata extraction
+title: Decoradores Personalizados
+description: Protección de rutas y extracción de metadatos
 ---
 
-# Custom Decorators 🎯
+# Decoradores Personalizados 🎯
 
-Custom decorators extend NestJS functionality for authentication and parameter extraction.
+Los decoradores personalizados extienden la funcionalidad de NestJS para autenticación y extracción de parámetros.
 
-## @Auth() Decorator
+## Decorador @Auth()
 
-Marks routes as protected and sets role requirements:
+Marca las rutas como protegidas y establece los requisitos de rol:
 
 ```typescript
 export function Auth(options?: { roles?: UserType[] }) {
   return applyDecorators(
     SetMetadata(AUTH_KEY, options?.roles),
-    ApiBearerAuth(),  // Swagger documentation
+    ApiBearerAuth(),  // Documentación Swagger
   );
 }
 ```
 
-**Usage**:
+**Uso**:
 ```typescript
 @Get('profile')
-@Auth()  // Protected - any authenticated user
+@Auth()  // Protegido - cualquier usuario autenticado
 getProfile() { }
 
 @Get('admin')
-@Auth({ roles: ['admin'] })  // Protected - admin only
+@Auth({ roles: ['admin'] })  // Protegido - solo admin
 getAdmin() { }
 ```
 
-## @CurrentUser() Decorator
+## Decorador @CurrentUser()
 
-Extracts the current user from the request:
+Extrae el usuario actual de la petición:
 
 ```typescript
 export const CurrentUser = createParamDecorator(
@@ -45,7 +45,7 @@ export const CurrentUser = createParamDecorator(
 );
 ```
 
-**Usage**:
+**Uso**:
 ```typescript
 @Get('profile')
 @Auth()
@@ -54,9 +54,9 @@ getProfile(@CurrentUser() user: CurrentUserPayload) {
 }
 ```
 
-## @HasPermission() Decorator
+## Decorador @HasPermission()
 
-Checks for specific permissions:
+Comprueba permisos específicos:
 
 ```typescript
 export function HasPermission(permission: string) {
@@ -64,7 +64,7 @@ export function HasPermission(permission: string) {
 }
 ```
 
-**Usage**:
+**Uso**:
 ```typescript
 @Delete(':id')
 @Auth()
@@ -72,9 +72,9 @@ export function HasPermission(permission: string) {
 deletePost(@Param('id') id: string) { }
 ```
 
-## @IsStrongPassword() Validator
+## Validador @IsStrongPassword()
 
-Custom class-validator decorator:
+Decorador personalizado de class-validator:
 
 ```typescript
 export function IsStrongPassword() {
@@ -97,7 +97,7 @@ export function IsStrongPassword() {
 }
 ```
 
-**Usage**:
+**Uso**:
 ```typescript
 export class CreateUserDto {
   @IsStrongPassword()
@@ -105,9 +105,9 @@ export class CreateUserDto {
 }
 ```
 
-## Creating Custom Decorators
+## Crear Decoradores Personalizados
 
-**Template**:
+**Plantilla**:
 ```typescript
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
@@ -121,4 +121,4 @@ export const MyDecorator = createParamDecorator(
 
 ---
 
-**Next**: [Middleware →](./middleware.md)
+**Siguiente**: [Middleware →](./middleware.md)

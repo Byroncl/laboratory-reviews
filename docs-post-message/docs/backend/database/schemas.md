@@ -1,14 +1,14 @@
 ---
 sidebar_position: 1
-title: Database Schemas
-description: MongoDB collections and data structures
+title: Schemas de Base de Datos
+description: Colecciones MongoDB y estructuras de datos
 ---
 
-# Database Schemas 📊
+# Schemas de Base de Datos 📊
 
-All data structures are defined using Mongoose schemas.
+Todas las estructuras de datos están definidas usando schemas de Mongoose.
 
-## User Schema
+## Schema de Usuario
 
 ```typescript
 @Schema({ timestamps: true })
@@ -48,9 +48,9 @@ export class User {
 }
 ```
 
-**Collection**: `users`
+**Colección**: `users`
 
-## Post Schema
+## Schema de Post
 
 ```typescript
 @Schema({ timestamps: true })
@@ -81,9 +81,9 @@ export class Post {
 }
 ```
 
-**Collection**: `posts`
+**Colección**: `posts`
 
-## Comment Schema
+## Schema de Comment
 
 ```typescript
 @Schema({ timestamps: true })
@@ -111,9 +111,9 @@ export class Comment {
 }
 ```
 
-**Collection**: `comments`
+**Colección**: `comments`
 
-## Role Schema
+## Schema de Rol
 
 ```typescript
 @Schema({ timestamps: true })
@@ -138,9 +138,9 @@ export class Role {
 }
 ```
 
-**Collection**: `roles`
+**Colección**: `roles`
 
-## Permission Schema
+## Schema de Permiso
 
 ```typescript
 @Schema({ timestamps: true })
@@ -167,9 +167,9 @@ export class Permission {
 }
 ```
 
-**Collection**: `permissions`
+**Colección**: `permissions`
 
-## Client Schema
+## Schema de Cliente
 
 ```typescript
 @Schema({ timestamps: true })
@@ -206,20 +206,20 @@ export class Client {
 }
 ```
 
-**Collection**: `clients`
+**Colección**: `clients`
 
-## ER Diagram
+## Diagrama ER
 
 ```mermaid
 erDiagram
-    USER ||--o{ POST : "creates"
-    USER ||--o{ COMMENT : "has"
-    USER ||--|| ROLE : "assigned"
-    POST ||--o{ COMMENT : "has"
-    ROLE ||--o{ PERMISSION : "grants"
-    CLIENT ||--|| ROLE : "assigned"
+    USER ||--o{ POST : "crea"
+    USER ||--o{ COMMENT : "tiene"
+    USER ||--|| ROLE : "asignado"
+    POST ||--o{ COMMENT : "tiene"
+    ROLE ||--o{ PERMISSION : "otorga"
+    CLIENT ||--|| ROLE : "asignado"
 ```
 
 ---
 
-**Next**: [Relationships →](./relationships.md)
+**Siguiente**: [Relaciones →](./relationships.md)

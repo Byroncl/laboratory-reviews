@@ -128,7 +128,13 @@
     "action_assign": "Asignación realizada",
     "action_activate": "Recurso activado",
     "action_deactivate": "Recurso desactivado",
-    "permission_name": "Ver Auditorías"
+    "permission_name": "Ver Auditorías",
+    "validation_userIdRequired": "userId es requerido",
+    "validation_actionRequired": "action es requerido",
+    "validation_entityTypeRequired": "entityType es requerido",
+    "validation_entityIdRequired": "entityId es requerido",
+    "validation_ipAddressRequired": "ipAddress es requerido",
+    "validation_userAgentRequired": "userAgent es requerido"
   },
   "common": {
     "success": "Éxito",

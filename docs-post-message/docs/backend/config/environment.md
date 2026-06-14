@@ -1,40 +1,40 @@
 ---
 sidebar_position: 1
-title: Environment Variables
-description: Configuration and environment setup
+title: Variables de Entorno
+description: Configuración y configuración del entorno
 ---
 
-# Environment Variables ⚙️
+# Variables de Entorno ⚙️
 
-The backend uses environment variables for configuration.
+El backend utiliza variables de entorno para la configuración.
 
 ## Variables
 
-| Variable | Default | Purpose | Required |
+| Variable | Por Defecto | Propósito | Requerido |
 |----------|---------|---------|----------|
-| `HOST` | `localhost` | Bind address | ✅ |
-| `PORT` | `3000` | HTTP port | ✅ |
-| `APP_NAME` | `My App` | Application name | ✅ |
-| `NODE_ENV` | `development` | Environment | ✅ |
-| `MONGODB_URI` | `mongodb://localhost:27017` | MongoDB connection | ✅ |
-| `JWT_SECRET` | `secret` | JWT signing key | ⚠️ Hardcoded |
-| `JWT_EXPIRES_IN` | `1d` | Token expiry | ✅ |
-| `MINIO_ENDPOINT` | `minio` | MinIO server | ✅ |
-| `MINIO_ACCESS_KEY` | `minioadmin` | MinIO credentials | ✅ |
-| `MINIO_SECRET_KEY` | `minioadmin` | MinIO credentials | ✅ |
-| `MINIO_BUCKET_NAME` | `posts` | MinIO bucket | ✅ |
-| `MINIO_PUBLIC_URL` | `http://minio:9000` | File access URL | ✅ |
+| `HOST` | `localhost` | Dirección de enlace | ✅ |
+| `PORT` | `3000` | Puerto HTTP | ✅ |
+| `APP_NAME` | `My App` | Nombre de la aplicación | ✅ |
+| `NODE_ENV` | `development` | Entorno | ✅ |
+| `MONGODB_URI` | `mongodb://localhost:27017` | Conexión a MongoDB | ✅ |
+| `JWT_SECRET` | `secret` | Clave de firma JWT | ⚠️ Hardcodeada |
+| `JWT_EXPIRES_IN` | `1d` | Expiración del token | ✅ |
+| `MINIO_ENDPOINT` | `minio` | Servidor MinIO | ✅ |
+| `MINIO_ACCESS_KEY` | `minioadmin` | Credenciales MinIO | ✅ |
+| `MINIO_SECRET_KEY` | `minioadmin` | Credenciales MinIO | ✅ |
+| `MINIO_BUCKET_NAME` | `posts` | Bucket MinIO | ✅ |
+| `MINIO_PUBLIC_URL` | `http://minio:9000` | URL de acceso a archivos | ✅ |
 
-## .env File Example
+## Ejemplo de Archivo .env
 
 ```bash
-# Server
+# Servidor
 HOST=localhost
 PORT=3000
 APP_NAME=Post-Message
 NODE_ENV=development
 
-# Database
+# Base de datos
 MONGODB_URI=mongodb://localhost:27017/post-message
 
 # JWT
@@ -49,14 +49,14 @@ MINIO_BUCKET_NAME=posts
 MINIO_PUBLIC_URL=http://localhost:9000
 ```
 
-## Environment Files
+## Archivos de Entorno
 
-- `.env` — Local development
-- `.env.production` — Production overrides
-- `config/env/default.ts` — Default fallbacks
-- `config/env/production.ts` — Production config
+- `.env` — Desarrollo local
+- `.env.production` — Overrides de producción
+- `config/env/default.ts` — Valores por defecto
+- `config/env/production.ts` — Configuración de producción
 
-## Docker Environment
+## Entorno Docker
 
 ```yaml
 environment:
@@ -68,14 +68,14 @@ environment:
   - MINIO_SECRET_KEY=minioadmin
 ```
 
-## Security Notes ⚠️
+## Notas de Seguridad ⚠️
 
-1. **JWT_SECRET is hardcoded** in `auth.module.ts` — should use env var
-2. **MinIO credentials are defaults** — change in production
-3. **No HTTPS in development** — enable in production
+1. **JWT_SECRET está hardcodeado** en `auth.module.ts` — debería usar variable de entorno
+2. **Las credenciales de MinIO son las por defecto** — cambiar en producción
+3. **Sin HTTPS en desarrollo** — habilitarlo en producción
 
-See [Hardcoded Secrets Issue](../issues/hardcoded-secrets.md)
+Ver [Problema de Secretos Hardcodeados](../issues/hardcoded-secrets.md)
 
 ---
 
-**Next**: [Setup →](./setup.md)
+**Siguiente**: [Configuración →](./setup.md)

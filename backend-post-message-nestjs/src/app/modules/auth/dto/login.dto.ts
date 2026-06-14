@@ -7,7 +7,10 @@ import {
   AUTH_EXAMPLES,
   AUTH_DTO_DESCRIPTIONS,
 } from '../constants/auth.constants';
-import { IsValidUsername, IsValidPassword } from '../validators/auth-validators';
+import {
+  IsValidUsername,
+  IsValidPassword,
+} from '../validators/auth-validators';
 
 export class LoginDto {
   @ApiProperty({

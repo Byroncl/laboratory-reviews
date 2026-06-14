@@ -1,19 +1,19 @@
 ---
 sidebar_position: 2
-title: Orphaned Modules Issue
-description: RolesModule and PermissionsModule not imported
+title: Problema de Módulos Huérfanos
+description: RolesModule y PermissionsModule no están importados
 ---
 
-# Orphaned Modules ⚠️
+# Módulos Huérfanos ⚠️
 
-## Problem
+## Problema
 
-Two modules are defined but not imported in `AppModule`:
+Dos módulos están definidos pero no importados en `AppModule`:
 
 - **RolesModule**
 - **PermissionsModule**
 
-**File**: `src/app/app.module.ts`
+**Archivo**: `src/app/app.module.ts`
 
 ```typescript
 @Module({
@@ -26,24 +26,24 @@ Two modules are defined but not imported in `AppModule`:
     CommentsModule,
     ClientsModule,
     FilesModule,
-    // ❌ RolesModule NOT imported
-    // ❌ PermissionsModule NOT imported
+    // ❌ RolesModule NO importado
+    // ❌ PermissionsModule NO importado
     I18nModule,
   ],
 })
 export class AppModule {}
 ```
 
-## Impact
+## Impacto
 
-- **Controllers unreachable** — `RolesController` and `PermissionsController` never register
-- **Services not injectable** — `RolesService` and `PermissionsService` not available
-- **Endpoints return 404** — `/roles/*` and `/permissions/*` are not available
-- **API incomplete** — Role and permission management unavailable
+- **Controladores inaccesibles** — `RolesController` y `PermissionsController` nunca se registran
+- **Servicios no inyectables** — `RolesService` y `PermissionsService` no están disponibles
+- **Endpoints devuelven 404** — `/roles/*` y `/permissions/*` no están disponibles
+- **API incompleta** — La gestión de roles y permisos no está disponible
 
-## Solution
+## Solución
 
-### 1. Import Modules in AppModule
+### 1. Importar Módulos en AppModule
 
 ```typescript
 @Module({
@@ -56,17 +56,17 @@ export class AppModule {}
     CommentsModule,
     ClientsModule,
     FilesModule,
-    RolesModule,          // ✅ Add this
-    PermissionsModule,    // ✅ Add this
+    RolesModule,          // ✅ Agregar esto
+    PermissionsModule,    // ✅ Agregar esto
     I18nModule,
   ],
 })
 export class AppModule {}
 ```
 
-### 2. Verify Module Structure
+### 2. Verificar Estructura de Módulos
 
-Ensure each module exports its services:
+Asegurarse de que cada módulo exporta sus servicios:
 
 ```typescript
 // roles.module.ts
@@ -74,7 +74,7 @@ Ensure each module exports its services:
   imports: [MongooseModule.forFeature([...])],
   controllers: [RolesController],
   providers: [RolesService],
-  exports: [RolesService],  // ✅ Export for other modules
+  exports: [RolesService],  // ✅ Exportar para otros módulos
 })
 export class RolesModule {}
 
@@ -83,61 +83,61 @@ export class RolesModule {}
   imports: [MongooseModule.forFeature([...])],
   controllers: [PermissionsController],
   providers: [PermissionsService],
-  exports: [PermissionsService],  // ✅ Export for other modules
+  exports: [PermissionsService],  // ✅ Exportar para otros módulos
 })
 export class PermissionsModule {}
 ```
 
-### 3. Test Endpoints
+### 3. Probar Endpoints
 
 ```bash
-# Before fix: 404
+# Antes de la corrección: 404
 curl http://localhost:3000/roles
 
-# After fix: 200
+# Después de la corrección: 200
 curl http://localhost:3000/roles
 ```
 
-## Endpoints to Enable
+## Endpoints a Habilitar
 
 ### Roles
 
-| Endpoint | Method | Purpose |
+| Endpoint | Método | Propósito |
 |----------|--------|---------|
-| `/roles` | POST | Create role |
-| `/roles` | GET | Get all roles |
-| `/roles/:id` | GET | Get role |
-| `/roles/:id` | PATCH | Update role |
-| `/roles/:id` | DELETE | Delete role |
+| `/roles` | POST | Crear rol |
+| `/roles` | GET | Obtener todos los roles |
+| `/roles/:id` | GET | Obtener rol |
+| `/roles/:id` | PATCH | Actualizar rol |
+| `/roles/:id` | DELETE | Eliminar rol |
 
-### Permissions
+### Permisos
 
-| Endpoint | Method | Purpose |
+| Endpoint | Método | Propósito |
 |----------|--------|---------|
-| `/permissions` | POST | Create permission |
-| `/permissions` | GET | Get all permissions |
-| `/permissions/:id` | GET | Get permission |
-| `/permissions/:id` | PATCH | Update permission |
-| `/permissions/:id` | DELETE | Delete permission |
+| `/permissions` | POST | Crear permiso |
+| `/permissions` | GET | Obtener todos los permisos |
+| `/permissions/:id` | GET | Obtener permiso |
+| `/permissions/:id` | PATCH | Actualizar permiso |
+| `/permissions/:id` | DELETE | Eliminar permiso |
 
-## Implementation Steps
+## Pasos de Implementación
 
-1. [ ] Add `RolesModule` import to `AppModule`
-2. [ ] Add `PermissionsModule` import to `AppModule`
-3. [ ] Verify module exports are correct
-4. [ ] Test endpoints are accessible
-5. [ ] Update API documentation
-6. [ ] Add endpoints to Swagger
+1. [ ] Agregar import de `RolesModule` a `AppModule`
+2. [ ] Agregar import de `PermissionsModule` a `AppModule`
+3. [ ] Verificar que los exports de los módulos son correctos
+4. [ ] Probar que los endpoints son accesibles
+5. [ ] Actualizar la documentación de la API
+6. [ ] Agregar endpoints a Swagger
 
-## Related
+## Relacionado
 
-- [Module Structure Documentation](../architecture/module-structure.md)
-- [Roles Module](../modules/roles-permissions.md)
+- [Documentación de Estructura de Módulos](../architecture/module-structure.md)
+- [Módulo Roles](../modules/roles-permissions.md)
 
 ---
 
-**Severity**: 🟡 HIGH
-**Impact**: Role and permission management unavailable
-**Timeline**: Should be fixed in next release
+**Gravedad**: 🟡 ALTA
+**Impacto**: Gestión de roles y permisos no disponible
+**Plazo**: Debería corregirse en la próxima versión
 
-**Next**: [I18n Inconsistency →](./i18n-inconsistency.md)
+**Siguiente**: [Inconsistencia I18n →](./i18n-inconsistency.md)
