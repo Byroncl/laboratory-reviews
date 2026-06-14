@@ -206,14 +206,14 @@ async function seedCategories(
 }
 
 const SEED_USERS = [
-  { firstName: 'Alice', type: 'user' },
-  { firstName: 'Bob', type: 'user' },
+  { firstName: 'Sofi', type: 'user' },
+  { firstName: 'Joselin', type: 'user' },
   { firstName: 'Charlie', type: 'admin' },
-  { firstName: 'Diana', type: 'user' },
-  { firstName: 'Eve', type: 'user' },
-  { firstName: 'Frank', type: 'user' },
-  { firstName: 'Grace', type: 'admin' },
-  { firstName: 'Henry', type: 'user' },
+  { firstName: 'Bibi', type: 'user' },
+  { firstName: 'Fioravanti', type: 'user' },
+  { firstName: 'Idrovo', type: 'user' },
+  { firstName: 'Bianca', type: 'admin' },
+  { firstName: 'Byron', type: 'user' },
 ];
 
 const POST_TITLES = [

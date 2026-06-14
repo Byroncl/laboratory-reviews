@@ -51,7 +51,6 @@
 
         <app-comment-form
           [postId]="post()!.id || post()!._id || ''"
-          [disabled]="false"
           (submitted)="onCommentSubmitted()"
         ></app-comment-form>
 

@@ -77,9 +77,10 @@ export class CommentsService {
     }
 
     return this.http
-      .get<ICommentListResponse>(`${this.baseUrl}${COMMENTS_API_ENDPOINTS.LIST}`, { params })
+      .get<unknown>(`${this.baseUrl}${COMMENTS_API_ENDPOINTS.LIST}`, { params })
       .pipe(
         retry(this.retryAttempts),
+        map((raw) => this._adaptCommentListResponse(raw)),
         tap((response) => this._handleLoadSuccess(response)),
         catchError((err) => this._handleError(err, 'Failed to load comments')),
         finalize(() => this.loading$.set(false)),
@@ -240,6 +241,51 @@ export class CommentsService {
   }
 
   // ─── Private helpers ────────────────────────────────────────────────────────
+
+  /**
+   * Adapts the raw backend response for GET /comments to ICommentListResponse.
+   *
+   * Backend shape: { statusCode, success, message, data: IComment[], timestamp }
+   * Frontend expected shape: { data: IComment[], pagination: { skip, limit, total }, message }
+   *
+   * The backend returns a flat Comment[] in data — no pagination envelope.
+   * We reconstruct pagination from the current signal so the shape contract is met.
+   */
+  private _adaptCommentListResponse(raw: unknown): ICommentListResponse {
+    const response = raw as Record<string, unknown>;
+
+    // Backend wraps everything in { data, statusCode, success, message, timestamp }
+    // data is either a Comment[] (flat list) or already has pagination structure
+    const inner = response?.['data'];
+    const message = typeof response?.['message'] === 'string' ? response['message'] : '';
+
+    if (Array.isArray(inner)) {
+      // Flat array — backend returned Comment[] directly in data
+      const currentPagination = this.pagination();
+      return {
+        data: inner as IComment[],
+        pagination: {
+          skip: currentPagination.skip,
+          limit: currentPagination.limit,
+          total: inner.length,
+        },
+        message,
+      };
+    }
+
+    if (inner && typeof inner === 'object' && Array.isArray((inner as Record<string, unknown>)['data'])) {
+      // Already in { data: IComment[], pagination: {...} } shape — pass through
+      return inner as ICommentListResponse;
+    }
+
+    // Unexpected shape — return empty safe fallback
+    console.error('[CommentsService] Unexpected response shape from GET /comments:', raw);
+    return {
+      data: [],
+      pagination: { skip: 0, limit: this.pagination().limit, total: 0 },
+      message,
+    };
+  }
 
   private _buildLoadParams(filters?: ICommentFilters): Record<string, unknown> {
     const params: Record<string, unknown> = {

@@ -1,9 +1,11 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { CommentsService } from '../../services';
 import { ICreateCommentDTO } from '../../interfaces';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-comment-form',
@@ -15,14 +17,17 @@ import { ICreateCommentDTO } from '../../interfaces';
 export class CommentFormComponent implements OnInit {
   /** The ID of the post this comment belongs to. Required. */
   @Input() postId!: string;
-  /** When true the form is hidden and a sign-in prompt is shown instead. */
-  @Input() disabled = false;
 
   @Output() submitted = new EventEmitter<ICreateCommentDTO>();
   @Output() cancel = new EventEmitter<void>();
 
   private fb = inject(FormBuilder);
   private commentsService = inject(CommentsService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  readonly showAuthModal = signal(false);
+  readonly isLoggedIn = computed(() => this.authService.isAuthenticated());
 
   commentForm!: FormGroup;
   isSubmitting = false;
@@ -68,6 +73,10 @@ export class CommentFormComponent implements OnInit {
       },
     });
   }
+
+  goToLogin(): void { this.router.navigate(['/auth/login']); }
+  goToRegister(): void { this.router.navigate(['/auth/register']); }
+  closeAuthModal(): void { this.showAuthModal.set(false); }
 
   onCancel(): void {
     this.commentForm.reset();

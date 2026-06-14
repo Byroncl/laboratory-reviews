@@ -1,6 +1,7 @@
-@if (disabled) {
-  <div class="comment-gate">
-    <p>{{ 'posts.comment.signInGate' | t }}</p>
+@if (!isLoggedIn()) {
+  <div class="comment-gate" (click)="showAuthModal.set(true)">
+    <span class="comment-gate-icon">💬</span>
+    <span>Sign in to join the conversation</span>
   </div>
 } @else {
   <form [formGroup]="commentForm" (ngSubmit)="onSubmit()" class="comment-form">
@@ -33,4 +34,18 @@
       </button>
     </div>
   </form>
+}
+
+@if (showAuthModal()) {
+  <div class="auth-modal-backdrop" (click)="closeAuthModal()">
+    <div class="auth-modal" (click)="$event.stopPropagation()">
+      <h3>Sign in to comment</h3>
+      <p>You must be signed in to leave a comment.</p>
+      <div class="auth-modal-actions">
+        <button class="btn btn-primary" (click)="goToLogin()">Sign In</button>
+        <button class="btn btn-outline" (click)="goToRegister()">Register</button>
+        <button class="btn btn-ghost" (click)="closeAuthModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
 }
