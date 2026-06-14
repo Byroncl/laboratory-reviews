@@ -10,11 +10,12 @@ import { PermissionsService } from '../../../admin/services/permissions.service'
 import { Role } from '../../../../shared/models/role.model';
 import { Permission } from '../../../../shared/models/permission.model';
 import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-role-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent],
+  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent, TranslatePipe],
   templateUrl: './role-form.component.html',
   styleUrl: './role-form.component.scss'
 })

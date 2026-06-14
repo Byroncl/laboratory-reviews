@@ -9,11 +9,12 @@ import { PermissionsService } from '../../../admin/services/permissions.service'
 import { Role } from '../../../../shared/models/role.model';
 import { Permission } from '../../../../shared/models/permission.model';
 import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-role-permissions',
   standalone: true,
-  imports: [CommonModule, SpinnerComponent],
+  imports: [CommonModule, SpinnerComponent, TranslatePipe],
   templateUrl: './role-permissions.component.html',
   styleUrl: './role-permissions.component.scss'
 })

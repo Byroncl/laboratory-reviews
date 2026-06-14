@@ -6,11 +6,12 @@ import { selectUser } from '../../../features/auth/store/auth.selectors';
 import { Observable } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UsersService } from '../../admin/services/users.service';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-overview',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './overview.component.html',
   styleUrl: './overview.component.scss'
 })

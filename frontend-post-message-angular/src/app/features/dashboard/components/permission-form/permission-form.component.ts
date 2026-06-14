@@ -8,11 +8,12 @@ import { I18nService } from '../../../../core/services/i18n.service';
 import { PermissionsService } from '../../../admin/services/permissions.service';
 import { Permission, PermissionType } from '../../../../shared/models/permission.model';
 import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-permission-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent],
+  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent, TranslatePipe],
   templateUrl: './permission-form.component.html',
   styleUrl: './permission-form.component.scss'
 })

@@ -8,11 +8,12 @@ import { I18nService } from '../../../../core/services/i18n.service';
 import { UsersService } from '../../../admin/services/users.service';
 import { User } from '../../../../shared/models/user.model';
 import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-user-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent],
+  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent, TranslatePipe],
   templateUrl: './user-form.component.html',
   styleUrl: './user-form.component.scss'
 })
