@@ -49,40 +49,50 @@ export class ClientsController {
   }
 
   @Auth()
-  @ApiOperation({ summary: 'Get my profile (client only)' })
+  @ApiOperation({ summary: 'Get my profile (client or admin)' })
   @ApiResponse({
     status: 200,
     description: 'Client profile',
     type: ClientResponseDto,
   })
-  @ApiResponse({ status: 403, description: 'Forbidden - only for clients' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('profile')
   async getProfile(@CurrentUser() user: CurrentUserPayload) {
-    if ((user as any).type !== 'client') {
-      throw new ForbiddenException('Solo los clientes pueden acceder a su perfil');
+    const isClient = (user as any).type === 'client';
+    const isAdmin =
+      (user as any).role === 'admin' ||
+      (typeof (user as any).role === 'object' && (user as any).role?.name === 'admin');
+
+    if (!isClient && !isAdmin) {
+      throw new ForbiddenException('Acceso denegado');
     }
     const client = await this.clientsService.findOne(user.id);
     return ApiRes.success(client);
   }
 
   @Auth()
-  @ApiOperation({ summary: 'Update my profile (client only)' })
+  @ApiOperation({ summary: 'Update my profile (client or admin)' })
   @ApiBody({ type: UpdateClientDto })
   @ApiResponse({
     status: 200,
     description: 'Profile updated successfully',
     type: ClientResponseDto,
   })
-  @ApiResponse({ status: 403, description: 'Forbidden - only for clients' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Put('profile')
   async updateProfile(
     @CurrentUser() user: CurrentUserPayload,
     @Body() updateClientDto: UpdateClientDto,
   ) {
-    if ((user as any).type !== 'client') {
-      throw new ForbiddenException('Solo los clientes pueden actualizar su perfil');
+    const isClient = (user as any).type === 'client';
+    const isAdmin =
+      (user as any).role === 'admin' ||
+      (typeof (user as any).role === 'object' && (user as any).role?.name === 'admin');
+
+    if (!isClient && !isAdmin) {
+      throw new ForbiddenException('Acceso denegado');
     }
     const client = await this.clientsService.update(user.id, updateClientDto);
     return ApiRes.success(client, this.i18n.translate('clients.updated'));

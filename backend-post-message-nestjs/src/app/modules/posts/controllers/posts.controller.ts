@@ -62,15 +62,20 @@ export class PostsController {
   }
 
   @Auth()
-  @ApiOperation({ summary: 'Get my posts (client only)' })
+  @ApiOperation({ summary: 'Get my posts (client or admin)' })
   @ApiResponse({ status: 200, description: 'Paginated list of my posts' })
   @Get('my-posts')
   async getMyPosts(
     @CurrentUser() currentUser: CurrentUserPayload,
     @Query() paginationDto: PaginationQueryDto,
   ) {
-    if ((currentUser as any).type !== 'client') {
-      throw new ForbiddenException('Solo los clientes pueden acceder a sus posts');
+    const isClient = (currentUser as any).type === 'client';
+    const isAdmin =
+      (currentUser as any).role === 'admin' ||
+      (typeof (currentUser as any).role === 'object' && (currentUser as any).role?.name === 'admin');
+
+    if (!isClient && !isAdmin) {
+      throw new ForbiddenException('Acceso denegado');
     }
     const result = await this.postsService.findByAuthorId(
       currentUser.id,

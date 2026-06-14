@@ -21,10 +21,6 @@ const config = {
     },
   },
 
-  i18n: {
-    defaultLocale: 'es',
-    locales: ['es', 'en'],
-  },
 
   presets: [
     [
@@ -52,10 +48,6 @@ const config = {
             sidebarId: 'tutorialSidebar',
             label: 'Backend',
             position: 'left',
-          },
-          {
-            type: 'localeDropdown',
-            position: 'right',
           },
         ],
       },

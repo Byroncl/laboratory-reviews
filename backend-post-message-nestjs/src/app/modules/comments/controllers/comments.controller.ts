@@ -81,7 +81,7 @@ export class CommentsController {
   }
 
   @Auth()
-  @ApiOperation({ summary: 'Get my comments (client only)' })
+  @ApiOperation({ summary: 'Get my comments (client or admin)' })
   @ApiQuery({ name: 'page', required: false, type: 'number' })
   @ApiQuery({ name: 'limit', required: false, type: 'number' })
   @ApiResponse({ status: 200, description: 'List of my comments', type: [CommentResponseDto] })
@@ -91,8 +91,13 @@ export class CommentsController {
     @Query('page') page = 1,
     @Query('limit') limit = 10,
   ) {
-    if ((user as any).type !== 'client') {
-      throw new ForbiddenException('Solo los clientes pueden acceder a sus comentarios');
+    const isClient = (user as any).type === 'client';
+    const isAdmin =
+      (user as any).role === 'admin' ||
+      (typeof (user as any).role === 'object' && (user as any).role?.name === 'admin');
+
+    if (!isClient && !isAdmin) {
+      throw new ForbiddenException('Acceso denegado');
     }
     const skip = (page - 1) * limit;
     const result = await this.commentsService.findByUserId(user.id, skip, limit);

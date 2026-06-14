@@ -22,16 +22,19 @@ import { ApiResponse } from '../../../core/dto/api.response';
 export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
-  private validateIsClient(user: any): void {
-    if (user.type !== 'client') {
-      throw new ForbiddenException('Solo los clientes pueden tener favoritos');
+  private validateIsClientOrAdmin(user: any): void {
+    const isClient = user.type === 'client';
+    const isAdmin = user.role === 'admin' || (typeof user.role === 'object' && user.role?.name === 'admin');
+
+    if (!isClient && !isAdmin) {
+      throw new ForbiddenException('Acceso denegado');
     }
   }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async addFavorite(@CurrentUser() user: any, @Body() createFavoriteDto: CreateFavoriteDto) {
-    this.validateIsClient(user);
+    this.validateIsClientOrAdmin(user);
     const favorite = await this.favoritesService.addFavorite(user.id, createFavoriteDto);
     return ApiResponse.success(favorite, 'Post added to favorites');
   }
@@ -39,7 +42,7 @@ export class FavoritesController {
   @Delete(':postId')
   @HttpCode(HttpStatus.OK)
   async removeFavorite(@CurrentUser() user: any, @Param('postId') postId: string) {
-    this.validateIsClient(user);
+    this.validateIsClientOrAdmin(user);
     await this.favoritesService.removeFavorite(user.id, postId);
     return ApiResponse.success(null, 'Post removed from favorites');
   }
@@ -50,14 +53,14 @@ export class FavoritesController {
     @Query('page') page = 1,
     @Query('limit') limit = 10,
   ) {
-    this.validateIsClient(user);
+    this.validateIsClientOrAdmin(user);
     const result = await this.favoritesService.getMyFavorites(user.id, page, limit);
     return ApiResponse.success(result, 'Favorites retrieved successfully');
   }
 
   @Get('check/:postId')
   async checkFavorite(@CurrentUser() user: any, @Param('postId') postId: string) {
-    this.validateIsClient(user);
+    this.validateIsClientOrAdmin(user);
     const isFavorite = await this.favoritesService.isFavorite(user.id, postId);
     return ApiResponse.success({ isFavorite }, 'Check complete');
   }
