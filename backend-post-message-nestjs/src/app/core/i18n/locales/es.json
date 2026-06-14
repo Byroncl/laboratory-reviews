@@ -2,12 +2,27 @@
   "auth": {
     "login_success": "Inicio de sesión exitoso",
     "login_failed": "Credenciales inválidas",
+    "login_invalidCredentials": "Nombre de usuario o contraseña inválidos",
+    "login_required": "Se requiere iniciar sesión",
     "logout_success": "Cierre de sesión exitoso",
     "unauthorized": "No autorizado",
     "token_expired": "Token expirado",
+    "token_generated": "Token generado exitosamente",
+    "token_invalid": "Token inválido",
     "invalid_token": "Token inválido",
     "missing_token": "Token de autenticación faltante",
-    "access_denied": "Acceso denegado"
+    "access_denied": "Acceso denegado",
+    "errors_invalidCredentials": "Nombre de usuario o contraseña inválidos",
+    "errors_unauthorized": "Acceso no autorizado",
+    "validation_username_required": "El nombre de usuario es obligatorio",
+    "validation_username_mustBeString": "El nombre de usuario debe ser una cadena de texto",
+    "validation_username_minLength": "El nombre de usuario debe tener al menos {0} caracteres",
+    "validation_username_maxLength": "El nombre de usuario no debe exceder {0} caracteres",
+    "validation_username_alphanumeric": "El nombre de usuario solo debe contener letras y números",
+    "validation_password_required": "La contraseña es obligatoria",
+    "validation_password_mustBeString": "La contraseña debe ser una cadena de texto",
+    "validation_password_minLength": "La contraseña debe tener al menos {0} caracteres",
+    "validation_password_maxLength": "La contraseña no debe exceder {0} caracteres"
   },
   "users": {
     "created": "Usuario creado exitosamente",
