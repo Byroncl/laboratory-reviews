@@ -393,7 +393,7 @@ async function seedPosts(
       author: user.username,
       isActive: true,
       isDeleted: false,
-      categoryId: String(category._id),
+      categoryId: category._id,
       categoryName: category.name,
     });
     posts.push(post);
