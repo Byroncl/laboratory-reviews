@@ -243,7 +243,37 @@
     "validation_parentComment_invalid": "Formato de ID de comentario padre inválido",
     "validation_emoji_invalid": "Formato de emoji inválido",
     "validation_message_required": "El mensaje es obligatorio",
-    "validation_message_maxLength": "El mensaje no debe exceder 500 caracteres"
+    "validation_message_maxLength": "El mensaje no debe exceder 500 caracteres",
+    "toast": {
+      "now": "Ahora",
+      "close": "✕"
+    },
+    "types": {
+      "comment_created": "Nuevo comentario",
+      "reply_created": "Nueva respuesta",
+      "reaction_added": "Nueva reacción",
+      "user_joined": "Usuario se unió"
+    },
+    "actions": {
+      "marked_read": "Notificación marcada como leída",
+      "all_marked_read": "Todas las notificaciones marcadas como leídas",
+      "deleted": "Notificación eliminada"
+    },
+    "alerts": {
+      "success": "Éxito",
+      "error": "Error",
+      "ok": "OK",
+      "accept": "Aceptar",
+      "understood": "Entendido"
+    },
+    "ui_validation": {
+      "user_id_required": "El ID de usuario es requerido",
+      "type_required": "El tipo de notificación es requerido",
+      "actor_required": "El actor es requerido",
+      "post_required": "El post es requerido",
+      "message_required": "El mensaje es requerido",
+      "message_max_length": "El mensaje no debe exceder 500 caracteres"
+    }
   },
   "categories": {
     "created": "Categoría creada exitosamente",
@@ -294,5 +324,192 @@
     "created": "Creado exitosamente",
     "updated": "Actualizado exitosamente",
     "deleted": "Eliminado exitosamente"
+  },
+  "dashboard": {
+    "sidebar": {
+      "dashboard": "Panel de Control",
+      "users": "Usuarios",
+      "posts": "Posts",
+      "roles": "Roles",
+      "permissions": "Permisos",
+      "comments": "Comentarios",
+      "files": "Archivos",
+      "profile": "Perfil",
+      "audit_logs": "Registros de Auditoría",
+      "logout": "Cerrar Sesión"
+    },
+    "navbar": {
+      "notifications": "Notificaciones",
+      "profile": "Perfil"
+    },
+    "overview": {
+      "title": "Resumen del Panel",
+      "posts_total": "Posts Totales",
+      "comments_total": "Comentarios",
+      "active_users": "Usuarios Activos",
+      "growth": "Crecimiento",
+      "vs_last_month": "vs mes pasado",
+      "trending_up": "En aumento"
+    },
+    "users": {
+      "title": "Gestión de Usuarios",
+      "total_users": "Total de Usuarios",
+      "active": "Activos",
+      "admins": "Administradores",
+      "suspended": "Suspendidos",
+      "create_button": "+ Nuevo Usuario",
+      "edit_button": "Editar",
+      "create_title": "Crear Nuevo Usuario",
+      "edit_title": "Editar Usuario",
+      "search_placeholder": "Buscar por nombre o email...",
+      "filter_all_roles": "Todos los roles",
+      "filter_all_statuses": "Todos los estados",
+      "empty_state": "No se encontraron usuarios que coincidan con los filtros",
+      "status_updated": "Estado del usuario actualizado correctamente",
+      "status_error": "Error al actualizar el estado del usuario",
+      "delete_confirm": "¿Estás seguro de que querés eliminar este usuario?",
+      "deleted": "Usuario eliminado correctamente",
+      "delete_error": "Error al eliminar el usuario",
+      "edited": "Usuario actualizado correctamente"
+    },
+    "posts": {
+      "title": "Gestión de Posts",
+      "create_button": "+ Nuevo Post",
+      "search_placeholder": "Buscar por título o autor...",
+      "total_posts": "Posts Totales",
+      "published": "Publicados",
+      "drafts": "Borradores",
+      "empty_state": "No se encontraron posts que coincidan con los filtros"
+    },
+    "roles": {
+      "title": "Gestión de Roles",
+      "create_button": "+ Nuevo Rol",
+      "create_title": "Crear Nuevo Rol",
+      "edit_title": "Editar Rol",
+      "search_placeholder": "Buscar roles...",
+      "total_roles": "Total de Roles",
+      "empty_state": "No se encontraron roles",
+      "delete_confirm": "¿Estás seguro de que querés eliminar este rol?",
+      "deleted": "Rol eliminado correctamente"
+    },
+    "permissions": {
+      "title": "Gestión de Permisos",
+      "create_button": "+ Nuevo Permiso",
+      "empty_state": "No se encontraron permisos"
+    },
+    "audit_logs": {
+      "title": "Registros de Auditoría",
+      "search_placeholder": "Buscar usuario o ruta...",
+      "filter_all_actions": "Todas las acciones",
+      "filter_all_entities": "Todos los tipos de entidades",
+      "clear_filters": "Limpiar filtros",
+      "empty_state": "No hay registros de auditoría que coincidan con los filtros actuales",
+      "detail_modal": "Detalle del Registro de Auditoría",
+      "before": "Antes",
+      "after": "Después"
+    },
+    "forms": {
+      "name": "Nombre",
+      "lastname": "Apellido",
+      "username": "Nombre de Usuario",
+      "email": "Email",
+      "password": "Contraseña",
+      "type": "Tipo",
+      "role": "Rol",
+      "title": "Título",
+      "body": "Contenido",
+      "category": "Categoría",
+      "permissions": "Permisos",
+      "action": "Acción",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "update": "Actualizar",
+      "create": "Crear"
+    },
+    "validation": {
+      "required": "Este campo es requerido",
+      "email_invalid": "Formato de email inválido",
+      "min_length": "La longitud mínima es {count} caracteres",
+      "max_length": "La longitud máxima es {count} caracteres",
+      "password_min": "La contraseña debe tener al menos 8 caracteres"
+    },
+    "user_types": {
+      "admin": "Administrador",
+      "editor": "Editor",
+      "viewer": "Visor"
+    },
+    "user_statuses": {
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "suspended": "Suspendido"
+    },
+    "post_statuses": {
+      "published": "Publicado",
+      "draft": "Borrador",
+      "archived": "Archivado"
+    },
+    "audit_actions": {
+      "CREATE": "Crear",
+      "UPDATE": "Actualizar",
+      "DELETE": "Eliminar",
+      "LOGIN": "Iniciar Sesión",
+      "LOGOUT": "Cerrar Sesión",
+      "ASSIGN": "Asignar",
+      "ACTIVATE": "Activar",
+      "DEACTIVATE": "Desactivar"
+    }
+  },
+  "client": {
+    "my_posts": {
+      "title": "Mis Posts",
+      "empty": "Todavía no tenés posts",
+      "create_button": "+ Nuevo Post",
+      "cancel_button": "Cancelar",
+      "loading": "Cargando tus posts...",
+      "pagination_previous": "Anterior",
+      "pagination_next": "Siguiente"
+    },
+    "my_comments": {
+      "title": "Mis Comentarios",
+      "empty": "Todavía no hiciste comentarios",
+      "loading": "Cargando tus comentarios...",
+      "delete_confirm": "¿Estás seguro de que querés eliminar este comentario?"
+    },
+    "my_favorites": {
+      "title": "Mis Favoritos",
+      "empty": "Todavía no tenés posts favoritos",
+      "loading": "Cargando tus favoritos...",
+      "pagination_previous": "Anterior",
+      "pagination_next": "Siguiente"
+    },
+    "profile": {
+      "title": "Mi Perfil",
+      "personal_info": "Información Personal",
+      "change_password": "Cambiar Contraseña",
+      "account_info": "Información de la Cuenta",
+      "update_success": "Perfil actualizado correctamente",
+      "update_error": "Error al actualizar el perfil",
+      "password_success": "Contraseña cambiada correctamente",
+      "password_error": "Error al cambiar la contraseña",
+      "loading": "Cargando tu perfil..."
+    },
+    "post_form": {
+      "create_title": "Crear Nuevo Post",
+      "update_title": "Editar Post",
+      "title_label": "Título del Post",
+      "body_label": "Contenido del Post",
+      "category_label": "Categoría",
+      "create_button": "Crear Post",
+      "update_button": "Actualizar Post",
+      "cancel_button": "Cancelar"
+    },
+    "validation": {
+      "post_title_min": "El título del post debe tener al menos 3 caracteres",
+      "post_body_min": "El contenido del post debe tener al menos 10 caracteres",
+      "password_min": "La contraseña debe tener al menos 8 caracteres",
+      "password_mismatch": "Las contraseñas no coinciden",
+      "name_required": "El nombre es requerido",
+      "email_required": "El email es requerido"
+    }
   }
 }

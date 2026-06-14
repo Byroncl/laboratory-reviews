@@ -1,5 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, signal, computed } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
@@ -29,7 +28,6 @@ import {
   selector: 'app-users',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     TranslatePipe,
@@ -43,7 +41,7 @@ import {
   templateUrl: './users.component.html',
   styleUrl: './users.component.scss'
 })
-export class UsersComponent implements OnInit, OnDestroy {
+export class UsersComponent {
   readonly pageSize = 10;
   readonly roleFilterOptions = ROLE_FILTER_OPTIONS;
   readonly statusFilterOptions = STATUS_FILTER_OPTIONS;
@@ -51,10 +49,10 @@ export class UsersComponent implements OnInit, OnDestroy {
   // Signals para estado
   readonly showUserForm$ = signal(false);
   readonly editingUserId$ = signal<string | null>(null);
-  readonly globalSearch = signal('');
-  readonly roleFilter = signal('');
-  readonly statusFilter = signal('');
-  readonly hasActiveFilters = signal(false);
+  readonly globalSearch$ = signal('');
+  readonly roleFilter$ = signal('');
+  readonly statusFilter$ = signal('');
+  readonly hasActiveFilters$ = signal(false);
 
   // Stats signals
   readonly totalUsersCount = signal(0);
@@ -72,9 +70,9 @@ export class UsersComponent implements OnInit, OnDestroy {
   readonly filteredUsers = computed(() => {
     const users = this.usersService.users$();
     const filters = {
-      searchTerm: this.globalSearch(),
-      role: this.roleFilter() || undefined,
-      status: this.statusFilter() || undefined
+      searchTerm: this.globalSearch$(),
+      role: this.roleFilter$() || undefined,
+      status: this.statusFilter$() || undefined
     };
 
     let filtered = filterUsers(users, filters);
@@ -123,9 +121,7 @@ export class UsersComponent implements OnInit, OnDestroy {
     readonly usersService: UsersService,
     private modalService: ModalService,
     private notificationService: NotificationService
-  ) {}
-
-  ngOnInit(): void {
+  ) {
     this.loadCurrentPage();
     this.usersService.loadStats().pipe(takeUntilDestroyed()).subscribe({
       next: response => {
@@ -136,8 +132,6 @@ export class UsersComponent implements OnInit, OnDestroy {
       error: () => {}
     });
   }
-
-  ngOnDestroy(): void {}
 
   onCreateUser(): void {
     this.showUserForm$.set(true);
@@ -266,9 +260,9 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   clearAllFilters(): void {
-    this.globalSearch.set('');
-    this.roleFilter.set('');
-    this.statusFilter.set('');
+    this.globalSearch$.set('');
+    this.roleFilter$.set('');
+    this.statusFilter$.set('');
     this.columnFilters$.set({});
     this.updateActiveFilters();
     this.loadCurrentPage();
@@ -281,9 +275,9 @@ export class UsersComponent implements OnInit, OnDestroy {
 
   private loadUsersWithFilters(skip: number): void {
     const filters = {
-      role: this.roleFilter() || undefined,
-      status: this.statusFilter() || undefined,
-      email: this.globalSearch() || undefined
+      role: this.roleFilter$() || undefined,
+      status: this.statusFilter$() || undefined,
+      email: this.globalSearch$() || undefined
     };
 
     this.usersService.loadUsers(skip, this.pageSize, filters).pipe(takeUntilDestroyed()).subscribe({
@@ -305,10 +299,10 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   private updateActiveFilters(): void {
-    this.hasActiveFilters.set(
-      this.globalSearch() !== '' ||
-        this.roleFilter() !== '' ||
-        this.statusFilter() !== '' ||
+    this.hasActiveFilters$.set(
+      this.globalSearch$() !== '' ||
+        this.roleFilter$() !== '' ||
+        this.statusFilter$() !== '' ||
         Object.keys(this.columnFilters$()).length > 0
     );
   }

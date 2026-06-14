@@ -6,13 +6,7 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
   selector: 'app-files',
   standalone: true,
   imports: [CommonModule, TranslatePipe],
-  template: `
-    <div class="space-y-6">
-      <h1 class="text-3xl font-bold text-primary">{{ 'sidebar.files' | t }}</h1>
-      <div class="bg-white rounded-xl shadow p-8">
-        <p class="text-gray-600">Módulo de gestión de archivos en desarrollo...</p>
-      </div>
-    </div>
-  `
+  templateUrl: './files.component.html',
+  styleUrl: './files.component.scss'
 })
 export class FilesComponent {}

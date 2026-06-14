@@ -243,7 +243,37 @@
     "validation_parentComment_invalid": "Invalid parent comment ID format",
     "validation_emoji_invalid": "Invalid emoji format",
     "validation_message_required": "Message is required",
-    "validation_message_maxLength": "Message must not exceed 500 characters"
+    "validation_message_maxLength": "Message must not exceed 500 characters",
+    "toast": {
+      "now": "Now",
+      "close": "✕"
+    },
+    "types": {
+      "comment_created": "New comment",
+      "reply_created": "New reply",
+      "reaction_added": "New reaction",
+      "user_joined": "User joined"
+    },
+    "actions": {
+      "marked_read": "Notification marked as read",
+      "all_marked_read": "All notifications marked as read",
+      "deleted": "Notification deleted"
+    },
+    "alerts": {
+      "success": "Success",
+      "error": "Error",
+      "ok": "OK",
+      "accept": "Accept",
+      "understood": "Understood"
+    },
+    "ui_validation": {
+      "user_id_required": "User ID is required",
+      "type_required": "Notification type is required",
+      "actor_required": "Actor is required",
+      "post_required": "Post is required",
+      "message_required": "Message is required",
+      "message_max_length": "Message must not exceed 500 characters"
+    }
   },
   "categories": {
     "created": "Category created successfully",
@@ -294,5 +324,192 @@
     "created": "Created successfully",
     "updated": "Updated successfully",
     "deleted": "Deleted successfully"
+  },
+  "dashboard": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "posts": "Posts",
+      "roles": "Roles",
+      "permissions": "Permissions",
+      "comments": "Comments",
+      "files": "Files",
+      "profile": "Profile",
+      "audit_logs": "Audit Logs",
+      "logout": "Logout"
+    },
+    "navbar": {
+      "notifications": "Notifications",
+      "profile": "Profile"
+    },
+    "overview": {
+      "title": "Dashboard Overview",
+      "posts_total": "Posts Total",
+      "comments_total": "Comments",
+      "active_users": "Active Users",
+      "growth": "Growth",
+      "vs_last_month": "vs last month",
+      "trending_up": "Trending up"
+    },
+    "users": {
+      "title": "User Management",
+      "total_users": "Total Users",
+      "active": "Active",
+      "admins": "Administrators",
+      "suspended": "Suspended",
+      "create_button": "+ New User",
+      "edit_button": "Edit",
+      "create_title": "Create New User",
+      "edit_title": "Edit User",
+      "search_placeholder": "Search by name or email...",
+      "filter_all_roles": "All roles",
+      "filter_all_statuses": "All statuses",
+      "empty_state": "No users found matching the filters",
+      "status_updated": "User status updated successfully",
+      "status_error": "Error updating user status",
+      "delete_confirm": "Are you sure you want to delete this user?",
+      "deleted": "User deleted successfully",
+      "delete_error": "Error deleting user",
+      "edited": "User updated successfully"
+    },
+    "posts": {
+      "title": "Post Management",
+      "create_button": "+ New Post",
+      "search_placeholder": "Search by title or author...",
+      "total_posts": "Total Posts",
+      "published": "Published",
+      "drafts": "Drafts",
+      "empty_state": "No posts found matching the filters"
+    },
+    "roles": {
+      "title": "Role Management",
+      "create_button": "+ New Role",
+      "create_title": "Create New Role",
+      "edit_title": "Edit Role",
+      "search_placeholder": "Search roles...",
+      "total_roles": "Total Roles",
+      "empty_state": "No roles found",
+      "delete_confirm": "Are you sure you want to delete this role?",
+      "deleted": "Role deleted successfully"
+    },
+    "permissions": {
+      "title": "Permission Management",
+      "create_button": "+ New Permission",
+      "empty_state": "No permissions found"
+    },
+    "audit_logs": {
+      "title": "Audit Logs",
+      "search_placeholder": "Search user or path...",
+      "filter_all_actions": "All actions",
+      "filter_all_entities": "All entity types",
+      "clear_filters": "Clear filters",
+      "empty_state": "No audit log entries match the current filters",
+      "detail_modal": "Audit Log Detail",
+      "before": "Before",
+      "after": "After"
+    },
+    "forms": {
+      "name": "Name",
+      "lastname": "Last Name",
+      "username": "Username",
+      "email": "Email",
+      "password": "Password",
+      "type": "Type",
+      "role": "Role",
+      "title": "Title",
+      "body": "Body",
+      "category": "Category",
+      "permissions": "Permissions",
+      "action": "Action",
+      "cancel": "Cancel",
+      "save": "Save",
+      "update": "Update",
+      "create": "Create"
+    },
+    "validation": {
+      "required": "This field is required",
+      "email_invalid": "Invalid email format",
+      "min_length": "Minimum length is {count} characters",
+      "max_length": "Maximum length is {count} characters",
+      "password_min": "Password must be at least 8 characters"
+    },
+    "user_types": {
+      "admin": "Administrator",
+      "editor": "Editor",
+      "viewer": "Viewer"
+    },
+    "user_statuses": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "suspended": "Suspended"
+    },
+    "post_statuses": {
+      "published": "Published",
+      "draft": "Draft",
+      "archived": "Archived"
+    },
+    "audit_actions": {
+      "CREATE": "Create",
+      "UPDATE": "Update",
+      "DELETE": "Delete",
+      "LOGIN": "Login",
+      "LOGOUT": "Logout",
+      "ASSIGN": "Assign",
+      "ACTIVATE": "Activate",
+      "DEACTIVATE": "Deactivate"
+    }
+  },
+  "client": {
+    "my_posts": {
+      "title": "My Posts",
+      "empty": "You don't have any posts yet",
+      "create_button": "+ New Post",
+      "cancel_button": "Cancel",
+      "loading": "Loading your posts...",
+      "pagination_previous": "Previous",
+      "pagination_next": "Next"
+    },
+    "my_comments": {
+      "title": "My Comments",
+      "empty": "You haven't made any comments yet",
+      "loading": "Loading your comments...",
+      "delete_confirm": "Are you sure you want to delete this comment?"
+    },
+    "my_favorites": {
+      "title": "My Favorites",
+      "empty": "You don't have any favorite posts yet",
+      "loading": "Loading your favorites...",
+      "pagination_previous": "Previous",
+      "pagination_next": "Next"
+    },
+    "profile": {
+      "title": "My Profile",
+      "personal_info": "Personal Information",
+      "change_password": "Change Password",
+      "account_info": "Account Information",
+      "update_success": "Profile updated successfully",
+      "update_error": "Error updating profile",
+      "password_success": "Password changed successfully",
+      "password_error": "Error changing password",
+      "loading": "Loading your profile..."
+    },
+    "post_form": {
+      "create_title": "Create New Post",
+      "update_title": "Edit Post",
+      "title_label": "Post Title",
+      "body_label": "Post Content",
+      "category_label": "Category",
+      "create_button": "Create Post",
+      "update_button": "Update Post",
+      "cancel_button": "Cancel"
+    },
+    "validation": {
+      "post_title_min": "Post title must be at least 3 characters",
+      "post_body_min": "Post content must be at least 10 characters",
+      "password_min": "Password must be at least 8 characters",
+      "password_mismatch": "Passwords do not match",
+      "name_required": "Name is required",
+      "email_required": "Email is required"
+    }
   }
 }

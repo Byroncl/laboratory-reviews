@@ -1,45 +1,49 @@
+<div class="my-comments">
+  <div class="header">
+    <h2>{{ messages.TITLE | translate }}</h2>
+    <span class="count">{{ comments$().length }}</span>
+  </div>
 
-    <div class="my-comments">
-      <div class="header">
-        <h2>Mis Comentarios</h2>
-        <span class="count">{{ comments().length }} comentario(s)</span>
-      </div>
+  @if (error$()) {
+    <div class="error-message">{{ error$() }}</div>
+  }
 
-      <div class="loading" *ngIf="isLoading()">
-        Cargando tus comentarios...
-      </div>
-
-      <div class="empty-state" *ngIf="!isLoading() && comments().length === 0">
-        <p>No has hecho comentarios aún</p>
-      </div>
-
-      <div class="comments-list" *ngIf="!isLoading() && comments().length > 0">
+  @if (isLoading$()) {
+    <div class="loading">{{ messages.LOADING | translate }}</div>
+  } @else if (comments$().length === 0) {
+    <div class="empty-state">
+      <p>{{ messages.EMPTY | translate }}</p>
+    </div>
+  } @else {
+    <div class="comments-list">
+      @for (comment of comments$(); track comment._id) {
         <app-comment-card
-          *ngFor="let comment of comments()"
           [comment]="comment"
           [showDelete]="true"
           [postId]="comment.postId"
           (delete)="onDeleteComment($event)"
         ></app-comment-card>
-      </div>
-
-      <div class="pagination" *ngIf="totalPages() > 1">
-        <button
-          class="btn btn-small"
-          [disabled]="currentPage() === 1"
-          (click)="previousPage()"
-        >
-          Anterior
-        </button>
-        <span class="page-info">
-          Página {{ currentPage() }} de {{ totalPages() }}
-        </span>
-        <button
-          class="btn btn-small"
-          [disabled]="currentPage() === totalPages()"
-          (click)="nextPage()"
-        >
-          Siguiente
-        </button>
-      </div>
+      }
     </div>
+  }
+
+  @if (totalPages() > 1) {
+    <div class="pagination">
+      <button
+        class="btn btn-small"
+        [disabled]="!canGoPrevious()"
+        (click)="previousPage()"
+      >
+        Anterior
+      </button>
+      <span class="page-info">{{ currentPage$() }} / {{ totalPages() }}</span>
+      <button
+        class="btn btn-small"
+        [disabled]="!canGoNext()"
+        (click)="nextPage()"
+      >
+        Siguiente
+      </button>
+    </div>
+  }
+</div>

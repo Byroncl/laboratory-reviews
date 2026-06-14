@@ -1,27 +1,28 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output } from '@angular/core';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { CommentDto } from '../../types';
 
 @Component({
   selector: 'app-comment-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TranslatePipe],
   templateUrl: './comment-card.component.html',
   styleUrl: './comment-card.component.scss',
 })
 export class CommentCardComponent {
-  @Input() comment: any;
-  @Input() showDelete = true;
-  @Input() postId: string = '';
+  readonly comment = input.required<CommentDto>();
+  readonly showDelete = input(false);
+  readonly postId = input<string>('');
 
-  @Output() delete = new EventEmitter<string>();
-  @Output() viewPost = new EventEmitter<string>();
+  readonly delete = output<string>();
+  readonly viewPost = output<string>();
 
   onDelete(): void {
-    this.delete.emit(this.comment._id);
+    this.delete.emit(this.comment()._id);
   }
 
   onViewPost(event: Event): void {
     event.preventDefault();
-    this.viewPost.emit(this.postId);
+    this.viewPost.emit(this.comment().postId);
   }
 }

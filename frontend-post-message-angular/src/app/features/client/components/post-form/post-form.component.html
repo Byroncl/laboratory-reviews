@@ -1,52 +1,61 @@
-
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="title">Título</label>
-        <input
-          id="title"
-          type="text"
-          formControlName="title"
-          placeholder="Ingresa el título del post"
-          class="form-control"
-        />
-        <div class="error-message" *ngIf="form.get('title')?.invalid && form.get('title')?.touched">
-          El título debe tener al menos 3 caracteres
-        </div>
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="form-group">
+    <label for="title">{{ messages.TITLE_LABEL | translate }}</label>
+    <input
+      id="title"
+      type="text"
+      formControlName="title"
+      [placeholder]="messages.TITLE_LABEL | translate"
+      class="form-control"
+    />
+    @if (getFieldError('title')) {
+      <div class="error-message">
+        El título debe tener al menos {{ validation.POST.TITLE_MIN_LENGTH }} caracteres
       </div>
+    }
+  </div>
 
-      <div class="form-group">
-        <label for="body">Contenido</label>
-        <textarea
-          id="body"
-          formControlName="body"
-          placeholder="Ingresa el contenido del post"
-          class="form-control"
-          rows="6"
-        ></textarea>
-        <div class="error-message" *ngIf="form.get('body')?.invalid && form.get('body')?.touched">
-          El contenido debe tener al menos 10 caracteres
-        </div>
+  <div class="form-group">
+    <label for="body">{{ messages.BODY_LABEL | translate }}</label>
+    <textarea
+      id="body"
+      formControlName="body"
+      [placeholder]="messages.BODY_LABEL | translate"
+      class="form-control"
+      rows="6"
+    ></textarea>
+    @if (getFieldError('body')) {
+      <div class="error-message">
+        El contenido debe tener al menos {{ validation.POST.BODY_MIN_LENGTH }} caracteres
       </div>
+    }
+  </div>
 
-      <div class="form-group">
-        <label for="categoryId">Categoría (opcional)</label>
-        <input
-          id="categoryId"
-          type="text"
-          formControlName="categoryId"
-          placeholder="ID de la categoría"
-          class="form-control"
-        />
-      </div>
+  <div class="form-group">
+    <label for="categoryId">{{ messages.CATEGORY_LABEL | translate }}</label>
+    <input
+      id="categoryId"
+      type="text"
+      formControlName="categoryId"
+      [placeholder]="messages.CATEGORY_LABEL | translate"
+      class="form-control"
+    />
+  </div>
 
-      <div class="button-group">
-        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || isSubmitting">
-          {{ isSubmitting ? 'Guardando...' : (isEditing ? 'Actualizar' : 'Crear') }} Post
-        </button>
-        <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancelar</button>
-      </div>
+  <div class="button-group">
+    <button type="submit" class="btn btn-primary" [disabled]="form.invalid || isSubmitting$()">
+      @if (isSubmitting$()) {
+        Guardando...
+      } @else {
+        {{ (isEditing() ? messages.UPDATE_BUTTON : messages.CREATE_BUTTON) | translate }}
+      }
+    </button>
+    <button type="button" class="btn btn-secondary" (click)="onCancel()">
+      {{ messages.CANCEL_BUTTON | translate }}
+    </button>
+  </div>
 
-      <div class="error-message" *ngIf="errorMessage">
-        {{ errorMessage }}
-      </div>
-    </form>
+  @if (errorMessage$()) {
+    <div class="error-message">{{ errorMessage$() }}</div>
+  }
+</form>

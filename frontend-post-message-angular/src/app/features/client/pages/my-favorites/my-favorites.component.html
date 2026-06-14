@@ -1,45 +1,49 @@
+<div class="my-favorites">
+  <div class="header">
+    <h2>{{ messages.TITLE | translate }}</h2>
+    <span class="count">{{ favorites$().length }}</span>
+  </div>
 
-    <div class="my-favorites">
-      <div class="header">
-        <h2>Mis Favoritos</h2>
-        <span class="count">{{ favorites().length }} favorito(s)</span>
-      </div>
+  @if (error$()) {
+    <div class="error-message">{{ error$() }}</div>
+  }
 
-      <div class="loading" *ngIf="isLoading()">
-        Cargando tus favoritos...
-      </div>
-
-      <div class="empty-state" *ngIf="!isLoading() && favorites().length === 0">
-        <p>No tienes posts favoritos aún</p>
-      </div>
-
-      <div class="favorites-list" *ngIf="!isLoading() && favorites().length > 0">
+  @if (isLoading$()) {
+    <div class="loading">{{ messages.LOADING | translate }}</div>
+  } @else if (favorites$().length === 0) {
+    <div class="empty-state">
+      <p>{{ messages.EMPTY | translate }}</p>
+    </div>
+  } @else {
+    <div class="favorites-list">
+      @for (fav of favorites$(); track fav._id) {
         <app-post-card
-          *ngFor="let fav of favorites()"
           [post]="fav.post || fav"
           [showFavorite]="true"
           [isFavorite]="true"
           (toggleFavorite)="onRemoveFavorite($event)"
         ></app-post-card>
-      </div>
-
-      <div class="pagination" *ngIf="totalPages() > 1">
-        <button
-          class="btn btn-small"
-          [disabled]="currentPage() === 1"
-          (click)="previousPage()"
-        >
-          Anterior
-        </button>
-        <span class="page-info">
-          Página {{ currentPage() }} de {{ totalPages() }}
-        </span>
-        <button
-          class="btn btn-small"
-          [disabled]="currentPage() === totalPages()"
-          (click)="nextPage()"
-        >
-          Siguiente
-        </button>
-      </div>
+      }
     </div>
+  }
+
+  @if (totalPages() > 1) {
+    <div class="pagination">
+      <button
+        class="btn btn-small"
+        [disabled]="!canGoPrevious()"
+        (click)="previousPage()"
+      >
+        {{ messages.PREVIOUS | translate }}
+      </button>
+      <span class="page-info">{{ currentPage$() }} / {{ totalPages() }}</span>
+      <button
+        class="btn btn-small"
+        [disabled]="!canGoNext()"
+        (click)="nextPage()"
+      >
+        {{ messages.NEXT | translate }}
+      </button>
+    </div>
+  }
+</div>

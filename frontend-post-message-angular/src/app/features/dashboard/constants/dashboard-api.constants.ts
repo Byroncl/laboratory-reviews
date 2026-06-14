@@ -1,0 +1,41 @@
+export const DASHBOARD_ENDPOINTS = {
+  USERS: {
+    BASE: '/api/users',
+    GET_ALL: '/api/users',
+    GET_BY_ID: (id: string) => `/api/users/${id}`,
+    CREATE: '/api/users',
+    UPDATE: (id: string) => `/api/users/${id}`,
+    DELETE: (id: string) => `/api/users/${id}`,
+    TOGGLE_STATUS: (id: string) => `/api/users/${id}/status`,
+  },
+  POSTS: {
+    BASE: '/api/posts',
+    GET_ALL: '/api/posts',
+    GET_BY_ID: (id: string) => `/api/posts/${id}`,
+    CREATE: '/api/posts',
+    UPDATE: (id: string) => `/api/posts/${id}`,
+    DELETE: (id: string) => `/api/posts/${id}`,
+  },
+  ROLES: {
+    BASE: '/api/roles',
+    GET_ALL: '/api/roles',
+    GET_BY_ID: (id: string) => `/api/roles/${id}`,
+    CREATE: '/api/roles',
+    UPDATE: (id: string) => `/api/roles/${id}`,
+    DELETE: (id: string) => `/api/roles/${id}`,
+    ASSIGN_PERMISSIONS: (id: string) => `/api/roles/${id}/permissions`,
+  },
+  PERMISSIONS: {
+    BASE: '/api/permissions',
+    GET_ALL: '/api/permissions',
+    GET_BY_ID: (id: string) => `/api/permissions/${id}`,
+    CREATE: '/api/permissions',
+    UPDATE: (id: string) => `/api/permissions/${id}`,
+    DELETE: (id: string) => `/api/permissions/${id}`,
+  },
+  AUDIT_LOGS: {
+    BASE: '/api/audit-logs',
+    GET_ALL: '/api/audit-logs',
+    GET_BY_ID: (id: string) => `/api/audit-logs/${id}`,
+  },
+};

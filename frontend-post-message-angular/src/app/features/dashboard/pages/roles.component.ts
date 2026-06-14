@@ -1,5 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
@@ -28,7 +27,6 @@ import {
   selector: 'app-roles',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslatePipe,
     TableComponent,
@@ -42,15 +40,15 @@ import {
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss'
 })
-export class RolesComponent implements OnInit, OnDestroy {
+export class RolesComponent {
   readonly pageSize = 10;
 
   // State signals
   readonly showRoleForm$ = signal(false);
   readonly editingRoleId$ = signal<string | null>(null);
   readonly assigningRole$ = signal<Role | null>(null);
-  readonly globalSearch = signal('');
-  readonly hasActiveFilters = signal(false);
+  readonly globalSearch$ = signal('');
+  readonly hasActiveFilters$ = signal(false);
 
   // Stats signals
   readonly totalRolesCount = signal(0);
@@ -64,7 +62,7 @@ export class RolesComponent implements OnInit, OnDestroy {
   // Computed filtered roles
   readonly filteredRoles = computed(() => {
     const roles = this.rolesService.roles$();
-    const filters = { searchTerm: this.globalSearch() };
+    const filters = { searchTerm: this.globalSearch$() };
 
     let filtered = filterRoles(roles, filters);
     filtered = applyColumnFilters(filtered, this.columnFilters$());
@@ -105,20 +103,15 @@ export class RolesComponent implements OnInit, OnDestroy {
     }
   ];
 
-  // currentPage is plain state — no signal needed (not used in computed/template reactively)
-  currentPage = 1;
+  readonly currentPage$ = signal(1);
 
   constructor(
     readonly rolesService: RolesService,
     private modalService: ModalService,
     private notificationService: NotificationService
-  ) {}
-
-  ngOnInit(): void {
+  ) {
     this.loadRoles();
   }
-
-  ngOnDestroy(): void {}
 
   onCreateRole(): void {
     this.showRoleForm$.set(true);
@@ -212,7 +205,7 @@ export class RolesComponent implements OnInit, OnDestroy {
   }
 
   onGlobalSearch(): void {
-    this.currentPage = 1;
+    this.currentPage$.set(1);
     this.updateActiveFilters();
     this.loadRoles();
   }
@@ -223,7 +216,7 @@ export class RolesComponent implements OnInit, OnDestroy {
       filterMap[f.column] = f.value;
     });
     this.columnFilters$.set(filterMap);
-    this.currentPage = 1;
+    this.currentPage$.set(1);
     this.updateActiveFilters();
   }
 
@@ -232,20 +225,20 @@ export class RolesComponent implements OnInit, OnDestroy {
   }
 
   onPageChange(page: number): void {
-    this.currentPage = page;
+    this.currentPage$.set(page);
   }
 
   clearAllFilters(): void {
-    this.globalSearch.set('');
+    this.globalSearch$.set('');
     this.columnFilters$.set({});
-    this.currentPage = 1;
+    this.currentPage$.set(1);
     this.updateActiveFilters();
     this.loadRoles();
   }
 
   private loadRoles(): void {
     this.rolesService
-      .loadRoles(0, 10, this.globalSearch() || undefined)
+      .loadRoles(0, 10, this.globalSearch$() || undefined)
       .pipe(takeUntilDestroyed())
       .subscribe({
         next: () => this.updateStats(),
@@ -258,8 +251,8 @@ export class RolesComponent implements OnInit, OnDestroy {
   }
 
   private updateActiveFilters(): void {
-    this.hasActiveFilters.set(
-      this.globalSearch() !== '' ||
+    this.hasActiveFilters$.set(
+      this.globalSearch$() !== '' ||
         Object.keys(this.columnFilters$()).length > 0
     );
   }

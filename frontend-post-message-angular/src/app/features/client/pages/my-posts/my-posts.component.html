@@ -1,63 +1,72 @@
+<div class="my-posts">
+  <div class="header">
+    <h2>{{ messages.TITLE | translate }}</h2>
+    <button class="btn btn-primary" (click)="toggleCreateForm()">
+      @if (showForm$()) {
+        {{ messages.CANCEL_BUTTON | translate }}
+      } @else {
+        {{ messages.CREATE_BUTTON | translate }}
+      }
+    </button>
+  </div>
 
-    <div class="my-posts">
-      <div class="header">
-        <h2>Mis Posts</h2>
-        <button class="btn btn-primary" (click)="toggleCreateForm()">
-          {{ showForm ? 'Cancelar' : '+ Nuevo Post' }}
-        </button>
-      </div>
+  @if (error$()) {
+    <div class="error-message">{{ error$() }}</div>
+  }
 
-      <app-search-filter
-        [showAuthorFilter]="false"
-        [showCategoryFilter]="true"
-        (filterChange)="onFilterChange($event)"
-      ></app-search-filter>
+  <app-search-filter
+    [showAuthorFilter]="false"
+    [showCategoryFilter]="true"
+    (filterChange)="onFilterChange($event)"
+  ></app-search-filter>
 
-      <div class="form-section" *ngIf="showForm">
-        <app-post-form
-          [isEditing]="editingPostId() !== null"
-          [initialData]="currentEditingPost()"
-          (formSubmitted)="onFormSubmitted($event)"
-          (formCancelled)="onFormCancelled()"
-          #postForm
-        ></app-post-form>
-      </div>
+  @if (showForm$()) {
+    <div class="form-section">
+      <app-post-form
+        [isEditing]="editingPostId$() !== null"
+        [initialData]="currentEditingPost()"
+        (formSubmitted)="onFormSubmitted($event)"
+        (formCancelled)="onFormCancelled()"
+      ></app-post-form>
+    </div>
+  }
 
-      <div class="loading" *ngIf="isLoading()">
-        Cargando tus posts...
-      </div>
-
-      <div class="empty-state" *ngIf="!isLoading() && posts().length === 0">
-        <p>No tienes posts aún</p>
-      </div>
-
-      <div class="posts-list" *ngIf="!isLoading() && posts().length > 0">
+  @if (isLoading$()) {
+    <div class="loading">{{ messages.LOADING | translate }}</div>
+  } @else if (posts$().length === 0) {
+    <div class="empty-state">
+      <p>{{ messages.EMPTY | translate }}</p>
+    </div>
+  } @else {
+    <div class="posts-list">
+      @for (post of posts$(); track post._id) {
         <app-post-card
-          *ngFor="let post of posts()"
           [post]="post"
           [showEditDelete]="true"
           (edit)="onEditPost($event)"
           (delete)="onDeletePost($event)"
         ></app-post-card>
-      </div>
-
-      <div class="pagination" *ngIf="totalPages() > 1">
-        <button
-          class="btn btn-small"
-          [disabled]="currentPage() === 1"
-          (click)="previousPage()"
-        >
-          Anterior
-        </button>
-        <span class="page-info">
-          Página {{ currentPage() }} de {{ totalPages() }}
-        </span>
-        <button
-          class="btn btn-small"
-          [disabled]="currentPage() === totalPages()"
-          (click)="nextPage()"
-        >
-          Siguiente
-        </button>
-      </div>
+      }
     </div>
+  }
+
+  @if (totalPages() > 1) {
+    <div class="pagination">
+      <button
+        class="btn btn-small"
+        [disabled]="!canGoPrevious()"
+        (click)="previousPage()"
+      >
+        {{ messages.PREVIOUS | translate }}
+      </button>
+      <span class="page-info">{{ currentPage$() }} / {{ totalPages() }}</span>
+      <button
+        class="btn btn-small"
+        [disabled]="!canGoNext()"
+        (click)="nextPage()"
+      >
+        {{ messages.NEXT | translate }}
+      </button>
+    </div>
+  }
+</div>

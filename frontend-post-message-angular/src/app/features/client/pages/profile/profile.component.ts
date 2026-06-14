@@ -1,125 +1,137 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+
 import { ClientProfileService } from '../../services/client-profile.service';
+import { CLIENT_MESSAGES, CLIENT_VALIDATION } from '../../constants';
+import { nameValidator, passwordValidator, passwordMatchValidator } from '../../utils/form.validators';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TranslatePipe],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })
-export class ProfileComponent implements OnInit {
-  profile = signal<any>(null);
-  isLoadingProfile = signal(false);
-  isUpdating = signal(false);
-  isChangingPassword = signal(false);
-  errorMessage = signal('');
-  successMessage = signal('');
-  passwordErrorMessage = signal('');
-  passwordSuccessMessage = signal('');
+export class ProfileComponent {
+  private readonly profileService = inject(ClientProfileService);
+  private readonly fb = inject(FormBuilder);
 
-  profileForm: FormGroup;
-  passwordForm: FormGroup;
+  readonly isLoading$ = signal(false);
+  readonly isLoadingProfile$ = signal(false);
+  readonly error$ = signal<string | null>(null);
+  readonly successMessage$ = signal<string | null>(null);
+  readonly passwordError$ = signal<string | null>(null);
+  readonly passwordSuccess$ = signal<string | null>(null);
 
-  constructor(
-    private profileService: ClientProfileService,
-    private fb: FormBuilder,
-  ) {
-    this.profileForm = this.fb.group({
-      name: ['', Validators.required],
-      lastname: ['', Validators.required],
-      username: [{ value: '', disabled: true }],
-      email: [{ value: '', disabled: true }],
-    });
+  readonly profileForm = this.fb.group({
+    name: ['', [Validators.required, nameValidator()]],
+    lastname: ['', [Validators.required, nameValidator()]],
+    username: [{ value: '', disabled: true }],
+    email: [{ value: '', disabled: true }],
+  });
 
-    this.passwordForm = this.fb.group(
-      {
-        currentPassword: ['', Validators.required],
-        newPassword: ['', [Validators.required, Validators.minLength(8)]],
-        confirmPassword: ['', Validators.required],
-      },
-      { validators: this.passwordMatchValidator },
-    );
-  }
+  readonly passwordForm = this.fb.group(
+    {
+      currentPassword: ['', [Validators.required, passwordValidator()]],
+      newPassword: ['', [Validators.required, passwordValidator()]],
+      confirmPassword: ['', [Validators.required]],
+    },
+    { validators: passwordMatchValidator('newPassword', 'confirmPassword') }
+  );
 
-  ngOnInit(): void {
+  readonly messages = CLIENT_MESSAGES.PROFILE;
+  readonly validation = CLIENT_VALIDATION;
+
+  constructor() {
     this.loadProfile();
   }
 
-  loadProfile(): void {
-    this.isLoadingProfile.set(true);
-    this.profileService.getMyProfile().subscribe({
-      next: (response: any) => {
-        this.profile.set(response.data);
-        this.profileForm.patchValue({
-          name: response.data.name,
-          lastname: response.data.lastname,
-          username: response.data.username,
-          email: response.data.email,
-        });
-        this.isLoadingProfile.set(false);
-      },
-      error: () => {
-        this.isLoadingProfile.set(false);
-      },
-    });
+  private loadProfile(): void {
+    this.isLoadingProfile$.set(true);
+    this.error$.set(null);
+
+    this.profileService
+      .getMyProfile()
+      .pipe(takeUntilDestroyed())
+      .subscribe({
+        next: (response: any) => {
+          const profile = response.data;
+          this.profileForm.patchValue({
+            name: profile.name,
+            lastname: profile.lastname,
+            username: profile.username,
+            email: profile.email,
+          });
+          this.isLoadingProfile$.set(false);
+        },
+        error: () => {
+          this.error$.set('Error loading profile');
+          this.isLoadingProfile$.set(false);
+        },
+      });
   }
 
   onUpdateProfile(): void {
-    if (this.profileForm.valid) {
-      this.isUpdating.set(true);
-      this.errorMessage.set('');
-      this.successMessage.set('');
+    if (this.profileForm.invalid) {
+      Object.keys(this.profileForm.controls).forEach(key =>
+        this.profileForm.get(key)?.markAsTouched()
+      );
+      return;
+    }
 
-      const data = {
-        name: this.profileForm.get('name')?.value,
-        lastname: this.profileForm.get('lastname')?.value,
-      };
+    this.isLoading$.set(true);
+    this.error$.set(null);
+    this.successMessage$.set(null);
 
-      this.profileService.updateProfile(data).subscribe({
+    this.profileService
+      .updateProfile({
+        name: this.profileForm.get('name')?.value ?? '',
+        lastname: this.profileForm.get('lastname')?.value ?? '',
+      })
+      .pipe(takeUntilDestroyed())
+      .subscribe({
         next: () => {
-          this.successMessage.set('Perfil actualizado correctamente');
+          this.successMessage$.set(this.messages.UPDATE_SUCCESS);
           this.profileForm.markAsPristine();
-          this.isUpdating.set(false);
-          setTimeout(() => this.successMessage.set(''), 3000);
+          this.isLoading$.set(false);
         },
-        error: (err: any) => {
-          this.errorMessage.set('Error al actualizar el perfil');
-          this.isUpdating.set(false);
+        error: () => {
+          this.error$.set(this.messages.UPDATE_ERROR);
+          this.isLoading$.set(false);
         },
       });
-    }
   }
 
   onChangePassword(): void {
-    if (this.passwordForm.valid) {
-      this.isChangingPassword.set(true);
-      this.passwordErrorMessage.set('');
-      this.passwordSuccessMessage.set('');
+    if (this.passwordForm.invalid) {
+      Object.keys(this.passwordForm.controls).forEach(key =>
+        this.passwordForm.get(key)?.markAsTouched()
+      );
+      return;
+    }
 
-      const { currentPassword, newPassword } = this.passwordForm.value;
+    this.isLoading$.set(true);
+    this.passwordError$.set(null);
+    this.passwordSuccess$.set(null);
 
-      this.profileService.changePassword(currentPassword, newPassword).subscribe({
+    this.profileService
+      .changePassword({
+        currentPassword: this.passwordForm.get('currentPassword')?.value ?? '',
+        newPassword: this.passwordForm.get('newPassword')?.value ?? '',
+      })
+      .pipe(takeUntilDestroyed())
+      .subscribe({
         next: () => {
-          this.passwordSuccessMessage.set('Contraseña cambiada correctamente');
+          this.passwordSuccess$.set(this.messages.PASSWORD_SUCCESS);
           this.passwordForm.reset();
-          this.isChangingPassword.set(false);
-          setTimeout(() => this.passwordSuccessMessage.set(''), 3000);
+          this.isLoading$.set(false);
         },
         error: () => {
-          this.passwordErrorMessage.set('Error al cambiar la contraseña');
-          this.isChangingPassword.set(false);
+          this.passwordError$.set(this.messages.PASSWORD_ERROR);
+          this.isLoading$.set(false);
         },
       });
-    }
-  }
-
-  private passwordMatchValidator(group: FormGroup): { [key: string]: any } | null {
-    const password = group.get('newPassword')?.value;
-    const confirmPassword = group.get('confirmPassword')?.value;
-    return password === confirmPassword ? null : { passwordMismatch: true };
   }
 }

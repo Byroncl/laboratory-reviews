@@ -62,3 +62,15 @@ export function nameValidator(): ValidatorFn {
       : { nameMinLength: { min: CLIENT_VALIDATION.PROFILE.NAME_MIN_LENGTH } };
   };
 }
+
+/**
+ * Marks all controls in a form group as touched to trigger validation display.
+ */
+export function markFormAsTouched(form: FormGroup): void {
+  Object.values(form.controls).forEach((control) => {
+    control.markAsTouched();
+    if (control instanceof FormGroup) {
+      markFormAsTouched(control);
+    }
+  });
+}

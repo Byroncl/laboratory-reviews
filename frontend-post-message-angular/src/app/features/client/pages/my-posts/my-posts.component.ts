@@ -1,125 +1,166 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { signal, computed } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+
 import { ClientPostsService } from '../../services/client-posts.service';
 import { PostCardComponent } from '../../components/post-card/post-card.component';
 import { PostFormComponent } from '../../components/post-form/post-form.component';
 import { SearchFilterComponent, SearchFilters } from '../../../../shared/components/search-filter/search-filter.component';
 
+import { CLIENT_MESSAGES } from '../../constants';
+import { canGoToNextPage, canGoToPreviousPage } from '../../utils/pagination.utils';
+
 @Component({
   selector: 'app-my-posts',
   standalone: true,
-  imports: [CommonModule, PostCardComponent, PostFormComponent, SearchFilterComponent],
+  imports: [
+    ReactiveFormsModule,
+    PostCardComponent,
+    PostFormComponent,
+    SearchFilterComponent,
+    TranslatePipe,
+  ],
   templateUrl: './my-posts.component.html',
   styleUrl: './my-posts.component.scss',
 })
-export class MyPostsComponent implements OnInit {
-  posts = signal<any[]>([]);
-  isLoading = signal(false);
-  showForm = false;
-  editingPostId = signal<string | null>(null);
-  currentPage = signal(1);
-  pageSize = signal(10);
-  totalPosts = signal(0);
-  filters = signal<SearchFilters>({
-    search: '',
-    sortBy: 'createdAt',
-    sortOrder: 'desc',
-  });
+export class MyPostsComponent {
+  private readonly postsService = inject(ClientPostsService);
+  private readonly fb = inject(FormBuilder);
 
-  currentEditingPost = computed(() => {
-    const postId = this.editingPostId();
+  readonly showForm$ = signal(false);
+  readonly editingPostId$ = signal<string | null>(null);
+  readonly currentPage$ = signal(1);
+  readonly pageSize$ = signal(10);
+  readonly isLoading$ = signal(false);
+  readonly error$ = signal<string | null>(null);
+  readonly posts$ = signal<any[]>([]);
+  readonly totalPosts$ = signal(0);
+
+  readonly currentEditingPost = computed(() => {
+    const postId = this.editingPostId$();
     if (!postId) return null;
-    return this.posts().find(p => p._id === postId);
+    return this.posts$().find(p => p._id === postId) ?? null;
   });
 
-  totalPages = computed(() => Math.ceil(this.totalPosts() / this.pageSize()));
+  readonly totalPages = computed(() =>
+    Math.ceil(this.totalPosts$() / this.pageSize$())
+  );
 
-  constructor(private postsService: ClientPostsService) {}
+  readonly canGoNext = computed(() =>
+    canGoToNextPage(this.currentPage$(), this.totalPages())
+  );
 
-  ngOnInit(): void {
+  readonly canGoPrevious = computed(() =>
+    canGoToPreviousPage(this.currentPage$())
+  );
+
+  readonly messages = CLIENT_MESSAGES.MY_POSTS;
+
+  constructor() {
     this.loadPosts();
   }
 
-  loadPosts(): void {
-    this.isLoading.set(true);
-    this.postsService.getMyPosts(this.currentPage(), this.pageSize()).subscribe({
-      next: (response: any) => {
-        this.posts.set(response.data?.data || []);
-        this.totalPosts.set(response.data?.total || 0);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.isLoading.set(false);
-      },
-    });
+  private loadPosts(): void {
+    this.isLoading$.set(true);
+    this.error$.set(null);
+
+    this.postsService
+      .getMyPosts(this.currentPage$(), this.pageSize$())
+      .pipe(takeUntilDestroyed())
+      .subscribe({
+        next: (response: any) => {
+          this.posts$.set(response.data?.data || response.data || []);
+          this.totalPosts$.set(response.data?.total || 0);
+          this.isLoading$.set(false);
+        },
+        error: () => {
+          this.error$.set('Error loading posts');
+          this.isLoading$.set(false);
+        },
+      });
   }
 
   toggleCreateForm(): void {
-    this.showForm = !this.showForm;
-    if (!this.showForm) {
-      this.editingPostId.set(null);
+    this.showForm$.update(v => !v);
+    if (!this.showForm$()) {
+      this.editingPostId$.set(null);
     }
   }
 
   onFormSubmitted(data: any): void {
-    const postId = this.editingPostId();
+    const postId = this.editingPostId$();
 
     if (postId) {
-      this.postsService.updatePost(postId, data).subscribe({
-        next: () => {
-          this.loadPosts();
-          this.showForm = false;
-          this.editingPostId.set(null);
-        },
-      });
+      this.postsService
+        .updatePost(postId, data)
+        .pipe(takeUntilDestroyed())
+        .subscribe({
+          next: () => {
+            this.loadPosts();
+            this.showForm$.set(false);
+            this.editingPostId$.set(null);
+          },
+          error: () => {
+            this.error$.set('Error updating post');
+          },
+        });
     } else {
-      this.postsService.createPost(data).subscribe({
-        next: () => {
-          this.loadPosts();
-          this.showForm = false;
-        },
-      });
+      this.postsService
+        .createPost(data)
+        .pipe(takeUntilDestroyed())
+        .subscribe({
+          next: () => {
+            this.loadPosts();
+            this.showForm$.set(false);
+          },
+          error: () => {
+            this.error$.set('Error creating post');
+          },
+        });
     }
   }
 
   onFormCancelled(): void {
-    this.showForm = false;
-    this.editingPostId.set(null);
+    this.showForm$.set(false);
+    this.editingPostId$.set(null);
   }
 
   onEditPost(postId: string): void {
-    this.editingPostId.set(postId);
-    this.showForm = true;
+    this.editingPostId$.set(postId);
+    this.showForm$.set(true);
   }
 
   onDeletePost(postId: string): void {
-    if (confirm('¿Estás seguro de que deseas eliminar este post?')) {
-      this.postsService.deletePost(postId).subscribe({
-        next: () => {
-          this.loadPosts();
-        },
-      });
+    if (confirm('Are you sure you want to delete this post?')) {
+      this.postsService
+        .deletePost(postId)
+        .pipe(takeUntilDestroyed())
+        .subscribe({
+          next: () => this.loadPosts(),
+          error: () => {
+            this.error$.set('Error deleting post');
+          },
+        });
     }
   }
 
   previousPage(): void {
-    if (this.currentPage() > 1) {
-      this.currentPage.set(this.currentPage() - 1);
+    if (this.canGoPrevious()) {
+      this.currentPage$.update(p => p - 1);
       this.loadPosts();
     }
   }
 
   nextPage(): void {
-    if (this.currentPage() < this.totalPages()) {
-      this.currentPage.set(this.currentPage() + 1);
+    if (this.canGoNext()) {
+      this.currentPage$.update(p => p + 1);
       this.loadPosts();
     }
   }
 
-  onFilterChange(newFilters: SearchFilters): void {
-    this.filters.set(newFilters);
-    this.currentPage.set(1);
+  onFilterChange(_newFilters: SearchFilters): void {
+    this.currentPage$.set(1);
     this.loadPosts();
   }
 }

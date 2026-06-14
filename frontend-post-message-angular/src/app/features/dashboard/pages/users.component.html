@@ -35,12 +35,14 @@
     <input
       type="text"
       placeholder="Buscar por nombre o email..."
-      [(ngModel)]="globalSearch"
+      [ngModel]="globalSearch$()"
+      (ngModelChange)="globalSearch$.set($event)"
       (input)="onGlobalSearch()"
       class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
     />
     <select
-      [(ngModel)]="roleFilter"
+      [ngModel]="roleFilter$()"
+      (ngModelChange)="roleFilter$.set($event)"
       (change)="onRoleFilterChange()"
       class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
     >
@@ -50,7 +52,8 @@
       }
     </select>
     <select
-      [(ngModel)]="statusFilter"
+      [ngModel]="statusFilter$()"
+      (ngModelChange)="statusFilter$.set($event)"
       (change)="onStatusFilterChange()"
       class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
     >
@@ -62,7 +65,7 @@
   </div>
 
   <!-- Active Filters Badge -->
-  @if (hasActiveFilters) {
+  @if (hasActiveFilters$()) {
     <div class="flex flex-wrap gap-2">
       <button
         (click)="clearAllFilters()"
