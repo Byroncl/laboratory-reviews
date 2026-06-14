@@ -36,6 +36,8 @@ async function bootstrap() {
 
   const dbOk = await checkDatabase(process.env.MONGODB_URI ?? 'mongodb://localhost:27017');
   const url = `http://${host}:${port}`;
+  const testingEnabled = process.env.TESTING === 'true';
+  const storageOk = process.env.MINIO_ENDPOINT ? true : false;
 
   printBanner({
     name,
@@ -43,9 +45,9 @@ async function bootstrap() {
     url,
     docs: getDocsUrl(host, port),
     dbOk,
-    storageUrl: 'N/A',
-    storageOk: false,
-    testing: false,
+    storageUrl: process.env.MINIO_ENDPOINT ?? 'N/A',
+    storageOk,
+    testing: testingEnabled,
   });
 }
 bootstrap();
