@@ -6,3 +6,4 @@ export * from './modal/minimized-modals-tray.component';
 export * from './badge/badge.component';
 export * from './spinner/spinner.component';
 export * from './pagination/pagination.component';
+export * from './media-upload/media-upload.component';

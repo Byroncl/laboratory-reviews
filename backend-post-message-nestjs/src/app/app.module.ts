@@ -17,6 +17,7 @@ import { RequestLoggerMiddleware } from './core/middleware/request-logger.middle
 import { I18nModule } from './modules/i18n/i18n.module';
 import { TransformInterceptor } from './core/interceptors/transform.interceptor';
 import { AuditInterceptor } from './core/interceptors/audit.interceptor';
+import { HttpLoggerInterceptor } from './core/interceptors/http-logger.interceptor';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { RolesModule } from './modules/roles/roles.module';
@@ -56,6 +57,10 @@ import { TestingModule } from './modules/testing/testing.module';
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpLoggerInterceptor,
     },
     {
       provide: APP_INTERCEPTOR,

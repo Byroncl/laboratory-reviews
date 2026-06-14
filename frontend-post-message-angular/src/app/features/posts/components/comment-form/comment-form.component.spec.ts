@@ -2,8 +2,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CommentFormComponent } from './comment-form.component';
 import { CommentsService } from '../../services';
+import { FilesService } from '../../../../core/services/files.service';
 import { ICreateCommentDTO } from '../../interfaces';
-import { of } from 'rxjs';
+import { MediaUploadResult } from '../../../../shared/models/media-upload.model';
+import { of, throwError } from 'rxjs';
+import { ApiService } from '../../../../core/services/api.service';
 
 class MockCommentsService {
   createComment = jasmine.createSpy('createComment').and.returnValue(
@@ -11,19 +14,37 @@ class MockCommentsService {
   );
 }
 
+class MockFilesService {
+  uploadFiles = jasmine
+    .createSpy('uploadFiles')
+    .and.returnValue(
+      of({ data: [{ url: 'http://example.com/a.jpg', filename: 'a.jpg' }], message: 'ok' }),
+    );
+}
+
+class MockApiService {}
+
 describe('CommentFormComponent', () => {
   let component: CommentFormComponent;
   let fixture: ComponentFixture<CommentFormComponent>;
+  let commentsService: MockCommentsService;
+  let filesService: MockFilesService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CommentFormComponent],
-      providers: [{ provide: CommentsService, useClass: MockCommentsService }],
+      providers: [
+        { provide: CommentsService, useClass: MockCommentsService },
+        { provide: FilesService, useClass: MockFilesService },
+        { provide: ApiService, useClass: MockApiService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CommentFormComponent);
     component = fixture.componentInstance;
     component.postId = 'post-123';
+    commentsService = TestBed.inject(CommentsService) as unknown as MockCommentsService;
+    filesService = TestBed.inject(FilesService) as unknown as MockFilesService;
     fixture.detectChanges();
   });
 
@@ -45,7 +66,7 @@ describe('CommentFormComponent', () => {
     expect(error).toContain('required');
   });
 
-  it('should emit submit with correct DTO when form is valid', () => {
+  it('should emit submit with correct DTO when form is valid and no media', () => {
     const emitted: ICreateCommentDTO[] = [];
     component.submitted.subscribe((d: ICreateCommentDTO) => emitted.push(d));
 
@@ -67,22 +88,15 @@ describe('CommentFormComponent', () => {
 
   it('should emit cancel event', () => {
     let cancelEmitted = false;
-    component.cancel.subscribe(() => {
-      cancelEmitted = true;
-    });
-
+    component.cancel.subscribe(() => { cancelEmitted = true; });
     component.onCancel();
-
     expect(cancelEmitted).toBeTrue();
   });
 
   it('should not emit submit when form is invalid', () => {
     const emitted: ICreateCommentDTO[] = [];
     component.submitted.subscribe((d: ICreateCommentDTO) => emitted.push(d));
-
-    // Leave form empty (invalid)
     component.onSubmit();
-
     expect(emitted.length).toBe(0);
     expect(component.hasBeenSubmitted).toBeTrue();
   });
@@ -90,7 +104,49 @@ describe('CommentFormComponent', () => {
   it('should return null from getFieldError when hasBeenSubmitted is false', () => {
     component.commentForm.get('content')?.setValue('');
     component.hasBeenSubmitted = false;
-
     expect(component.getFieldError('content')).toBeNull();
+  });
+
+  // FR-13: renders app-media-upload
+  it('should render app-media-upload element', () => {
+    const el = fixture.nativeElement.querySelector('app-media-upload');
+    expect(el).toBeTruthy();
+  });
+
+  // FR-16: submit without media skips uploadFiles
+  it('should NOT call FilesService.uploadFiles when no files are selected', () => {
+    component.commentForm.setValue({ content: 'Hello world' });
+    component.onSubmit();
+    expect(filesService.uploadFiles).not.toHaveBeenCalled();
+    expect(commentsService.createComment).toHaveBeenCalled();
+  });
+
+  // FR-14: submit with media calls createComment with media arrays
+  it('should include media arrays in DTO when mediaResult is set', async () => {
+    const mediaResult: MediaUploadResult = {
+      mediaUrls: ['http://example.com/a.jpg'],
+      mediaTypes: ['image/jpeg'],
+      mediaFilenames: ['a.jpg'],
+    };
+    component.mediaResult.set(mediaResult);
+    component.commentForm.setValue({ content: 'Hello with media' });
+    component.onSubmit();
+
+    await fixture.whenStable();
+    expect(commentsService.createComment).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        mediaUrls: ['http://example.com/a.jpg'],
+        mediaTypes: ['image/jpeg'],
+        mediaFilenames: ['a.jpg'],
+      }),
+    );
+  });
+
+  // FR-17: submit button disabled while uploading
+  it('should disable submit button while isUploading is true', () => {
+    component.isUploading.set(true);
+    fixture.detectChanges();
+    const btn = fixture.nativeElement.querySelector('button[type="submit"]');
+    expect(btn?.disabled).toBeTrue();
   });
 });

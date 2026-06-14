@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { GlobalExceptionFilter } from './app/core/filters/global-exception.filter';
 import { TranslationService } from './app/core/utils/translation.service';
@@ -8,7 +8,7 @@ import { getDocsUrl, setupSwagger } from './bootstrap/swagger';
 import { checkDatabase } from './bootstrap/check-database';
 import { printBanner } from './bootstrap/banner';
 import { seedDatabase } from './bootstrap/seed';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 
 async function bootstrap() {
   loadEnv();
@@ -18,7 +18,10 @@ async function bootstrap() {
     await seedDatabase();
   }
 
-  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
+  const app = await NestFactory.create(AppModule, {
+    logger: ['log', 'error', 'warn', 'debug', 'verbose'],
+  });
   const host = process.env.HOST ?? (process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost');
   const port = parseInt(process.env.PORT ?? '3000', 10);
   const name = process.env.APP_NAME ?? 'My App';
@@ -49,5 +52,9 @@ async function bootstrap() {
     storageOk,
     testing: testingEnabled,
   });
+
+  logger.log(`✓ ${name} running on ${url}`);
+  logger.log(`✓ API Docs: ${getDocsUrl(host, port)}`);
+  logger.log('✓ Ready to accept requests...\n');
 }
 bootstrap();

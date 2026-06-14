@@ -141,7 +141,20 @@ export class CommentsController {
     const comments = await this.commentsService.findAll(
       findCommentsByPostDto.postId,
     );
-    return ApiRes.success(comments);
+
+    if (!findCommentsByPostDto.includeReactions) {
+      return ApiRes.success(comments);
+    }
+
+    const commentIds = (comments || []).map((c: any) => c._id?.toString() || c.id);
+    const reactionsMap = await this.reactionsService.getReactionsByComments(commentIds);
+
+    const enrichedComments = (comments || []).map((c: any) => ({
+      ...c,
+      reactions: reactionsMap.get(c._id?.toString() || c.id) || [],
+    }));
+
+    return ApiRes.success(enrichedComments);
   }
 
   @ApiOperation(COMMENTS_SWAGGER.FIND_ONE)

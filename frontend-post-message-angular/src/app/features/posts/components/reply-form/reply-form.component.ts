@@ -1,14 +1,25 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnInit,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { CommentsService } from '../../services';
 import { ICreateCommentDTO } from '../../interfaces';
+import { MediaUploadComponent } from '../../../../shared/components/media-upload/media-upload.component';
+import { MediaUploadResult } from '../../../../shared/models/media-upload.model';
 
 @Component({
   selector: 'app-reply-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe, MediaUploadComponent],
   templateUrl: './reply-form.component.html',
   styleUrls: ['./reply-form.component.css'],
 })
@@ -20,6 +31,13 @@ export class ReplyFormComponent implements OnInit {
 
   private fb = inject(FormBuilder);
   private commentsService = inject(CommentsService);
+
+  // Media upload state
+  readonly mediaResult = signal<MediaUploadResult | null>(null);
+  readonly isUploading = signal(false);
+
+  // Reference to MediaUploadComponent child for reset()
+  private readonly mediaUpload = viewChild(MediaUploadComponent);
 
   replyForm!: FormGroup;
   isSubmitting = false;
@@ -45,9 +63,17 @@ export class ReplyFormComponent implements OnInit {
 
     this.isSubmitting = true;
 
+    const m = this.mediaResult();
     const dto: ICreateCommentDTO = {
       content: this.replyForm.value.content,
       post: this.postId,
+      ...(m && m.mediaUrls.length
+        ? {
+            mediaUrls: m.mediaUrls,
+            mediaTypes: m.mediaTypes,
+            mediaFilenames: m.mediaFilenames,
+          }
+        : {}),
     };
 
     this.commentsService.replyToComment(this.parentCommentId, dto).subscribe({
@@ -55,6 +81,8 @@ export class ReplyFormComponent implements OnInit {
         this.replyForm.reset();
         this.hasBeenSubmitted = false;
         this.isSubmitting = false;
+        this.mediaResult.set(null);
+        this.mediaUpload()?.reset();
         this.submitted.emit();
       },
       error: (err) => {

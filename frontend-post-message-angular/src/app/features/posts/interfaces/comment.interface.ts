@@ -1,3 +1,9 @@
+export interface ICommentMedia {
+  url: string;
+  type: string;
+  filename: string;
+}
+
 export interface IComment {
   id?: string;
   _id?: string;
@@ -5,6 +11,7 @@ export interface IComment {
   content: string;
   author?: string;
   replies?: IComment[];
+  media?: ICommentMedia[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -12,6 +19,9 @@ export interface IComment {
 export interface ICreateCommentDTO {
   content: string;
   post: string;
+  mediaUrls?: string[];
+  mediaTypes?: string[];
+  mediaFilenames?: string[];
 }
 
 export interface ICommentResponse {

@@ -1,4 +1,14 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, signal, computed } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnInit,
+  inject,
+  signal,
+  computed,
+  viewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,11 +16,13 @@ import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { CommentsService } from '../../services';
 import { ICreateCommentDTO } from '../../interfaces';
 import { AuthService } from '../../../auth/services/auth.service';
+import { MediaUploadComponent } from '../../../../shared/components/media-upload/media-upload.component';
+import { MediaUploadResult } from '../../../../shared/models/media-upload.model';
 
 @Component({
   selector: 'app-comment-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe, MediaUploadComponent],
   templateUrl: './comment-form.component.html',
   styleUrls: ['./comment-form.component.css'],
 })
@@ -28,6 +40,13 @@ export class CommentFormComponent implements OnInit {
 
   readonly showAuthModal = signal(false);
   readonly isLoggedIn = computed(() => this.authService.isAuthenticated());
+
+  // Media upload state
+  readonly mediaResult = signal<MediaUploadResult | null>(null);
+  readonly isUploading = signal(false);
+
+  // Reference to the MediaUploadComponent child for reset()
+  private readonly mediaUpload = viewChild(MediaUploadComponent);
 
   commentForm!: FormGroup;
   isSubmitting = false;
@@ -53,9 +72,17 @@ export class CommentFormComponent implements OnInit {
       return;
     }
 
+    const m = this.mediaResult();
     const dto: ICreateCommentDTO = {
       content: this.commentForm.value.content,
       post: this.postId,
+      ...(m && m.mediaUrls.length
+        ? {
+            mediaUrls: m.mediaUrls,
+            mediaTypes: m.mediaTypes,
+            mediaFilenames: m.mediaFilenames,
+          }
+        : {}),
     };
 
     this.isSubmitting = true;
@@ -65,6 +92,8 @@ export class CommentFormComponent implements OnInit {
         this.commentForm.reset();
         this.hasBeenSubmitted = false;
         this.isSubmitting = false;
+        this.mediaResult.set(null);
+        this.mediaUpload()?.reset();
         this.submitted.emit(dto);
       },
       error: (err) => {

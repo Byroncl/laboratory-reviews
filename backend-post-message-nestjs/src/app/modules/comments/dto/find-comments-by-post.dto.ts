@@ -1,4 +1,5 @@
-import { IsMongoId, IsNotEmpty } from 'class-validator';
+import { IsMongoId, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class FindCommentsByPostDto {
@@ -6,4 +7,10 @@ export class FindCommentsByPostDto {
   @IsMongoId()
   @IsNotEmpty()
   postId: string;
+
+  @ApiProperty({ example: true, description: 'Include reactions for each comment', required: false })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  includeReactions?: boolean;
 }

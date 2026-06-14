@@ -12,6 +12,68 @@
   <!-- Body -->
   <p class="comment-content">{{ comment.content }}</p>
 
+  <!-- Media grid -->
+  @if (comment.media && comment.media.length > 0) {
+    <div class="mt-2" data-testid="media-grid">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        @for (item of visibleMedia(); track item.url) {
+          @if (mediaKind(item.type) === 'image') {
+            <a [href]="item.url" target="_blank" rel="noopener noreferrer" class="block rounded overflow-hidden">
+              <img
+                data-testid="media-image"
+                [src]="item.url"
+                [alt]="item.filename"
+                loading="lazy"
+                decoding="async"
+                class="w-full aspect-square object-cover rounded"
+              />
+            </a>
+          } @else if (mediaKind(item.type) === 'video') {
+            <video
+              data-testid="media-video"
+              [src]="item.url"
+              controls
+              preload="metadata"
+              class="w-full rounded"
+            ></video>
+          } @else {
+            <!-- Document card -->
+            <div class="flex flex-col items-center justify-center border border-gray-200 rounded p-2 bg-gray-50 aspect-square">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <span class="text-xs text-gray-600 text-center break-all line-clamp-2 mb-1">{{ item.filename }}</span>
+              <a
+                data-testid="media-doc-link"
+                [href]="item.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                class="text-xs text-blue-600 hover:underline"
+              >Download</a>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Show more / show less toggle -->
+      @if (comment.media.length > visibleMedia().length || showAllMedia()) {
+        <button
+          type="button"
+          data-testid="media-toggle"
+          class="mt-1 text-xs text-blue-600 hover:underline"
+          (click)="toggleMedia()"
+        >
+          @if (showAllMedia()) {
+            Show less
+          } @else {
+            Show {{ hiddenCount() }} more
+          }
+        </button>
+      }
+    </div>
+  }
+
   <!-- Reaction bar -->
   @if (commentId) {
     <app-reaction-bar [commentId]="commentId" />
