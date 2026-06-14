@@ -1,12 +1,14 @@
 {
   "link": {
-    "title": "Documentación",
-    "items": [
-      {
-        "label": "Guía Backend",
-        "to": "/docs/backend/intro"
+    "0": {
+      "title": "Documentación",
+      "items": {
+        "0": {
+          "label": "Guía Backend",
+          "to": "/docs/backend/intro"
+        }
       }
-    ]
+    }
   },
   "copyright": "Copyright © {year} Post-Message."
 }

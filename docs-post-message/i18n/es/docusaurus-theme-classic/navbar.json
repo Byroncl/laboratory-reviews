@@ -1,12 +1,16 @@
 {
-  "title": "Documentación Post-Message",
-  "logo": {
-    "alt": "Logo Post-Message"
+  "title": {
+    "message": "Documentación Post-Message",
+    "description": "Título de la barra de navegación"
   },
-  "items": [
-    {
+  "logo": {
+    "alt": "Logo Post-Message",
+    "src": "/img/logo.svg"
+  },
+  "items": {
+    "0": {
       "label": "Backend",
-      "position": "left"
+      "description": "Backend Documentation"
     }
-  ]
+  }
 }

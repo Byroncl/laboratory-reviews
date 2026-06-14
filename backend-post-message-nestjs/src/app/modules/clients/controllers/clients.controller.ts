@@ -6,6 +6,7 @@ import {
   Put,
   Delete,
   Param,
+  ForbiddenException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -20,6 +21,8 @@ import { UpdateClientDto } from '../dto/update-client.dto';
 import { ClientResponseDto } from '../dto/client-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
+import { CurrentUser } from '../../../core/decorators/current-user.decorator';
+import type { CurrentUserPayload } from '../../../core/decorators/current-user.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
 import { TranslationService } from '../../../core/utils/translation.service';
 
@@ -43,6 +46,46 @@ export class ClientsController {
   async create(@Body() createClientDto: CreateClientDto) {
     const client = await this.clientsService.create(createClientDto);
     return ApiRes.success(client, this.i18n.translate('clients.created'));
+  }
+
+  @Auth()
+  @ApiOperation({ summary: 'Get my profile (client only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Client profile',
+    type: ClientResponseDto,
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden - only for clients' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Get('profile')
+  async getProfile(@CurrentUser() user: CurrentUserPayload) {
+    if ((user as any).type !== 'client') {
+      throw new ForbiddenException('Solo los clientes pueden acceder a su perfil');
+    }
+    const client = await this.clientsService.findOne(user.id);
+    return ApiRes.success(client);
+  }
+
+  @Auth()
+  @ApiOperation({ summary: 'Update my profile (client only)' })
+  @ApiBody({ type: UpdateClientDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile updated successfully',
+    type: ClientResponseDto,
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden - only for clients' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Put('profile')
+  async updateProfile(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() updateClientDto: UpdateClientDto,
+  ) {
+    if ((user as any).type !== 'client') {
+      throw new ForbiddenException('Solo los clientes pueden actualizar su perfil');
+    }
+    const client = await this.clientsService.update(user.id, updateClientDto);
+    return ApiRes.success(client, this.i18n.translate('clients.updated'));
   }
 
   @Auth()

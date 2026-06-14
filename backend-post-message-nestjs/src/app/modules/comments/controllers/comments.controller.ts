@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   Optional,
+  ForbiddenException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -90,6 +91,9 @@ export class CommentsController {
     @Query('page') page = 1,
     @Query('limit') limit = 10,
   ) {
+    if ((user as any).type !== 'client') {
+      throw new ForbiddenException('Solo los clientes pueden acceder a sus comentarios');
+    }
     const skip = (page - 1) * limit;
     const result = await this.commentsService.findByUserId(user.id, skip, limit);
     return ApiRes.success(result);

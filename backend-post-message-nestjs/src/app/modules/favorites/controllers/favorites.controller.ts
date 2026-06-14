@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../../core/decorators/current-user.decorator';
@@ -21,9 +22,16 @@ import { ApiResponse } from '../../../core/dto/api.response';
 export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
+  private validateIsClient(user: any): void {
+    if (user.type !== 'client') {
+      throw new ForbiddenException('Solo los clientes pueden tener favoritos');
+    }
+  }
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async addFavorite(@CurrentUser() user: any, @Body() createFavoriteDto: CreateFavoriteDto) {
+    this.validateIsClient(user);
     const favorite = await this.favoritesService.addFavorite(user.id, createFavoriteDto);
     return ApiResponse.success(favorite, 'Post added to favorites');
   }
@@ -31,6 +39,7 @@ export class FavoritesController {
   @Delete(':postId')
   @HttpCode(HttpStatus.OK)
   async removeFavorite(@CurrentUser() user: any, @Param('postId') postId: string) {
+    this.validateIsClient(user);
     await this.favoritesService.removeFavorite(user.id, postId);
     return ApiResponse.success(null, 'Post removed from favorites');
   }
@@ -41,12 +50,14 @@ export class FavoritesController {
     @Query('page') page = 1,
     @Query('limit') limit = 10,
   ) {
+    this.validateIsClient(user);
     const result = await this.favoritesService.getMyFavorites(user.id, page, limit);
     return ApiResponse.success(result, 'Favorites retrieved successfully');
   }
 
   @Get('check/:postId')
   async checkFavorite(@CurrentUser() user: any, @Param('postId') postId: string) {
+    this.validateIsClient(user);
     const isFavorite = await this.favoritesService.isFavorite(user.id, postId);
     return ApiResponse.success({ isFavorite }, 'Check complete');
   }

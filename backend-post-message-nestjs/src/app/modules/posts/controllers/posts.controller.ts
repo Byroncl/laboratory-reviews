@@ -7,6 +7,7 @@ import {
   Delete,
   Put,
   Query,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PaginationQueryDto } from '../../../core/dto/pagination.dto';
 import {
@@ -68,6 +69,9 @@ export class PostsController {
     @CurrentUser() currentUser: CurrentUserPayload,
     @Query() paginationDto: PaginationQueryDto,
   ) {
+    if ((currentUser as any).type !== 'client') {
+      throw new ForbiddenException('Solo los clientes pueden acceder a sus posts');
+    }
     const result = await this.postsService.findByAuthorId(
       currentUser.id,
       paginationDto.skip,
