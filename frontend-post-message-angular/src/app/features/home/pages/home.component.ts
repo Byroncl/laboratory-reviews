@@ -1,20 +1,23 @@
 import { Component, OnInit, signal, inject, computed, DestroyRef } from '@angular/core';
-import { CommonModule, AsyncPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { catchError, of } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { PostsService } from '../../posts/services/posts.service';
 import { PostCardComponent } from '../components/post-card/post-card.component';
 import { HeaderComponent } from '../components/header/header.component';
-import { mapToPostViewModel, PostViewModel } from '../../../shared/models/post.model';
+import { mapToPostViewModel } from '../../../shared/models/post.model';
 import { selectIsAuthenticated } from '../../auth/store/auth.selectors';
+import { PostViewModel } from '../types';
+import { filterPosts } from '../utils';
+import { HOME_ROUTES } from '../constants';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, AsyncPipe, ReactiveFormsModule, PostCardComponent, HeaderComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, PostCardComponent, HeaderComponent],
   templateUrl: './home.component.html',
 })
 export class HomeComponent implements OnInit {
@@ -23,7 +26,7 @@ export class HomeComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly isAuthenticated$ = this.store.select(selectIsAuthenticated);
+  readonly isAuthenticated = toSignal(this.store.select(selectIsAuthenticated), { initialValue: false });
   readonly loading = signal(false);
   readonly loadError = signal<string | null>(null);
   readonly postViewModels = signal<PostViewModel[]>([]);
@@ -31,14 +34,9 @@ export class HomeComponent implements OnInit {
 
   readonly searchControl = new FormControl<string>('', { nonNullable: true });
 
-  readonly filteredPosts = computed(() => {
-    const query = this.searchQuery().toLowerCase();
-    if (!query) return this.postViewModels();
-    return this.postViewModels().filter(post =>
-      post.title.toLowerCase().includes(query) ||
-      post.preview.toLowerCase().includes(query)
-    );
-  });
+  readonly filteredPosts = computed(() =>
+    filterPosts(this.postViewModels(), this.searchQuery())
+  );
 
   constructor() {
     this.searchControl.valueChanges
@@ -79,10 +77,10 @@ export class HomeComponent implements OnInit {
   }
 
   navigateToLogin(): void {
-    this.router.navigate(['/auth/login'], { queryParams: { returnUrl: '/' } });
+    this.router.navigate([HOME_ROUTES.LOGIN], { queryParams: { returnUrl: HOME_ROUTES.ROOT } });
   }
 
   navigateToDashboard(): void {
-    this.router.navigate(['/dashboard']);
+    this.router.navigate([HOME_ROUTES.DASHBOARD]);
   }
 }

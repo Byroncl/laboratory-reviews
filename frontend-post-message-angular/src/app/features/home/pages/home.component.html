@@ -7,7 +7,7 @@
     <p class="text-gray-500 text-lg mb-6">
       Explore posts, join the conversation, and share your ideas.
     </p>
-    @if (isAuthenticated$ | async) {
+    @if (isAuthenticated()) {
       <button
         data-cy="hero-cta"
         class="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-black transition"
