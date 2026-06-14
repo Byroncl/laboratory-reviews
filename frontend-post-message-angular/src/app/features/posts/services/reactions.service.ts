@@ -1,3 +1,4 @@
+import { environment } from '../../../../../environments/environment';
 import { Injectable, inject, signal, computed, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError, Subscription } from 'rxjs';
@@ -22,7 +23,7 @@ interface ReactionAddedEvent {
 export class ReactionsService implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly webSocketService = inject(WebSocketService);
-  private readonly baseUrl = 'http://localhost:3000/api';
+  private readonly baseUrl = environment.apiUrl;
 
   /** Map<commentId, IReactionSummary[]> */
   private readonly reactions$ = signal<Map<string, IReactionSummary[]>>(new Map());

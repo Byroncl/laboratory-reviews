@@ -3,20 +3,20 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { NotificationService } from '../../../shared/services/notification.service';
-import { UsersService } from '../../admin/services/users.service';
-import { User } from '../../../shared/models/user.model';
-import { SpinnerComponent } from '../../../shared/components/spinner/spinner.component';
+import { NotificationService } from '../../../../shared/services/notification.service';
+import { PostsService } from '../../../posts/services/posts.service';
+import { Post } from '../../../../shared/models/post.model';
+import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
 
 @Component({
-  selector: 'app-user-form',
+  selector: 'app-post-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, SpinnerComponent],
-  templateUrl: './user-form.component.html',
-  styleUrl: './user-form.component.scss'
+  templateUrl: './post-form.component.html',
+  styleUrl: './post-form.component.scss'
 })
-export class UserFormComponent implements OnInit, OnDestroy {
-  @Input() editingUserId: string | null = null;
+export class PostFormComponent implements OnInit, OnDestroy {
+  @Input() editingPostId: string | null = null;
   @Output() formSubmitted = new EventEmitter<void>();
   @Output() formCancelled = new EventEmitter<void>();
 
@@ -26,14 +26,14 @@ export class UserFormComponent implements OnInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private usersService: UsersService,
+    private postsService: PostsService,
     private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
     this.initializeForm();
-    if (this.editingUserId) {
-      this.loadUserData();
+    if (this.editingPostId) {
+      this.loadPostData();
     }
   }
 
@@ -43,52 +43,41 @@ export class UserFormComponent implements OnInit, OnDestroy {
   }
 
   private initializeForm(): void {
-    const validators: any = {
-      name: [
-        Validators.required,
-        Validators.minLength(2),
-        Validators.maxLength(50)
+    this.form = this.fb.group({
+      title: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(200)
+        ]
       ],
-      lastname: [
-        Validators.required,
-        Validators.minLength(2),
-        Validators.maxLength(50)
+      content: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(1),
+          Validators.maxLength(5000)
+        ]
       ],
-      username: [
-        Validators.required,
-        Validators.minLength(3),
-        Validators.maxLength(20)
-      ],
-      email: [
-        Validators.required,
-        Validators.email
-      ],
-      type: [
-        Validators.required
-      ]
-    };
-
-    if (!this.editingUserId) {
-      validators.password_hash = [
-        Validators.required,
-        Validators.minLength(6),
-        Validators.maxLength(200)
-      ];
-    }
-
-    this.form = this.fb.group(validators);
+      imageUrl: ['', [Validators.pattern(/^https?:\/\/.+/)]],
+      imageFilename: ['', [Validators.maxLength(500)]],
+      categoryId: [''],
+      categoryName: ['', [Validators.maxLength(100)]]
+    });
   }
 
-  private loadUserData(): void {
-    const users = this.usersService.users$();
-    const user = users.find(u => (u._id ?? u.id) === this.editingUserId);
-    if (user) {
+  private loadPostData(): void {
+    const posts = this.postsService.posts$() as any[];
+    const post = posts.find((p: any) => (p._id ?? p.id) === this.editingPostId);
+    if (post) {
       this.form.patchValue({
-        name: user.name,
-        lastname: user.lastname,
-        username: user.username,
-        email: user.email,
-        type: user.type
+        title: post.title,
+        content: post.content,
+        imageUrl: post.imageUrl || '',
+        imageFilename: post.imageFilename || '',
+        categoryId: post.categoryId || '',
+        categoryName: post.categoryName || ''
       });
     }
   }
@@ -111,49 +100,49 @@ export class UserFormComponent implements OnInit, OnDestroy {
       const maxLength = field.getError('maxlength').requiredLength;
       return `Máximo ${maxLength} caracteres`;
     }
-    if (field.hasError('email')) return 'Email inválido';
+    if (field.hasError('pattern')) return 'URL debe comenzar con http:// o https://';
 
     return 'Campo inválido';
   }
 
   onSubmit(): void {
     if (this.form.invalid) {
-      this.notificationService.toast('Por favor complete todos los campos requeridos', 'error');
+      this.notificationService.toast('Por favor complete los campos requeridos', 'error');
       return;
     }
 
     this.isLoading = true;
 
-    if (this.editingUserId) {
-      this.usersService.updateUser(this.editingUserId, this.form.value)
+    if (this.editingPostId) {
+      this.postsService.updatePost(this.editingPostId, this.form.value)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
             this.isLoading = false;
-            this.notificationService.toast('Usuario actualizado correctamente', 'success');
+            this.notificationService.toast('Post actualizado correctamente', 'success');
             this.formSubmitted.emit();
           },
           error: (error) => {
             this.isLoading = false;
             this.notificationService.toast(
-              error?.message || 'Error al actualizar usuario',
+              error?.message || 'Error al actualizar post',
               'error'
             );
           }
         });
     } else {
-      this.usersService.createUser(this.form.value)
+      this.postsService.createPost(this.form.value)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
             this.isLoading = false;
-            this.notificationService.toast('Usuario creado correctamente', 'success');
+            this.notificationService.toast('Post creado correctamente', 'success');
             this.formSubmitted.emit();
           },
           error: (error) => {
             this.isLoading = false;
             this.notificationService.toast(
-              error?.message || 'Error al crear usuario',
+              error?.message || 'Error al crear post',
               'error'
             );
           }

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { I18nService, Language } from '../../../core/services/i18n.service';
-import { TranslatePipe } from '../../../core/pipes/translate.pipe';
+import { I18nService, Language } from '../../../../core/services/i18n.service';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-language-selector',

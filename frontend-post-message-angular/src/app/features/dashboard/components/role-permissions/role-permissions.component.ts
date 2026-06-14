@@ -2,12 +2,12 @@ import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angu
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { NotificationService } from '../../../shared/services/notification.service';
-import { RolesService } from '../../admin/services/roles.service';
-import { PermissionsService } from '../../admin/services/permissions.service';
-import { Role } from '../../../shared/models/role.model';
-import { Permission } from '../../../shared/models/permission.model';
-import { SpinnerComponent } from '../../../shared/components/spinner/spinner.component';
+import { NotificationService } from '../../../../shared/services/notification.service';
+import { RolesService } from '../../../admin/services/roles.service';
+import { PermissionsService } from '../../../admin/services/permissions.service';
+import { Role } from '../../../../shared/models/role.model';
+import { Permission } from '../../../../shared/models/permission.model';
+import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
 
 @Component({
   selector: 'app-role-permissions',

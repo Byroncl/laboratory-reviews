@@ -14,7 +14,7 @@ import {
 import { ModalService, NotificationService } from '../../../shared/services/index';
 import { UsersService } from '../../admin/services/users.service';
 import { User } from '../../../shared/models/user.model';
-import { UserFormComponent } from '../components/user-form.component';
+import { UserFormComponent } from '../components/user-form/user-form.component';
 import {
   ROLE_FILTER_OPTIONS,
   STATUS_FILTER_OPTIONS,

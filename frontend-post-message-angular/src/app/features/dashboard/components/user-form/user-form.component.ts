@@ -3,38 +3,37 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { NotificationService } from '../../../shared/services/notification.service';
-import { PermissionsService } from '../../admin/services/permissions.service';
-import { Permission, PermissionType } from '../../../shared/models/permission.model';
-import { SpinnerComponent } from '../../../shared/components/spinner/spinner.component';
+import { NotificationService } from '../../../../shared/services/notification.service';
+import { UsersService } from '../../../admin/services/users.service';
+import { User } from '../../../../shared/models/user.model';
+import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
 
 @Component({
-  selector: 'app-permission-form',
+  selector: 'app-user-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, SpinnerComponent],
-  templateUrl: './permission-form.component.html',
-  styleUrl: './permission-form.component.scss'
+  templateUrl: './user-form.component.html',
+  styleUrl: './user-form.component.scss'
 })
-export class PermissionFormComponent implements OnInit, OnDestroy {
-  @Input() editingPermissionId: string | null = null;
+export class UserFormComponent implements OnInit, OnDestroy {
+  @Input() editingUserId: string | null = null;
   @Output() formSubmitted = new EventEmitter<void>();
   @Output() formCancelled = new EventEmitter<void>();
 
   form!: FormGroup;
   isLoading = false;
-  permissionTypes = Object.values(PermissionType);
   private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
-    private permissionsService: PermissionsService,
+    private usersService: UsersService,
     private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
     this.initializeForm();
-    if (this.editingPermissionId) {
-      this.loadPermissionData();
+    if (this.editingUserId) {
+      this.loadUserData();
     }
   }
 
@@ -44,26 +43,52 @@ export class PermissionFormComponent implements OnInit, OnDestroy {
   }
 
   private initializeForm(): void {
-    this.form = this.fb.group({
+    const validators: any = {
       name: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(2),
-          Validators.maxLength(100)
-        ]
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(50)
       ],
-      type: ['', [Validators.required]]
-    });
+      lastname: [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(50)
+      ],
+      username: [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(20)
+      ],
+      email: [
+        Validators.required,
+        Validators.email
+      ],
+      type: [
+        Validators.required
+      ]
+    };
+
+    if (!this.editingUserId) {
+      validators.password_hash = [
+        Validators.required,
+        Validators.minLength(6),
+        Validators.maxLength(200)
+      ];
+    }
+
+    this.form = this.fb.group(validators);
   }
 
-  private loadPermissionData(): void {
-    const permissions = this.permissionsService.permissions$();
-    const permission = permissions.find((p: Permission) => (p._id ?? p.id) === this.editingPermissionId);
-    if (permission) {
+  private loadUserData(): void {
+    const users = this.usersService.users$();
+    const user = users.find(u => (u._id ?? u.id) === this.editingUserId);
+    if (user) {
       this.form.patchValue({
-        name: permission.name,
-        type: permission['type']
+        name: user.name,
+        lastname: user.lastname,
+        username: user.username,
+        email: user.email,
+        type: user.type
       });
     }
   }
@@ -86,21 +111,9 @@ export class PermissionFormComponent implements OnInit, OnDestroy {
       const maxLength = field.getError('maxlength').requiredLength;
       return `Máximo ${maxLength} caracteres`;
     }
+    if (field.hasError('email')) return 'Email inválido';
 
     return 'Campo inválido';
-  }
-
-  formatType(type: string): string {
-    const formatted: Record<string, string> = {
-      user: 'Usuarios',
-      roles: 'Roles',
-      permissions: 'Permisos',
-      comments: 'Comentarios',
-      clients: 'Clientes',
-      statistics: 'Estadísticas',
-      audits: 'Auditoría'
-    };
-    return formatted[type] || type;
   }
 
   onSubmit(): void {
@@ -111,36 +124,36 @@ export class PermissionFormComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
 
-    if (this.editingPermissionId) {
-      this.permissionsService.updatePermission(this.editingPermissionId, this.form.value)
+    if (this.editingUserId) {
+      this.usersService.updateUser(this.editingUserId, this.form.value)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
             this.isLoading = false;
-            this.notificationService.toast('Permiso actualizado correctamente', 'success');
+            this.notificationService.toast('Usuario actualizado correctamente', 'success');
             this.formSubmitted.emit();
           },
           error: (error) => {
             this.isLoading = false;
             this.notificationService.toast(
-              error?.message || 'Error al actualizar permiso',
+              error?.message || 'Error al actualizar usuario',
               'error'
             );
           }
         });
     } else {
-      this.permissionsService.createPermission(this.form.value)
+      this.usersService.createUser(this.form.value)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
             this.isLoading = false;
-            this.notificationService.toast('Permiso creado correctamente', 'success');
+            this.notificationService.toast('Usuario creado correctamente', 'success');
             this.formSubmitted.emit();
           },
           error: (error) => {
             this.isLoading = false;
             this.notificationService.toast(
-              error?.message || 'Error al crear permiso',
+              error?.message || 'Error al crear usuario',
               'error'
             );
           }

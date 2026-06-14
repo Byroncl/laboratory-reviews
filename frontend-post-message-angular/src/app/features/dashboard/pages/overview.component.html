@@ -7,7 +7,7 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm mb-1">Posts Totales</p>
-              <p class="text-3xl font-bold text-primary">1,234</p>
+              <p class="text-3xl font-bold text-primary">{{ totalPosts() | number }}</p>
             </div>
             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -23,7 +23,7 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm mb-1">Comentarios</p>
-              <p class="text-3xl font-bold text-primary">3,456</p>
+              <p class="text-3xl font-bold text-primary">{{ totalComments() | number }}</p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,7 +39,7 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm mb-1">Usuarios Activos</p>
-              <p class="text-3xl font-bold text-primary">892</p>
+              <p class="text-3xl font-bold text-primary">{{ activeUsers() | number }}</p>
             </div>
             <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
               <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,7 +55,7 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm mb-1">Crecimiento</p>
-              <p class="text-3xl font-bold text-primary">+24.8%</p>
+              <p class="text-3xl font-bold text-primary">+{{ growthPercentage() }}%</p>
             </div>
             <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
               <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

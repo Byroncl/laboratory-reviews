@@ -14,7 +14,7 @@ import {
 import { ModalService, NotificationService } from '../../../shared/services/index';
 import { PostsService } from '../../posts/services/posts.service';
 import { Post } from '../../../shared/models/post.model';
-import { PostFormComponent } from '../components/post-form.component';
+import { PostFormComponent } from '../components/post-form/post-form.component';
 
 @Component({
   selector: 'app-posts',

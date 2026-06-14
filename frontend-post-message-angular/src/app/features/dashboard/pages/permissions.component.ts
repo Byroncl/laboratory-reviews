@@ -14,7 +14,7 @@ import {
 import { ModalService, NotificationService } from '../../../shared/services/index';
 import { PermissionsService } from '../../admin/services/permissions.service';
 import { Permission } from '../../../shared/models/permission.model';
-import { PermissionFormComponent } from '../components/permission-form.component';
+import { PermissionFormComponent } from '../components/permission-form/permission-form.component';
 import {
   extractId,
   filterPermissions,

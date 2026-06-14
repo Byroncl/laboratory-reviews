@@ -1,3 +1,4 @@
+import { environment } from '../../../../../environments/environment';
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -29,7 +30,7 @@ import {
 })
 export class CommentsService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:3000/api';
+  private readonly baseUrl = environment.apiUrl;
   private readonly retryAttempts = 2;
 
   // Signal-based state

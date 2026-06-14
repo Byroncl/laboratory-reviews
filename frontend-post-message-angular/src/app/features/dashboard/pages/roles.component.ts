@@ -14,8 +14,8 @@ import {
 import { ModalService, NotificationService } from '../../../shared/services/index';
 import { RolesService } from '../../admin/services/roles.service';
 import { Role } from '../../../shared/models/role.model';
-import { RoleFormComponent } from '../components/role-form.component';
-import { RolePermissionsComponent } from '../components/role-permissions.component';
+import { RoleFormComponent } from '../components/role-form/role-form.component';
+import { RolePermissionsComponent } from '../components/role-permissions/role-permissions.component';
 import {
   extractId,
   filterRoles,

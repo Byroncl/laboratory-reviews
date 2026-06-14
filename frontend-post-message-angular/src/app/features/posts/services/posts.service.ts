@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
 import { throwError } from 'rxjs';
+import { environment } from '../../../../../environments/environment';
 
 import {
   IPost,
@@ -20,7 +21,7 @@ import { PostsBaseService } from './posts-base.service';
   providedIn: 'root',
 })
 export class PostsService extends PostsBaseService<IPost> {
-  protected override baseUrl = 'http://localhost:3000/api';
+  protected override baseUrl = environment.apiUrl;
 
   // Semantic public computed aliases over inherited protected signals
   public readonly posts$ = computed(() => this.items$());

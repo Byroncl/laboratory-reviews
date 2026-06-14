@@ -1,3 +1,4 @@
+import { environment } from '../../../../../environments/environment';
 export const NOTIFICATIONS_ENDPOINTS = {
   BASE: '/api/notifications',
   GET_ALL: '/api/notifications',
@@ -9,7 +10,7 @@ export const NOTIFICATIONS_ENDPOINTS = {
 };
 
 export const NOTIFICATIONS_WEBSOCKET = {
-  URL: 'http://localhost:3000', // Should be from environment
+  URL: environment.socketUrl, // Should be from environment
   RECONNECTION: true,
   RECONNECTION_DELAY: 1000,
   RECONNECTION_DELAY_MAX: 5000,
