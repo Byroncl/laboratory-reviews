@@ -164,7 +164,9 @@ describe('NotificationsService', () => {
   describe('markAsRead', () => {
     it('should mark a single notification as read and return updated notification', async () => {
       const readNotification = { ...mockNotification, read: true, readAt: new Date() };
-      MockNotificationModel.findByIdAndUpdate = jest.fn().mockReturnValue(readNotification);
+      MockNotificationModel.findByIdAndUpdate = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(readNotification),
+      });
 
       const result = await service.markAsRead('507f1f77bcf86cd799439011');
 
@@ -179,7 +181,9 @@ describe('NotificationsService', () => {
     it('should set readAt when marking as read', async () => {
       const now = new Date();
       const readNotification = { ...mockNotification, read: true, readAt: now };
-      MockNotificationModel.findByIdAndUpdate = jest.fn().mockReturnValue(readNotification);
+      MockNotificationModel.findByIdAndUpdate = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(readNotification),
+      });
 
       const result = await service.markAsRead('507f1f77bcf86cd799439011');
 

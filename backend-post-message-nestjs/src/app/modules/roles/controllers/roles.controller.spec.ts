@@ -1,11 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RolesController } from './roles.controller';
 import { RolesService } from '../services/roles.service';
+import { RolesGateway } from '../gateways/roles.gateway';
 import { CreateRoleDto } from '../dto/create-role.dto';
 import { UpdateRoleDto } from '../dto/update-role.dto';
 import { AssignPermissionsDto } from '../dto/assign-permissions.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
 import { TranslationService } from '../../../core/utils/translation.service';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 describe('RolesController', () => {
   let controller: RolesController;
@@ -33,7 +35,19 @@ describe('RolesController', () => {
       providers: [
         { provide: RolesService, useValue: mockRolesService },
         {
+          provide: RolesGateway,
+          useValue: {
+            notifyRoleCreated: jest.fn(),
+            notifyRoleUpdated: jest.fn(),
+            notifyRoleDeleted: jest.fn(),
+          },
+        },
+        {
           provide: TranslationService,
+          useValue: { translate: jest.fn((key: string) => key) },
+        },
+        {
+          provide: I18nService,
           useValue: { translate: jest.fn((key: string) => key) },
         },
       ],

@@ -1,0 +1,70 @@
+<article class="comment-item">
+  <!-- Header: author + date -->
+  <header class="comment-header">
+    <span class="comment-author">{{ comment.author || ('posts.comments.anonymous' | t) }}</span>
+    @if (comment.createdAt) {
+      <time class="comment-date" [dateTime]="comment.createdAt.toString()">
+        {{ comment.createdAt | date: 'mediumDate' }}
+      </time>
+    }
+  </header>
+
+  <!-- Body -->
+  <p class="comment-content">{{ comment.content }}</p>
+
+  <!-- Reaction bar -->
+  @if (commentId) {
+    <app-reaction-bar [commentId]="commentId" />
+  }
+
+  <!-- Action buttons -->
+  <footer class="comment-actions">
+    <button
+      type="button"
+      class="btn-action"
+      (click)="showReplyForm.set(!showReplyForm())"
+    >
+      {{ showReplyForm() ? ('posts.comments.cancelReply' | t) : ('posts.comments.reply' | t) }}
+    </button>
+
+    @if (hasReplies || replies().length > 0) {
+      <button
+        type="button"
+        class="btn-action btn-expand"
+        [disabled]="repliesLoading()"
+        (click)="expandReplies()"
+      >
+        @if (repliesLoading()) {
+          {{ 'posts.comments.loadingReplies' | t }}
+        } @else if (showReplies()) {
+          {{ 'posts.comments.hideReplies' | t }}
+        } @else {
+          {{ 'posts.comments.showReplies' | t }}
+        }
+      </button>
+    }
+  </footer>
+
+  <!-- Inline reply form -->
+  @if (showReplyForm() && commentId) {
+    <app-reply-form
+      [postId]="postId"
+      [parentCommentId]="commentId"
+      (submitted)="onReplyAdded()"
+      (cancelled)="showReplyForm.set(false)"
+    />
+  }
+
+  <!-- Nested replies -->
+  @if (showReplies() && replies().length > 0) {
+    <section class="comment-replies">
+      @for (reply of replies(); track reply._id ?? reply.id) {
+        <app-comment-item
+          [comment]="reply"
+          [postId]="postId"
+          (replyAdded)="onReplyAdded()"
+        />
+      }
+    </section>
+  }
+</article>

@@ -162,6 +162,20 @@ export class CommentsService {
   }
 
   /**
+   * Fetch all replies for a given comment.
+   * Calls GET /comments/:id/replies and returns the list response.
+   */
+  public getReplies(commentId: string): Observable<ICommentListResponse> {
+    const url = `${this.baseUrl}${COMMENTS_API_ENDPOINTS.REPLIES.replace(':id', commentId)}`;
+    return this.http
+      .get<ICommentListResponse>(url)
+      .pipe(
+        retry(this.retryAttempts),
+        catchError((err) => this._handleError(err, 'Failed to load replies')),
+      );
+  }
+
+  /**
    * Create a reply to a comment
    */
   public replyToComment(

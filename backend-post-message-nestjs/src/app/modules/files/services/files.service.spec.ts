@@ -1,22 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { InternalServerErrorException } from '@nestjs/common';
 import { FilesService } from './files.service';
-import { TranslationService } from '../../../core/utils/translation.service';
-
-jest.mock('../../../core/config/minio.config', () => ({
-  createMinioClient: jest.fn(),
-  MINIO_BUCKET: 'posts',
-}));
-
-import { createMinioClient } from '../../../core/config/minio.config';
+import { FileRepository } from '../domain/repositories/file.repository';
 
 describe('FilesService', () => {
   let service: FilesService;
-  let mockMinioClient: {
-    bucketExists: jest.Mock;
-    makeBucket: jest.Mock;
-    putObject: jest.Mock;
-    removeObject: jest.Mock;
+  let mockFileRepository: {
+    uploadImage: jest.Mock;
+    deleteImage: jest.Mock;
+    getImageUrl: jest.Mock;
   };
 
   const mockFile: Express.Multer.File = {
@@ -33,30 +24,22 @@ describe('FilesService', () => {
   };
 
   beforeEach(async () => {
-    mockMinioClient = {
-      bucketExists: jest.fn().mockResolvedValue(true),
-      makeBucket: jest.fn().mockResolvedValue(undefined),
-      putObject: jest.fn().mockResolvedValue(undefined),
-      removeObject: jest.fn().mockResolvedValue(undefined),
-    };
+    jest.clearAllMocks();
 
-    (createMinioClient as jest.Mock).mockReturnValue(mockMinioClient);
+    mockFileRepository = {
+      uploadImage: jest.fn(),
+      deleteImage: jest.fn().mockResolvedValue(undefined),
+      getImageUrl: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FilesService,
-        {
-          provide: TranslationService,
-          useValue: { translate: jest.fn((key: string) => key) },
-        },
+        { provide: FileRepository, useValue: mockFileRepository },
       ],
     }).compile();
 
     service = module.get<FilesService>(FilesService);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -64,71 +47,44 @@ describe('FilesService', () => {
   });
 
   describe('uploadImage', () => {
-    it('should upload an image and return url and filename', async () => {
+    it('should delegate to FileRepository.uploadImage and return result', async () => {
+      const uploadResult = {
+        url: 'http://localhost:9000/posts/1718000000000-abc.jpg',
+        filename: '1718000000000-abc.jpg',
+      };
+      mockFileRepository.uploadImage.mockResolvedValue(uploadResult);
+
       const result = await service.uploadImage(mockFile);
 
-      expect(result).toHaveProperty('url');
-      expect(result).toHaveProperty('filename');
-      expect(result.filename).toMatch(/\.jpg$/);
-      expect(result.url).toContain(result.filename);
-      expect(mockMinioClient.putObject).toHaveBeenCalledWith(
-        'posts',
-        result.filename,
-        mockFile.buffer,
-        mockFile.size,
-        { 'Content-Type': 'image/jpeg' },
-      );
+      expect(result).toEqual(uploadResult);
+      expect(mockFileRepository.uploadImage).toHaveBeenCalledWith(mockFile);
     });
 
-    it('should create the bucket if it does not exist', async () => {
-      mockMinioClient.bucketExists.mockResolvedValue(false);
+    it('should propagate errors from the repository', async () => {
+      mockFileRepository.uploadImage.mockRejectedValue(new Error('Upload failed'));
 
-      await service.uploadImage(mockFile);
-
-      expect(mockMinioClient.makeBucket).toHaveBeenCalledWith('posts', 'us-east-1');
-    });
-
-    it('should throw InternalServerErrorException when putObject fails', async () => {
-      mockMinioClient.putObject.mockRejectedValue(new Error('Connection refused'));
-
-      await expect(service.uploadImage(mockFile)).rejects.toThrow(
-        InternalServerErrorException,
-      );
-    });
-
-    it('should throw InternalServerErrorException when bucket check fails', async () => {
-      mockMinioClient.bucketExists.mockRejectedValue(new Error('MinIO unavailable'));
-
-      await expect(service.uploadImage(mockFile)).rejects.toThrow(
-        InternalServerErrorException,
-      );
+      await expect(service.uploadImage(mockFile)).rejects.toThrow('Upload failed');
     });
   });
 
   describe('deleteImage', () => {
-    it('should delete an image by filename', async () => {
+    it('should delegate to FileRepository.deleteImage', async () => {
       await service.deleteImage('1718000000000-abc.jpg');
 
-      expect(mockMinioClient.removeObject).toHaveBeenCalledWith(
-        'posts',
-        '1718000000000-abc.jpg',
-      );
-    });
-
-    it('should not throw when image is not found (swallows error)', async () => {
-      mockMinioClient.removeObject.mockRejectedValue(new Error('NoSuchKey'));
-
-      await expect(service.deleteImage('nonexistent.jpg')).resolves.not.toThrow();
+      expect(mockFileRepository.deleteImage).toHaveBeenCalledWith('1718000000000-abc.jpg');
     });
   });
 
   describe('getImageUrl', () => {
-    it('should return the correct public URL for a filename', () => {
+    it('should delegate to FileRepository.getImageUrl and return the url', () => {
+      mockFileRepository.getImageUrl.mockReturnValue(
+        'http://localhost:9000/posts/1718000000000-abc.jpg',
+      );
+
       const url = service.getImageUrl('1718000000000-abc.jpg');
 
       expect(url).toContain('1718000000000-abc.jpg');
-      expect(url).toContain('posts');
-      expect(url).toMatch(/^http/);
+      expect(mockFileRepository.getImageUrl).toHaveBeenCalledWith('1718000000000-abc.jpg');
     });
   });
 });

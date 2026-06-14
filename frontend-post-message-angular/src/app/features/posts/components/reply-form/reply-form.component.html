@@ -1,0 +1,28 @@
+<form [formGroup]="replyForm" (ngSubmit)="onSubmit()" class="reply-form">
+  @if (submitError) {
+    <div class="form-error">
+      <p>{{ submitError }}</p>
+    </div>
+  }
+
+  <div class="form-group">
+    <textarea
+      formControlName="content"
+      [placeholder]="'posts.reply.placeholder' | t"
+      rows="2"
+      [attr.disabled]="isSubmitting ? true : null"
+    ></textarea>
+    @if (getFieldError('content')) {
+      <span class="error">{{ getFieldError('content') }}</span>
+    }
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+      {{ isSubmitting ? ('posts.reply.submitting' | t) : ('posts.reply.submit' | t) }}
+    </button>
+    <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSubmitting">
+      {{ 'posts.reply.cancel' | t }}
+    </button>
+  </div>
+</form>

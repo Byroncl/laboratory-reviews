@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PermissionsController } from './permissions.controller';
 import { PermissionsService } from '../services/permissions.service';
+import { PermissionsGateway } from '../gateways/permissions.gateway';
 import { CreatePermissionDto } from '../dto/create-permission.dto';
 import { UpdatePermissionDto } from '../dto/update-permission.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
@@ -29,6 +30,14 @@ describe('PermissionsController', () => {
       controllers: [PermissionsController],
       providers: [
         { provide: PermissionsService, useValue: mockPermissionsService },
+        {
+          provide: PermissionsGateway,
+          useValue: {
+            notifyPermissionCreated: jest.fn(),
+            notifyPermissionUpdated: jest.fn(),
+            notifyPermissionDeleted: jest.fn(),
+          },
+        },
         {
           provide: TranslationService,
           useValue: { translate: jest.fn((key: string) => key) },

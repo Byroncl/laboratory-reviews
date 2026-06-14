@@ -75,7 +75,7 @@ describe('NotificationsController', () => {
 
       await controller.getNotifications({ userId: 'user-42', username: 'bob', type: 'user' }, { skip: 0, limit: 10 } as any);
 
-      expect(mockService.getByUser).toHaveBeenCalledWith('user-42', {});
+      expect(mockService.getByUser).toHaveBeenCalledWith('user-42', { skip: 0, limit: 10 });
     });
   });
 

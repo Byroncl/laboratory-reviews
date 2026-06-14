@@ -70,12 +70,7 @@
         @if (!commentsLoading$() && comments$().length > 0) {
           <div class="comments-list">
             @for (comment of comments$(); track comment.id) {
-              <div class="comment">
-                <div class="comment-header">
-                  <span class="comment-date">{{ comment.createdAt | date: 'short' }}</span>
-                </div>
-                <p class="comment-body">{{ comment.content }}</p>
-              </div>
+              <app-comment-item [comment]="comment" [postId]="postId" (replyAdded)="onCommentSubmitted()"></app-comment-item>
             }
           </div>
         }

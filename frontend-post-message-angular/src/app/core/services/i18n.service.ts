@@ -510,6 +510,14 @@ export class I18nService {
           cancel: 'Cancelar',
           signInGate: 'Inicia sesión para comentar'
         },
+        reply: {
+          placeholder: 'Responder comentario...',
+          submit: 'Responder',
+          submitting: 'Respondiendo...',
+          cancel: 'Cancelar',
+          loaded: 'Respuestas cargadas',
+          error: 'Error al cargar respuestas',
+        },
         bulk: {
           title: 'Carga Masiva de Posts',
           chooseFile: 'Elegir Archivo JSON',
@@ -1062,6 +1070,14 @@ export class I18nService {
           submitting: 'Submitting...',
           cancel: 'Cancel',
           signInGate: 'Sign in to comment'
+        },
+        reply: {
+          placeholder: 'Reply to comment...',
+          submit: 'Reply',
+          submitting: 'Replying...',
+          cancel: 'Cancel',
+          loaded: 'Replies loaded',
+          error: 'Error loading replies',
         },
         bulk: {
           title: 'Bulk Upload Posts',

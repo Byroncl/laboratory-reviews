@@ -64,8 +64,8 @@ describe('CreateCommentDto', () => {
     const dto = plainToInstance(CreateCommentDto, {
       ...validPayload,
       mediaUrls: [
-        'http://localhost:9000/posts/img.jpg',
-        'http://localhost:9000/posts/audio.mp3',
+        'https://example.com/posts/img.jpg',
+        'https://example.com/posts/audio.mp3',
       ],
       mediaTypes: ['image/jpeg', 'audio/mpeg'],
       mediaFilenames: ['img.jpg', 'audio.mp3'],

@@ -4,12 +4,13 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { PostsService, CommentsService } from '../services';
 import { CommentFormComponent, PaginationComponent } from '../components';
+import { CommentItemComponent } from '../components/comment-item/comment-item.component';
 import { IPost } from '../interfaces';
 
 @Component({
   selector: 'app-post-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, TranslatePipe, CommentFormComponent, PaginationComponent],
+  imports: [CommonModule, RouterLink, TranslatePipe, CommentFormComponent, PaginationComponent, CommentItemComponent],
   templateUrl: './post-detail.component.html',
   styleUrls: ['./post-detail.component.css'],
 })
@@ -80,5 +81,10 @@ export class PostDetailComponent implements OnInit {
     if (currentPost?.id || currentPost?._id) {
       this.loadComments((currentPost.id || currentPost._id)!);
     }
+  }
+
+  get postId(): string {
+    const currentPost = this.post();
+    return (currentPost?.id || currentPost?._id || '') as string;
   }
 }

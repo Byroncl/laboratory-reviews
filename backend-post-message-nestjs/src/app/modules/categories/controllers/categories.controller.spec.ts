@@ -1,14 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CategoriesController } from './categories.controller';
-import { CategoriesService } from '../services/categories.service';
-import { TranslationService } from '../../../core/utils/translation.service';
+import { CategoryUseCaseFactory } from '../application/use-cases/category.use-cases';
 import { AUTH_KEY } from '../../../core/decorators/auth.decorator';
-import { CreateCategoryDto } from '../dto/create-category.dto';
+import { CreateCategoryDto } from '../application/dtos/create-category.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
 
 describe('CategoriesController', () => {
   let controller: CategoriesController;
-  let mockCategoriesService: jest.Mocked<CategoriesService>;
+  let mockUseCaseFactory: jest.Mocked<CategoryUseCaseFactory>;
 
   const mockCategory = {
     _id: '507f1f77bcf86cd799439011',
@@ -17,23 +16,21 @@ describe('CategoriesController', () => {
   } as any;
 
   beforeEach(async () => {
-    mockCategoriesService = {
-      create: jest.fn(),
-      findAll: jest.fn(),
-      findOne: jest.fn(),
-      findBySlug: jest.fn(),
-      update: jest.fn(),
-      remove: jest.fn(),
+    mockUseCaseFactory = {
+      getAllCategories: jest.fn(),
+      getCategoryById: jest.fn(),
+      getCategoryBySlug: jest.fn(),
+      getActiveCategories: jest.fn(),
+      createCategory: jest.fn(),
+      bulkCreateCategories: jest.fn(),
+      updateCategory: jest.fn(),
+      deleteCategory: jest.fn(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CategoriesController],
       providers: [
-        { provide: CategoriesService, useValue: mockCategoriesService },
-        {
-          provide: TranslationService,
-          useValue: { translate: jest.fn((key: string) => key) },
-        },
+        { provide: CategoryUseCaseFactory, useValue: mockUseCaseFactory },
       ],
     }).compile();
 
@@ -78,13 +75,13 @@ describe('CategoriesController', () => {
   describe('create', () => {
     it('should create a category and return wrapped response', async () => {
       const dto = { name: 'Technology', slug: 'technology' } as any;
-      mockCategoriesService.create.mockResolvedValue(mockCategory);
+      mockUseCaseFactory.createCategory.mockResolvedValue(mockCategory);
 
       const response = await controller.create(dto);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockCategory);
-      expect(mockCategoriesService.create).toHaveBeenCalledWith(dto);
+      expect(mockUseCaseFactory.createCategory).toHaveBeenCalledWith(dto);
     });
   });
 
@@ -92,7 +89,7 @@ describe('CategoriesController', () => {
 
   describe('findAll', () => {
     it('should return all categories', async () => {
-      mockCategoriesService.findAll.mockResolvedValue([mockCategory]);
+      mockUseCaseFactory.getAllCategories.mockResolvedValue([mockCategory] as any);
 
       const response = await controller.findAll({ skip: 0, limit: 20 } as any);
 
@@ -106,13 +103,13 @@ describe('CategoriesController', () => {
   describe('findOne', () => {
     it('should return category by id', async () => {
       const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439011' };
-      mockCategoriesService.findOne.mockResolvedValue(mockCategory);
+      mockUseCaseFactory.getCategoryById.mockResolvedValue(mockCategory);
 
       const response = await controller.findOne(findOneDto);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockCategory);
-      expect(mockCategoriesService.findOne).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+      expect(mockUseCaseFactory.getCategoryById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
     });
   });
 });
