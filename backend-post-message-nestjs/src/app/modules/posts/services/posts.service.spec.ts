@@ -19,7 +19,10 @@ describe('PostsService', () => {
   })) as any;
 
   MockPostModel.find = jest.fn().mockReturnValue({ exec: mockExec });
-  MockPostModel.findById = jest.fn().mockReturnValue({ exec: mockExec });
+  MockPostModel.findById = jest.fn().mockReturnValue({
+    populate: jest.fn().mockReturnValue({ exec: mockExec }),
+    exec: mockExec,
+  });
   MockPostModel.findByIdAndUpdate = jest.fn().mockReturnValue({ exec: mockExec });
   MockPostModel.findByIdAndDelete = jest.fn().mockReturnValue({ exec: mockExec });
   MockPostModel.insertMany = jest.fn();
