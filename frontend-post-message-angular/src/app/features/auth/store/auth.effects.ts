@@ -7,12 +7,14 @@ import * as AuthActions from './auth.actions';
 import { Router } from '@angular/router';
 import { decodeJwt } from '../utils/jwt.util';
 import { AuthUser } from '../models/auth.model';
+import { PermissionsService } from '../../../core/services/permissions.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthEffects {
   private actions$ = inject(Actions);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private permissionsService = inject(PermissionsService);
 
   login$ = createEffect(() =>
     this.actions$.pipe(
@@ -45,7 +47,16 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
-        tap(() => {
+        tap(({ user }) => {
+          // Load user permissions based on role
+          const userRole = {
+            id: user.id,
+            name: user.role,
+            identifier: user.role,
+            permissions: this.getRolePermissions(user.role),
+          };
+          this.permissionsService.setUserRole(userRole);
+
           // Read returnUrl from the current URL's query params if we were redirected here
           const urlParams = new URLSearchParams(
             typeof window !== 'undefined' ? window.location.search : ''
@@ -56,6 +67,39 @@ export class AuthEffects {
       ),
     { dispatch: false }
   );
+
+  private getRolePermissions(role: string): any[] {
+    // Map roles to permissions
+    const rolePermissions: Record<string, any[]> = {
+      admin: [
+        { identifier: 'view_dashboard', name: 'View Dashboard' },
+        { identifier: 'manage_users', name: 'Manage Users' },
+        { identifier: 'manage_roles', name: 'Manage Roles' },
+        { identifier: 'manage_permissions', name: 'Manage Permissions' },
+        { identifier: 'view_audit_logs', name: 'View Audit Logs' },
+        { identifier: 'manage_clients', name: 'Manage Clients' },
+        { identifier: 'manage_posts', name: 'Manage Posts' },
+        { identifier: 'manage_comments', name: 'Manage Comments' },
+        { identifier: 'view_statistics', name: 'View Statistics' },
+      ],
+      client: [
+        { identifier: 'create_posts', name: 'Create Posts' },
+        { identifier: 'edit_own_posts', name: 'Edit Own Posts' },
+        { identifier: 'delete_own_posts', name: 'Delete Own Posts' },
+        { identifier: 'create_comments', name: 'Create Comments' },
+        { identifier: 'view_own_profile', name: 'View Own Profile' },
+        { identifier: 'edit_own_profile', name: 'Edit Own Profile' },
+        { identifier: 'create_favorites', name: 'Create Favorites' },
+        { identifier: 'view_favorites', name: 'View Favorites' },
+      ],
+      user: [
+        { identifier: 'view_public_posts', name: 'View Public Posts' },
+        { identifier: 'view_comments', name: 'View Comments' },
+      ],
+    };
+
+    return rolePermissions[role] || [];
+  }
 
   register$ = createEffect(() =>
     this.actions$.pipe(
@@ -88,7 +132,17 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.registerSuccess),
-        tap(() => this.router.navigate(['/dashboard']))
+        tap(({ user }) => {
+          // Load user permissions based on role
+          const userRole = {
+            id: user.id,
+            name: user.role,
+            identifier: user.role,
+            permissions: this.getRolePermissions(user.role),
+          };
+          this.permissionsService.setUserRole(userRole);
+          this.router.navigate(['/dashboard']);
+        })
       ),
     { dispatch: false }
   );
@@ -102,6 +156,7 @@ export class AuthEffects {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('auth_user');
           }
+          this.permissionsService.clear();
           this.router.navigate(['/auth/login']);
         })
       ),

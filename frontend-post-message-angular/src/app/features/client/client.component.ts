@@ -1,25 +1,35 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterOutlet } from '@angular/router';
+import { HasPermissionDirective } from '../../core/directives/has-permission.directive';
+import { HasRoleDirective } from '../../core/directives/has-role.directive';
+import { PermissionsService } from '../../core/services/permissions.service';
 
 @Component({
   selector: 'app-client',
   standalone: true,
-  imports: [CommonModule, RouterModule, RouterOutlet],
+  imports: [CommonModule, RouterModule, RouterOutlet, HasPermissionDirective, HasRoleDirective],
   template: `
     <div class="client-layout">
       <div class="sidebar">
         <nav class="nav-menu">
           <ul>
-            <li>
+            <!-- Solo visible si tiene permiso de crear_posts O es admin -->
+            <li *appHasPermission="['create_posts', 'manage_posts']">
               <a routerLink="/client/my-posts" routerLinkActive="active">Mis Posts</a>
             </li>
-            <li>
+
+            <!-- Solo visible si tiene permiso de crear_favoritos O es admin -->
+            <li *appHasPermission="'create_favorites'">
               <a routerLink="/client/my-favorites" routerLinkActive="active">Mis Favoritos</a>
             </li>
+
+            <!-- Siempre visible para clientes -->
             <li>
               <a routerLink="/client/my-comments" routerLinkActive="active">Mis Comentarios</a>
             </li>
+
+            <!-- Siempre visible -->
             <li>
               <a routerLink="/client/profile" routerLinkActive="active">Mi Perfil</a>
             </li>
