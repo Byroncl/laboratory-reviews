@@ -1,4 +1,4 @@
-import { environment } from '../../../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 export const NOTIFICATIONS_ENDPOINTS = {
   BASE: '/api/notifications',
   GET_ALL: '/api/notifications',
