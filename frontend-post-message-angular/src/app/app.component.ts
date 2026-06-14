@@ -48,7 +48,7 @@ export class AppComponent implements OnInit, OnDestroy {
         filter(n => n !== null)
       ).subscribe(notification => {
         if (notification) {
-          this.notificationsService.addNotification(notification);
+          this.notificationsService.addNotification(notification as any);
         }
       })
     );

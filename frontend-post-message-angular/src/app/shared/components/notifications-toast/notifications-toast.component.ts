@@ -21,7 +21,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
   ],
 })
 export class NotificationsToastComponent implements OnInit {
-  notifications = this.notificationsService.notifications;
+  notifications = this.notificationsService.notifications$;
 
   constructor(private notificationsService: NotificationsService) {}
 
@@ -38,7 +38,7 @@ export class NotificationsToastComponent implements OnInit {
   }
 
   dismissNotification(notificationId: string): void {
-    this.notificationsService.notifications.update(list =>
+    this.notificationsService.notifications$.update(list =>
       list.filter(n => (n._id || n.id) !== notificationId),
     );
   }

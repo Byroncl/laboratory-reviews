@@ -23,6 +23,7 @@ import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
+import { SeederModule } from './modules/seeder/seeder.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
     PermissionsModule,
     AuditModule,
     FavoritesModule,
+    SeederModule,
   ],
   controllers: [AppController],
   providers: [
