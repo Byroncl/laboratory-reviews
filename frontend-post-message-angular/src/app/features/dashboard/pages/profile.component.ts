@@ -2,16 +2,18 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { takeUntil } from 'rxjs/operators';
 import { UsersService } from '../../admin/services/users.service';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { I18nService } from '../../../core/services/i18n.service';
 import { User, ChangePasswordDto, UpdateUserDto } from '../../../shared/models/user.model';
 import { SpinnerComponent } from '../../../shared/components/spinner/spinner.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent],
+  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent, TranslatePipe],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })
@@ -34,6 +36,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private usersService: UsersService,
     private notificationService: NotificationService,
+    private i18n: I18nService
   ) {
     this.profileForm = this.fb.group({
       firstName: [''],
@@ -75,7 +78,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.loading = false;
       },
       error: () => {
-        this.notificationService.toast('Error loading profile', 'error');
+        this.notificationService.toast(this.i18n.translate('dashboard.profile.loadError'), 'error');
         this.loading = false;
       },
     });
@@ -92,11 +95,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.user = response.data;
         this.saving = false;
-        this.notificationService.toast('Profile updated successfully', 'success');
+        this.notificationService.toast(this.i18n.translate('dashboard.profile.updateSuccess'), 'success');
       },
       error: () => {
         this.saving = false;
-        this.notificationService.toast('Error updating profile', 'error');
+        this.notificationService.toast(this.i18n.translate('dashboard.profile.updateError'), 'error');
       },
     });
   }
@@ -112,11 +115,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
       next: () => {
         this.changingPassword = false;
         this.passwordForm.reset();
-        this.notificationService.toast('Password changed successfully', 'success');
+        this.notificationService.toast(this.i18n.translate('dashboard.profile.passwordChangeSuccess'), 'success');
       },
       error: (err) => {
         this.changingPassword = false;
-        const message = err?.error?.message || 'Error changing password';
+        const message = err?.error?.message || this.i18n.translate('dashboard.profile.passwordChangeError');
         this.notificationService.toast(message, 'error');
       },
     });

@@ -80,7 +80,7 @@ export class ClientsController {
   })
   @Get('profile')
   async getProfile(@CurrentUser() user: CurrentUserPayload) {
-    const client = await this.clientUseCase.getClientById(user.id);
+    const client = await this.clientUseCase.getClientById(user.userId);
     return ApiRes.success(client);
   }
 
@@ -106,7 +106,7 @@ export class ClientsController {
     @CurrentUser() user: CurrentUserPayload,
     @Body(ValidationPipe) updateClientDto: UpdateClientDto,
   ) {
-    const client = await this.clientUseCase.updateClient(user.id, updateClientDto);
+    const client = await this.clientUseCase.updateClient(user.userId, updateClientDto);
     return ApiRes.success(client, this.i18n.translate(CLIENT_MESSAGES.UPDATED));
   }
 

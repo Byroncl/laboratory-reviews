@@ -12,6 +12,7 @@ import {
   SkeletonComponent
 } from '../../../shared/components/index';
 import { ModalService, NotificationService } from '../../../shared/services/index';
+import { I18nService } from '../../../core/services/i18n.service';
 import { PermissionsService } from '../../admin/services/permissions.service';
 import { Permission } from '../../../shared/models/permission.model';
 import { PermissionFormComponent } from '../components/permission-form/permission-form.component';
@@ -85,32 +86,35 @@ export class PermissionsComponent {
     { key: 'createdAt', label: 'Creado', sortable: true }
   ];
 
-  readonly actions: TableAction[] = [
-    { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
-    { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
-    {
-      id: 'delete',
-      label: 'Eliminar',
-      icon: 'delete',
-      class: 'text-red-600 hover:text-red-700',
-      confirm: true,
-      confirmMessage: '¿Estás seguro de que deseas eliminar este permiso?'
-    }
-  ];
+  get actions(): TableAction[] {
+    return [
+      { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
+      { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
+      {
+        id: 'delete',
+        label: 'Eliminar',
+        icon: 'delete',
+        class: 'text-red-600 hover:text-red-700',
+        confirm: true,
+        confirmMessage: this.i18n.translate('dashboard.permissions.deleteConfirmInline')
+      }
+    ];
+  }
 
   readonly currentPage$ = signal(1);
 
   constructor(
     readonly permissionsService: PermissionsService,
     private modalService: ModalService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private i18n: I18nService
   ) {
     this.permissionsService
       .loadPermissions()
       .pipe(takeUntilDestroyed())
       .subscribe({
         next: () => this.updateStats(),
-        error: () => this.notificationService.toast('Error al cargar permisos', 'error')
+        error: () => this.notificationService.toast(this.i18n.translate('dashboard.permissions.loadError'), 'error')
       });
   }
 
@@ -163,8 +167,8 @@ export class PermissionsComponent {
   deletePermission(permission: Permission): void {
     this.modalService
       .openConfirm(
-        'Confirmar eliminación',
-        `¿Estás seguro de que deseas eliminar el permiso "${permission.name}"?`,
+        this.i18n.translate('dashboard.permissions.deleteConfirmTitle'),
+        this.i18n.translate('dashboard.permissions.deleteConfirmBody').replace('{name}', permission.name),
         true
       )
       .pipe(takeUntilDestroyed())
@@ -174,10 +178,10 @@ export class PermissionsComponent {
           this.permissionsService.deletePermission(permissionId).pipe(takeUntilDestroyed()).subscribe({
             next: () => {
               this.updateStats();
-              this.notificationService.toast('Permiso eliminado correctamente', 'success');
+              this.notificationService.toast(this.i18n.translate('dashboard.permissions.deleteSuccess'), 'success');
             },
             error: () => {
-              this.notificationService.toast('Error al eliminar el permiso', 'error');
+              this.notificationService.toast(this.i18n.translate('dashboard.permissions.deleteError'), 'error');
             }
           });
         }

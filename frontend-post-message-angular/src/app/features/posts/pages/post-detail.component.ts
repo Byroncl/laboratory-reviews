@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { PostsService, CommentsService } from '../services';
 import { CommentFormComponent, PaginationComponent } from '../components';
 import { IPost } from '../interfaces';
@@ -8,7 +9,7 @@ import { IPost } from '../interfaces';
 @Component({
   selector: 'app-post-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, CommentFormComponent, PaginationComponent],
+  imports: [CommonModule, RouterLink, TranslatePipe, CommentFormComponent, PaginationComponent],
   templateUrl: './post-detail.component.html',
   styleUrls: ['./post-detail.component.css'],
 })

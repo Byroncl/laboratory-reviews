@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ProfileService } from '../services/profile.service';
@@ -13,7 +14,7 @@ import { PROFILE_MESSAGES } from '../constants';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent, UserBadgePipe],
+  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent, UserBadgePipe, TranslatePipe],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss'],
 })

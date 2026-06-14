@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { PostsService } from '../../services';
 import { ICreatePostDTO, IBulkCreateResponse } from '../../interfaces';
 import { PostStatus } from '../../types';
@@ -12,7 +13,7 @@ interface ParseResult {
 @Component({
   selector: 'app-bulk-upload',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './bulk-upload.component.html',
   styleUrls: ['./bulk-upload.component.css'],
 })

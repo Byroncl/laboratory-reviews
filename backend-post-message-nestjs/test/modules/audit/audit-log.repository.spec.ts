@@ -32,10 +32,10 @@ describe('AuditLogRepository', () => {
     };
 
     mockMapper = {
-      toDomain: jest.fn(raw => raw),
-      toResponse: jest.fn(entity => entity),
-      toPersistence: jest.fn(entity => entity),
-    };
+      toDomain: jest.fn(raw => raw) as jest.Mock,
+      toResponse: jest.fn(entity => entity) as jest.Mock,
+      toPersistence: jest.fn(entity => entity) as jest.Mock,
+    } as unknown as AuditLogMapper;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -57,7 +57,7 @@ describe('AuditLogRepository', () => {
   describe('create', () => {
     it('should create and return an audit log', async () => {
       mockModel.create.mockResolvedValue(mockAuditLog);
-      mockMapper.toResponse.mockReturnValue(mockAuditLog);
+      (mockMapper.toResponse as jest.Mock).mockReturnValue(mockAuditLog);
 
       const result = await repository.create(mockAuditLog);
 
@@ -77,8 +77,8 @@ describe('AuditLogRepository', () => {
       mockModel.findById.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockAuditLog),
       });
-      mockMapper.toDomain.mockReturnValue(mockAuditLog);
-      mockMapper.toResponse.mockReturnValue(mockAuditLog);
+      (mockMapper.toDomain as jest.Mock).mockReturnValue(mockAuditLog);
+      (mockMapper.toResponse as jest.Mock).mockReturnValue(mockAuditLog);
 
       const result = await repository.findById('audit-123');
 
@@ -109,8 +109,8 @@ describe('AuditLogRepository', () => {
       });
 
       mockModel.countDocuments.mockResolvedValue(2);
-      mockMapper.toDomain.mockImplementation(raw => raw);
-      mockMapper.toResponse.mockImplementation(entity => entity);
+      (mockMapper.toDomain as jest.Mock).mockImplementation(raw => raw);
+      (mockMapper.toResponse as jest.Mock).mockImplementation(entity => entity);
 
       const result = await repository.findByUserId('user-123', 0, 10);
 
@@ -144,8 +144,8 @@ describe('AuditLogRepository', () => {
       });
 
       mockModel.countDocuments.mockResolvedValue(100);
-      mockMapper.toDomain.mockImplementation(raw => raw);
-      mockMapper.toResponse.mockImplementation(entity => entity);
+      (mockMapper.toDomain as jest.Mock).mockImplementation(raw => raw);
+      (mockMapper.toResponse as jest.Mock).mockImplementation(entity => entity);
 
       await repository.findByUserId('user-123', 20, 10);
 
@@ -167,8 +167,8 @@ describe('AuditLogRepository', () => {
       });
 
       mockModel.countDocuments.mockResolvedValue(1);
-      mockMapper.toDomain.mockImplementation(raw => raw);
-      mockMapper.toResponse.mockImplementation(entity => entity);
+      (mockMapper.toDomain as jest.Mock).mockImplementation(raw => raw);
+      (mockMapper.toResponse as jest.Mock).mockImplementation(entity => entity);
 
       const filters = { action: AuditAction.CREATE };
       const result = await repository.findAll(0, 10, filters);

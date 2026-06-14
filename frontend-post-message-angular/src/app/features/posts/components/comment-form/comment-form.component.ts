@@ -1,13 +1,14 @@
 import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { CommentsService } from '../../services';
 import { ICreateCommentDTO } from '../../interfaces';
 
 @Component({
   selector: 'app-comment-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe],
   templateUrl: './comment-form.component.html',
   styleUrls: ['./comment-form.component.css'],
 })

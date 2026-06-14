@@ -67,8 +67,8 @@ describe('CategoriesController', () => {
       expect(metadata).toBeDefined();
     });
 
-    it('remove handler carries AUTH_KEY metadata', () => {
-      const metadata = Reflect.getMetadata(AUTH_KEY, controller.remove);
+    it('delete handler carries AUTH_KEY metadata', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.delete);
       expect(metadata).toBeDefined();
     });
   });
@@ -77,7 +77,7 @@ describe('CategoriesController', () => {
 
   describe('create', () => {
     it('should create a category and return wrapped response', async () => {
-      const dto: CreateCategoryDto = { name: 'Technology', slug: 'technology' } as any;
+      const dto = { name: 'Technology', slug: 'technology' } as any;
       mockCategoriesService.create.mockResolvedValue(mockCategory);
 
       const response = await controller.create(dto);
@@ -94,7 +94,7 @@ describe('CategoriesController', () => {
     it('should return all categories', async () => {
       mockCategoriesService.findAll.mockResolvedValue([mockCategory]);
 
-      const response = await controller.findAll();
+      const response = await controller.findAll({ skip: 0, limit: 20 } as any);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual([mockCategory]);

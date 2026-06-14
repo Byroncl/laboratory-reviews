@@ -71,7 +71,7 @@ export class PostsController {
     @Body() createPostDto: CreatePostDto,
     @CurrentUser() currentUser: CurrentUserPayload,
   ) {
-    const post = await this.postsService.create(createPostDto, currentUser.id);
+    const post = await this.postsService.create(createPostDto, currentUser.userId);
     this.postsGateway.notifyPostCreated(post, 'System');
     return ApiRes.success(post, this.i18n.translate(POSTS_MESSAGES.CREATED));
   }
@@ -98,7 +98,7 @@ export class PostsController {
       );
     }
     const result = await this.postsService.findByAuthorId(
-      currentUser.id,
+      currentUser.userId,
       paginationDto.skip,
       paginationDto.limit,
     );

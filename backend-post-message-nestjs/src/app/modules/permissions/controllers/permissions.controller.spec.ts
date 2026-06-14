@@ -48,7 +48,8 @@ describe('PermissionsController', () => {
       const dto: CreatePermissionDto = { name: 'Read Posts' } as any;
       mockPermissionsService.create.mockResolvedValue(mockPermission);
 
-      const response = await controller.create(dto);
+      const currentUser = { userId: 'u1', username: 'testuser', type: 'user' } as any;
+      const response = await controller.create(dto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockPermission);
@@ -106,7 +107,8 @@ describe('PermissionsController', () => {
       const updated = { ...mockPermission, name: 'Updated Permission' };
       mockPermissionsService.update.mockResolvedValue(updated);
 
-      const response = await controller.update(findOneDto, dto);
+      const currentUser = { userId: 'u1', username: 'testuser', type: 'user' } as any;
+      const response = await controller.update(findOneDto, dto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(updated);
@@ -122,7 +124,8 @@ describe('PermissionsController', () => {
       const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439011' };
       mockPermissionsService.remove.mockResolvedValue(mockPermission);
 
-      const response = await controller.remove(findOneDto);
+      const currentUser = { userId: 'u1', username: 'testuser', type: 'user' } as any;
+      const response = await controller.remove(findOneDto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toBeNull();

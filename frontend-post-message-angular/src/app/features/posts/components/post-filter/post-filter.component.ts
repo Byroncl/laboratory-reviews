@@ -1,13 +1,14 @@
 import { Component, Output, EventEmitter, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { IPostFilters } from '../../interfaces';
 import { STATUS_FILTER_OPTIONS } from '../../constants';
 
 @Component({
   selector: 'app-post-filter',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe],
   templateUrl: './post-filter.component.html',
   styleUrls: ['./post-filter.component.css'],
 })

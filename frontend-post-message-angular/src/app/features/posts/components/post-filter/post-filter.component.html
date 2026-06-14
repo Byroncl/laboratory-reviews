@@ -1,31 +1,31 @@
 <div class="filter-container">
   <form [formGroup]="filterForm" class="filter-form">
     <div class="filter-group">
-      <label for="search">Search</label>
+      <label for="search">{{ 'posts.filter.searchLabel' | t }}</label>
       <input
         id="search"
         type="text"
         formControlName="searchTerm"
-        placeholder="Search by title, content, or author..."
+        [placeholder]="'posts.filter.searchPlaceholder' | t"
         [attr.disabled]="isLoading ? true : null"
       />
     </div>
 
     <div class="filter-group">
-      <label for="author">Author</label>
+      <label for="author">{{ 'posts.filter.authorLabel' | t }}</label>
       <input
         id="author"
         type="text"
         formControlName="author"
-        placeholder="Filter by author..."
+        [placeholder]="'posts.filter.authorPlaceholder' | t"
         [attr.disabled]="isLoading ? true : null"
       />
     </div>
 
     <div class="filter-group">
-      <label for="status">Status</label>
+      <label for="status">{{ 'posts.filter.statusLabel' | t }}</label>
       <select id="status" formControlName="status" [attr.disabled]="isLoading ? true : null">
-        <option value="">All Statuses</option>
+        <option value="">{{ 'posts.filter.allStatuses' | t }}</option>
         @for (option of statusOptions; track option.value) {
           <option [value]="option.value">{{ option.label }}</option>
         }
@@ -33,18 +33,18 @@
     </div>
 
     <div class="filter-group">
-      <label for="tags">Tags (comma-separated)</label>
+      <label for="tags">{{ 'posts.filter.tagsLabel' | t }}</label>
       <input
         id="tags"
         type="text"
         formControlName="tags"
-        placeholder="angular, nestjs..."
+        [placeholder]="'posts.filter.tagsPlaceholder' | t"
         [attr.disabled]="isLoading ? true : null"
       />
     </div>
 
     <div class="filter-group">
-      <label for="dateFrom">From Date</label>
+      <label for="dateFrom">{{ 'posts.filter.fromDate' | t }}</label>
       <input
         id="dateFrom"
         type="date"
@@ -54,7 +54,7 @@
     </div>
 
     <div class="filter-group">
-      <label for="dateTo">To Date</label>
+      <label for="dateTo">{{ 'posts.filter.toDate' | t }}</label>
       <input
         id="dateTo"
         type="date"
@@ -70,7 +70,7 @@
         (click)="onReset()"
         [disabled]="isLoading"
       >
-        Reset Filters
+        {{ 'posts.filter.resetFilters' | t }}
       </button>
     </div>
   </form>

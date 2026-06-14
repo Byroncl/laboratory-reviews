@@ -20,7 +20,7 @@
   <p class="text-sm text-gray-600 mb-3 line-clamp-3">{{ post().preview }}</p>
 
   <div class="flex items-center justify-between text-xs text-gray-400">
-    <span>by <strong class="text-gray-600">{{ post().authorUsername }}</strong></span>
+    <span>{{ 'home.postCard.by' | t }} <strong class="text-gray-600">{{ post().authorUsername }}</strong></span>
     <span>{{ post().createdAt | date:'mediumDate' }}</span>
   </div>
 

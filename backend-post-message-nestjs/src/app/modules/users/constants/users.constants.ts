@@ -154,6 +154,7 @@ export const USERS_RESPONSE_DESCRIPTIONS = {
   FOUND: 'User found',
   LIST: 'List of users',
   PASSWORD_CHANGED: 'Password changed successfully',
+  LANGUAGE_UPDATED: 'Language preference updated successfully',
   ROLE_ASSIGNED: 'Role assigned successfully',
   ACTIVATED: 'User activated successfully',
   DEACTIVATED: 'User deactivated successfully',

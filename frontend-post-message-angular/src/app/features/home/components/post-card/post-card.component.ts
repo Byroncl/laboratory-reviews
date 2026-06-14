@@ -1,12 +1,13 @@
 import { Component, inject, input } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { Router } from '@angular/router';
 import { PostViewModel } from '../../../../shared/models/post.model';
 
 @Component({
   selector: 'app-post-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   providers: [DatePipe],
   templateUrl: './post-card.component.html',
 })

@@ -14,6 +14,15 @@ export const CATEGORY_MESSAGES = {
   UPDATED: 'categories.updated',
   DELETED: 'categories.deleted',
   NOT_FOUND: 'categories.not_found',
+  NAME_REQUIRED: 'categories.validation_name_required',
+  NAME_TOO_SHORT: 'categories.validation_name_minLength',
+  NAME_TOO_LONG: 'categories.validation_name_maxLength',
+  SLUG_REQUIRED: 'categories.validation_slug_required',
+  DESCRIPTION_TOO_LONG: 'categories.validation_description_maxLength',
+  INVALID_COLOR: 'categories.validation_color_invalid',
+  NAME_ALREADY_EXISTS: 'categories.validation_name_exists',
+  SLUG_ALREADY_EXISTS: 'categories.validation_slug_exists',
+  CANNOT_DELETE_WITH_POSTS: 'categories.validation_cannot_delete_with_posts',
 };
 
 // Category Validation Messages (i18n keys)

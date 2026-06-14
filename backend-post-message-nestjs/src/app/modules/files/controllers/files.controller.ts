@@ -55,9 +55,9 @@ export class FilesController {
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   async upload(
-    @UploadedFile(new FileValidationPipe(this.i18n)) file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File | undefined,
   ) {
-    const result = await this.filesService.uploadImage(file);
+    const result = await this.filesService.uploadImage(file!);
     return ApiRes.success(result, this.i18n.translate(FILES_MESSAGES.UPLOADED));
   }
 

@@ -2,6 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { I18nService } from '../../../../core/services/i18n.service';
 
 import { ClientPostsService } from '../../services/client-posts.service';
 import { PostCardComponent } from '../../components/post-card/post-card.component';
@@ -27,6 +28,7 @@ import { canGoToNextPage, canGoToPreviousPage } from '../../utils/pagination.uti
 export class MyPostsComponent {
   private readonly postsService = inject(ClientPostsService);
   private readonly fb = inject(FormBuilder);
+  private readonly i18n = inject(I18nService);
 
   readonly showForm$ = signal(false);
   readonly editingPostId$ = signal<string | null>(null);
@@ -75,7 +77,7 @@ export class MyPostsComponent {
           this.isLoading$.set(false);
         },
         error: () => {
-          this.error$.set('Error loading posts');
+          this.error$.set(this.i18n.translate('client.myPosts.loadError'));
           this.isLoading$.set(false);
         },
       });
@@ -102,7 +104,7 @@ export class MyPostsComponent {
             this.editingPostId$.set(null);
           },
           error: () => {
-            this.error$.set('Error updating post');
+            this.error$.set(this.i18n.translate('client.myPosts.updateError'));
           },
         });
     } else {
@@ -115,7 +117,7 @@ export class MyPostsComponent {
             this.showForm$.set(false);
           },
           error: () => {
-            this.error$.set('Error creating post');
+            this.error$.set(this.i18n.translate('client.myPosts.createError'));
           },
         });
     }
@@ -132,14 +134,14 @@ export class MyPostsComponent {
   }
 
   onDeletePost(postId: string): void {
-    if (confirm('Are you sure you want to delete this post?')) {
+    if (confirm(this.i18n.translate('client.myPosts.deleteConfirm'))) {
       this.postsService
         .deletePost(postId)
         .pipe(takeUntilDestroyed())
         .subscribe({
           next: () => this.loadPosts(),
           error: () => {
-            this.error$.set('Error deleting post');
+            this.error$.set(this.i18n.translate('client.myPosts.deleteError'));
           },
         });
     }

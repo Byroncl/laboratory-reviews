@@ -51,7 +51,8 @@ describe('RolesController', () => {
       const dto: CreateRoleDto = { name: 'Admin Role' } as any;
       mockRolesService.create.mockResolvedValue(mockRole);
 
-      const response = await controller.create(dto);
+      const currentUser = { userId: 'u1', username: 'testuser', type: 'user' } as any;
+      const response = await controller.create(dto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockRole);
@@ -109,7 +110,8 @@ describe('RolesController', () => {
       const updated = { ...mockRole, name: 'Updated Role' };
       mockRolesService.update.mockResolvedValue(updated);
 
-      const response = await controller.update(findOneDto, dto);
+      const currentUser = { userId: 'u1', username: 'testuser', type: 'user' } as any;
+      const response = await controller.update(findOneDto, dto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(updated);
@@ -125,7 +127,8 @@ describe('RolesController', () => {
       const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439011' };
       mockRolesService.remove.mockResolvedValue(mockRole);
 
-      const response = await controller.remove(findOneDto);
+      const currentUser = { userId: 'u1', username: 'testuser', type: 'user' } as any;
+      const response = await controller.remove(findOneDto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toBeNull();

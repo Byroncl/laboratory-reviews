@@ -2,7 +2,7 @@ import {
   ROLES_CONFIG,
   ROLES_VALIDATION_MESSAGES,
 } from '../../constants/roles.constants';
-import { DomainException } from '../../../core/exceptions/app.exceptions';
+import { DomainException } from '../../../../core/exceptions/app.exceptions';
 
 export class RoleEntity {
   readonly _id?: string;

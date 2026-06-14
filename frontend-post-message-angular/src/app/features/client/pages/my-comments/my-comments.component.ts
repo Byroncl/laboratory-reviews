@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { I18nService } from '../../../../core/services/i18n.service';
 
 import { ClientCommentsService } from '../../services/client-comments.service';
 import { CommentCardComponent } from '../../components/comment-card/comment-card.component';
@@ -17,6 +18,7 @@ import { canGoToNextPage, canGoToPreviousPage } from '../../utils/pagination.uti
 })
 export class MyCommentsComponent {
   private readonly commentsService = inject(ClientCommentsService);
+  private readonly i18n = inject(I18nService);
 
   readonly currentPage$ = signal(1);
   readonly pageSize$ = signal(10);
@@ -57,7 +59,7 @@ export class MyCommentsComponent {
           this.isLoading$.set(false);
         },
         error: () => {
-          this.error$.set('Error loading comments');
+          this.error$.set(this.i18n.translate('client.myComments.loadError'));
           this.isLoading$.set(false);
         },
       });
@@ -70,7 +72,7 @@ export class MyCommentsComponent {
       .subscribe({
         next: () => this.loadComments(),
         error: () => {
-          this.error$.set('Error deleting comment');
+          this.error$.set(this.i18n.translate('client.myComments.deleteError'));
         },
       });
   }

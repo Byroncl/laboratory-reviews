@@ -1,12 +1,14 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { IPost } from '../../interfaces';
 import { PostStatusPipe } from '../../pipes/post-status.pipe';
+import { I18nService } from '../../../../core/services/i18n.service';
 
 @Component({
   selector: 'app-post-card',
   standalone: true,
-  imports: [CommonModule, PostStatusPipe],
+  imports: [CommonModule, TranslatePipe, PostStatusPipe],
   templateUrl: './post-card.component.html',
   styleUrls: ['./post-card.component.css'],
 })
@@ -18,6 +20,8 @@ export class PostCardComponent {
   @Output() delete = new EventEmitter<string>();
   @Output() publish = new EventEmitter<string>();
   @Output() archive = new EventEmitter<string>();
+
+  constructor(private i18n: I18nService) {}
 
   onView(): void {
     if (this.post?.id) {
@@ -32,7 +36,7 @@ export class PostCardComponent {
   }
 
   onDelete(): void {
-    if (this.post?.id && confirm('Are you sure you want to delete this post?')) {
+    if (this.post?.id && confirm(this.i18n.translate('posts.postCard.deleteConfirm'))) {
       this.delete.emit(this.post.id);
     }
   }

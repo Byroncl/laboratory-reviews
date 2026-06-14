@@ -6,7 +6,7 @@
         <div class="bg-white rounded-xl shadow p-6">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm mb-1">Posts Totales</p>
+              <p class="text-gray-500 text-sm mb-1">{{ 'dashboard.overview.postsTotal' | t }}</p>
               <p class="text-3xl font-bold text-primary">{{ totalPosts() | number }}</p>
             </div>
             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -22,7 +22,7 @@
         <div class="bg-white rounded-xl shadow p-6">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm mb-1">Comentarios</p>
+              <p class="text-gray-500 text-sm mb-1">{{ 'dashboard.overview.comments' | t }}</p>
               <p class="text-3xl font-bold text-primary">{{ totalComments() | number }}</p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -38,7 +38,7 @@
         <div class="bg-white rounded-xl shadow p-6">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm mb-1">Usuarios Activos</p>
+              <p class="text-gray-500 text-sm mb-1">{{ 'dashboard.overview.activeUsers' | t }}</p>
               <p class="text-3xl font-bold text-primary">{{ activeUsers() | number }}</p>
             </div>
             <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -54,7 +54,7 @@
         <div class="bg-white rounded-xl shadow p-6">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm mb-1">Crecimiento</p>
+              <p class="text-gray-500 text-sm mb-1">{{ 'dashboard.overview.growth' | t }}</p>
               <p class="text-3xl font-bold text-primary">+{{ growthPercentage() }}%</p>
             </div>
             <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -63,16 +63,16 @@
               </svg>
             </div>
           </div>
-          <p class="text-green-600 text-sm mt-2">En aumento</p>
+          <p class="text-green-600 text-sm mt-2">{{ 'dashboard.overview.growthTrend' | t }}</p>
         </div>
       </div>
 
       <!-- Welcome Message -->
       <div class="bg-gradient-to-r from-primary to-gray-900 rounded-xl shadow p-8 text-white">
         @if (user$ | async; as user) {
-          <h3 class="text-2xl font-bold mb-2">¡Bienvenido, {{ user.username }}!</h3>
+          <h3 class="text-2xl font-bold mb-2">{{ 'dashboard.overview.welcomeTitle' | t }} {{ user.username }}!</h3>
           <p class="text-gray-200">
-            Este es tu panel de gestión integral. Puedes administrar posts, usuarios, roles, permisos, comentarios y archivos desde un único lugar de manera segura y eficiente.
+            {{ 'dashboard.overview.welcomeBody' | t }}
           </p>
         }
       </div>

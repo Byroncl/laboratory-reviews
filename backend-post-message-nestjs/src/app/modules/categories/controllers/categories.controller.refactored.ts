@@ -43,8 +43,8 @@ export class CategoriesController {
   constructor(private categoriesUseCase: CategoryUseCaseFactory) {}
 
   @Get()
-  @ApiOperation(CATEGORY_SWAGGER.GET_ALL)
-  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiOperation({ summary: CATEGORY_SWAGGER.GET_ALL.SUMMARY, description: CATEGORY_SWAGGER.GET_ALL.DESCRIPTION })
+  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
   @ApiQuery({
     name: 'search',
@@ -61,7 +61,7 @@ export class CategoriesController {
     @Query() paginationDto: PaginationQueryDto,
     @Query('search') search?: string,
   ) {
-    const page = paginationDto.page || CATEGORY_PAGINATION.DEFAULT_PAGE;
+    const page = CATEGORY_PAGINATION.DEFAULT_PAGE;
     const limit = Math.min(
       paginationDto.limit || CATEGORY_PAGINATION.DEFAULT_LIMIT,
       CATEGORY_PAGINATION.MAX_LIMIT,
@@ -89,7 +89,7 @@ export class CategoriesController {
   }
 
   @Get(':id')
-  @ApiOperation(CATEGORY_SWAGGER.GET_ONE)
+  @ApiOperation({ summary: CATEGORY_SWAGGER.GET_ONE.SUMMARY, description: CATEGORY_SWAGGER.GET_ONE.DESCRIPTION })
   @ApiParam({ name: 'id', type: String, description: 'ID de la categoría' })
   @ApiResponse({
     status: 200,
@@ -103,7 +103,7 @@ export class CategoriesController {
   async findOne(@Param() { id }: FindOneDto) {
     const category = await this.categoriesUseCase.getCategoryById(id);
     if (!category) {
-      return ApiRes.error(CATEGORY_MESSAGES.NOT_FOUND, 404);
+      return ApiRes.error(CATEGORY_MESSAGES.NOT_FOUND, undefined, 404);
     }
     return ApiRes.success(category);
   }
@@ -122,7 +122,7 @@ export class CategoriesController {
   async findBySlug(@Param('slug') slug: string) {
     const category = await this.categoriesUseCase.getCategoryBySlug(slug);
     if (!category) {
-      return ApiRes.error(CATEGORY_MESSAGES.NOT_FOUND, 404);
+      return ApiRes.error(CATEGORY_MESSAGES.NOT_FOUND, undefined, 404);
     }
     return ApiRes.success(category);
   }
@@ -131,7 +131,7 @@ export class CategoriesController {
   @Auth()
   @HasPermission('manage_categories')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation(CATEGORY_SWAGGER.CREATE)
+  @ApiOperation({ summary: CATEGORY_SWAGGER.CREATE.SUMMARY, description: CATEGORY_SWAGGER.CREATE.DESCRIPTION })
   @ApiBody({ type: CreateCategoryDto })
   @ApiResponse({
     status: 201,
@@ -148,7 +148,7 @@ export class CategoriesController {
   @Auth()
   @HasPermission('manage_categories')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation(CATEGORY_SWAGGER.BULK_CREATE)
+  @ApiOperation({ summary: CATEGORY_SWAGGER.BULK_CREATE.SUMMARY, description: CATEGORY_SWAGGER.BULK_CREATE.DESCRIPTION })
   @ApiBody({ type: [CreateCategoryDto] })
   @ApiResponse({
     status: 201,
@@ -170,7 +170,7 @@ export class CategoriesController {
   @Auth()
   @HasPermission('manage_categories')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation(CATEGORY_SWAGGER.UPDATE)
+  @ApiOperation({ summary: CATEGORY_SWAGGER.UPDATE.SUMMARY, description: CATEGORY_SWAGGER.UPDATE.DESCRIPTION })
   @ApiParam({ name: 'id', type: String, description: 'ID de la categoría' })
   @ApiBody({ type: UpdateCategoryDto })
   @ApiResponse({
@@ -187,7 +187,7 @@ export class CategoriesController {
       updateCategoryDto,
     );
     if (!category) {
-      return ApiRes.error(CATEGORY_MESSAGES.NOT_FOUND, 404);
+      return ApiRes.error(CATEGORY_MESSAGES.NOT_FOUND, undefined, 404);
     }
     return ApiRes.success(category, CATEGORY_MESSAGES.UPDATED);
   }
@@ -196,7 +196,7 @@ export class CategoriesController {
   @Auth()
   @HasPermission('manage_categories')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation(CATEGORY_SWAGGER.DELETE)
+  @ApiOperation({ summary: CATEGORY_SWAGGER.DELETE.SUMMARY, description: CATEGORY_SWAGGER.DELETE.DESCRIPTION })
   @ApiParam({ name: 'id', type: String, description: 'ID de la categoría' })
   @ApiResponse({
     status: 200,

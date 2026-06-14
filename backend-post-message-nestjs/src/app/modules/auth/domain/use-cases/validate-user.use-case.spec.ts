@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
+import { Types } from 'mongoose';
 import { ValidateUserUseCase } from './validate-user.use-case';
 import { AuthRepository } from '../repositories/auth.repository';
 import { I18nService } from '../../../../core/i18n/i18n.service';
@@ -11,7 +12,7 @@ describe('ValidateUserUseCase', () => {
   let i18nService: jest.Mocked<I18nService>;
 
   const mockUser: Partial<User> = {
-    _id: '507f1f77bcf86cd799439011',
+    _id: new Types.ObjectId('507f1f77bcf86cd799439011') as any,
     username: 'testuser',
     email: 'test@example.com',
   };

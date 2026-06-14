@@ -5,7 +5,7 @@
         <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold text-gray-900">
-              {{ editingPostId$() ? 'Editar Post' : 'Crear Nuevo Post' }}
+              {{ editingPostId$() ? ('dashboard.posts.editTitle' | t) : ('dashboard.posts.createTitle' | t) }}
             </h2>
             <button
               (click)="closeForm()"
@@ -30,7 +30,7 @@
           [disabled]="showPostForm$()"
           class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
         >
-          + Nuevo Post
+          {{ 'dashboard.posts.newPost' | t }}
         </button>
       </div>
 
@@ -38,7 +38,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-white rounded-lg shadow p-4">
         <input
           type="text"
-          placeholder="Buscar posts..."
+          [placeholder]="'dashboard.posts.searchPlaceholder' | t"
           [ngModel]="globalSearch$()"
           (ngModelChange)="globalSearch$.set($event)"
           (input)="onGlobalSearch()"
@@ -50,10 +50,10 @@
           (change)="onStatusFilterChange()"
           class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
         >
-          <option value="">Todos los estados</option>
-          <option value="published">Publicado</option>
-          <option value="draft">Borrador</option>
-          <option value="archived">Archivado</option>
+          <option value="">{{ 'dashboard.posts.allStatuses' | t }}</option>
+          <option value="published">{{ 'dashboard.posts.published' | t }}</option>
+          <option value="draft">{{ 'dashboard.posts.draft' | t }}</option>
+          <option value="archived">{{ 'dashboard.posts.archived' | t }}</option>
         </select>
 
         @if (hasActiveFilters$()) {
@@ -61,7 +61,7 @@
             (click)="clearAllFilters()"
             class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium text-sm"
           >
-            Limpiar filtros
+            {{ 'dashboard.posts.clearFilters' | t }}
           </button>
         }
       </div>
@@ -92,7 +92,7 @@
           ></app-pagination>
         } @else {
           <div class="bg-white rounded-lg shadow p-8 text-center">
-            <p class="text-gray-500 font-medium">No hay posts que coincidan con los filtros</p>
+            <p class="text-gray-500 font-medium">{{ 'dashboard.posts.noResults' | t }}</p>
           </div>
         }
       }
@@ -100,15 +100,15 @@
       <!-- Post Stats (Desktop) -->
       <div class="hidden md:grid grid-cols-3 gap-4">
         <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
-          <p class="text-secondary text-sm font-medium">Total de Posts</p>
+          <p class="text-secondary text-sm font-medium">{{ 'dashboard.posts.totalPosts' | t }}</p>
           <p class="text-2xl font-bold text-primary mt-2">{{ totalPostsCount$() }}</p>
         </div>
         <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
-          <p class="text-secondary text-sm font-medium">Publicados</p>
+          <p class="text-secondary text-sm font-medium">{{ 'dashboard.posts.publishedCount' | t }}</p>
           <p class="text-2xl font-bold text-green-600 mt-2">{{ publishedCount$() }}</p>
         </div>
         <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
-          <p class="text-secondary text-sm font-medium">En Borrador</p>
+          <p class="text-secondary text-sm font-medium">{{ 'dashboard.posts.draftCount' | t }}</p>
           <p class="text-2xl font-bold text-yellow-600 mt-2">{{ draftCount$() }}</p>
         </div>
       </div>

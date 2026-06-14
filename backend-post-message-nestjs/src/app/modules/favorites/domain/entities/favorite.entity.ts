@@ -2,7 +2,7 @@ import {
   FAVORITES_CONFIG,
   FAVORITES_VALIDATION_MESSAGES,
 } from '../../constants/favorites.constants';
-import { DomainException } from '../../../core/exceptions/app.exceptions';
+import { DomainException } from '../../../../core/exceptions/app.exceptions';
 
 export class FavoriteEntity {
   readonly _id?: string;

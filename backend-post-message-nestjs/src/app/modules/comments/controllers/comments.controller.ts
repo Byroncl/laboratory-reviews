@@ -79,8 +79,8 @@ export class CommentsController {
   ) {
     const comment = await this.commentsService.create({
       ...createCommentDto,
-      userId: user.id,
-    });
+      userId: user.userId,
+    } as any);
 
     if (this.notificationsGateway) {
       const post = await this.commentsService.getPostByCommentPostId(createCommentDto.post);
@@ -120,7 +120,7 @@ export class CommentsController {
       throw new ForbiddenException(this.i18n.translate(COMMENTS_MESSAGES.UNAUTHORIZED_DELETE));
     }
     const skip = (page - 1) * limit;
-    const result = await this.commentsService.findByUserId(user.id, skip, limit);
+    const result = await this.commentsService.findByUserId(user.userId, skip, limit);
     return ApiRes.success(result);
   }
 
@@ -313,7 +313,7 @@ export class CommentsController {
     return ApiRes.success(thread, this.i18n.translate(COMMENTS_MESSAGES.CREATED));
   }
 
-  @ApiOperation('Get comment with immediate replies')
+  @ApiOperation({ summary: 'Get comment with immediate replies' })
   @ApiParam({
     name: 'id',
     type: 'string',
@@ -403,7 +403,7 @@ export class CommentsController {
     return ApiRes.success(null, this.i18n.translate(COMMENTS_MESSAGES.REACTION_REMOVED));
   }
 
-  @ApiOperation('Get all reactions for a comment')
+  @ApiOperation({ summary: 'Get all reactions for a comment' })
   @ApiParam({
     name: 'id',
     type: 'string',

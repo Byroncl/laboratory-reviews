@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { Store } from '@ngrx/store';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { selectIsAuthenticated, selectAuthUser } from '../../../auth/store/auth.selectors';
@@ -11,7 +12,7 @@ import { ClickOutsideDirective } from '../../../../shared/directives';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, ClickOutsideDirective],
+  imports: [CommonModule, ClickOutsideDirective, TranslatePipe],
   templateUrl: './header.component.html',
 })
 export class HeaderComponent {

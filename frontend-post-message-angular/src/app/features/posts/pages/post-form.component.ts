@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { PostsService } from '../services';
 import { ICreatePostDTO, IUpdatePostDTO } from '../interfaces';
 import { POST_VALIDATION, POST_STATUSES, STATUS_FILTER_OPTIONS, MAX_TAGS, MAX_TAG_LENGTH } from '../constants';
@@ -10,7 +11,7 @@ import { PostStatus } from '../types';
 @Component({
   selector: 'app-post-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './post-form.component.html',
   styleUrls: ['./post-form.component.css'],
 })

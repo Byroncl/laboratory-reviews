@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
+import { I18nService } from '../../../../core/services/i18n.service';
 
 import { ClientProfileService } from '../../services/client-profile.service';
 import { CLIENT_MESSAGES, CLIENT_VALIDATION } from '../../constants';
@@ -17,6 +18,7 @@ import { nameValidator, passwordValidator, passwordMatchValidator } from '../../
 export class ProfileComponent {
   private readonly profileService = inject(ClientProfileService);
   private readonly fb = inject(FormBuilder);
+  private readonly i18n = inject(I18nService);
 
   readonly isLoading$ = signal(false);
   readonly isLoadingProfile$ = signal(false);
@@ -67,7 +69,7 @@ export class ProfileComponent {
           this.isLoadingProfile$.set(false);
         },
         error: () => {
-          this.error$.set('Error loading profile');
+          this.error$.set(this.i18n.translate('client.profile.loadError'));
           this.isLoadingProfile$.set(false);
         },
       });

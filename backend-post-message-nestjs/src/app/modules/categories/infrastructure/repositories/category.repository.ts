@@ -11,7 +11,7 @@ import {
   ICategory,
 } from '../../interfaces/category.interface';
 import { CategoryEntity } from '../../domain/entities/category.entity';
-import { CategoryMapper } from './category.mapper';
+import { CategoryMapper } from '../mappers/category.mapper';
 import { CATEGORY_MESSAGES } from '../../constants/category.constants';
 
 @Injectable()

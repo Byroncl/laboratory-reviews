@@ -170,7 +170,7 @@ describe('Category Use Cases', () => {
         name: 'Updated Tech',
       });
 
-      expect(result.name).toBe('Updated Tech');
+      expect(result!.name).toBe('Updated Tech');
       expect(mockRepository.update).toHaveBeenCalledWith(
         '507f1f77bcf86cd799439011',
         { name: 'Updated Tech' },
@@ -289,7 +289,7 @@ describe('Category Use Cases', () => {
         name: 'Updated',
       });
 
-      expect(result.name).toBe('Updated');
+      expect(result!.name).toBe('Updated');
     });
 
     it('should delegate to DeleteCategoryUseCase', async () => {

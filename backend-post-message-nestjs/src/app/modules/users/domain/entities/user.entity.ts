@@ -3,7 +3,7 @@ import {
   USERS_VALIDATION_MESSAGES,
   SUPPORTED_LANGUAGES,
 } from '../../constants/users.constants';
-import { DomainException } from '../../../core/exceptions/app.exceptions';
+import { DomainException } from '../../../../core/exceptions/app.exceptions';
 
 export class UserEntity {
   readonly _id?: string;
@@ -156,7 +156,7 @@ export class UserEntity {
 
   private validateLanguage(language: string): void {
     const supportedLanguages = Object.values(SUPPORTED_LANGUAGES);
-    if (!supportedLanguages.includes(language)) {
+    if (!(supportedLanguages as string[]).includes(language)) {
       throw new DomainException(USERS_VALIDATION_MESSAGES.BIO_MAX_LENGTH);
     }
   }

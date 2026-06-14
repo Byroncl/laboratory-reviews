@@ -109,7 +109,7 @@ describe('NotificationsService', () => {
         .mockResolvedValueOnce(1)   // total
         .mockResolvedValueOnce(1);  // unread
 
-      const result = await service.getByUser('user-1', { page: 1, limit: 10 });
+      const result = await service.getByUser('user-1', { skip: 0, limit: 10 } as any);
 
       expect(result.items).toHaveLength(1);
       expect(result.total).toBe(1);
@@ -168,7 +168,7 @@ describe('NotificationsService', () => {
 
       const result = await service.markAsRead('507f1f77bcf86cd799439011');
 
-      expect(result.read).toBe(true);
+      expect(result!.read).toBe(true);
       expect(MockNotificationModel.findByIdAndUpdate).toHaveBeenCalledWith(
         '507f1f77bcf86cd799439011',
         expect.objectContaining({ read: true }),
@@ -183,7 +183,7 @@ describe('NotificationsService', () => {
 
       const result = await service.markAsRead('507f1f77bcf86cd799439011');
 
-      expect(result.readAt).toBeDefined();
+      expect(result!.readAt).toBeDefined();
     });
   });
 

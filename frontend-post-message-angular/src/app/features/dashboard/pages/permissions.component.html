@@ -4,7 +4,7 @@
     <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold text-gray-900">
-          {{ editingPermissionId$() ? 'Editar Permiso' : 'Crear Nuevo Permiso' }}
+          {{ editingPermissionId$() ? ('dashboard.permissions.editTitle' | t) : ('dashboard.permissions.createTitle' | t) }}
         </h2>
         <button (click)="closeForm()" class="text-gray-500 hover:text-gray-700 text-2xl">
           ×
@@ -26,7 +26,7 @@
       [disabled]="showPermissionForm$()"
       class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
     >
-      + Nuevo Permiso
+      {{ 'dashboard.permissions.newPermission' | t }}
     </button>
   </div>
 
@@ -34,7 +34,7 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-white rounded-lg shadow p-4">
     <input
       type="text"
-      placeholder="Buscar por nombre..."
+      [placeholder]="'dashboard.permissions.searchPlaceholder' | t"
       [ngModel]="globalSearch$()"
       (ngModelChange)="globalSearch$.set($event)"
       (input)="onGlobalSearch()"
@@ -45,7 +45,7 @@
         (click)="clearAllFilters()"
         class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium text-sm"
       >
-        ✕ Limpiar filtros
+        {{ 'dashboard.permissions.clearFilters' | t }}
       </button>
     }
   </div>
@@ -76,7 +76,7 @@
       ></app-pagination>
     } @else {
       <div class="bg-white rounded-lg shadow p-8 text-center">
-        <p class="text-gray-500 font-medium">No hay permisos que coincidan con los filtros</p>
+        <p class="text-gray-500 font-medium">{{ 'dashboard.permissions.noResults' | t }}</p>
       </div>
     }
   }
@@ -84,7 +84,7 @@
   <!-- Stats -->
   <div class="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
     <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
-      <p class="text-secondary text-xs font-medium uppercase tracking-wide">Total Permisos</p>
+      <p class="text-secondary text-xs font-medium uppercase tracking-wide">{{ 'dashboard.permissions.totalPermissions' | t }}</p>
       <p class="text-3xl font-bold text-primary mt-2">{{ totalPermissionsCount() }}</p>
     </div>
   </div>

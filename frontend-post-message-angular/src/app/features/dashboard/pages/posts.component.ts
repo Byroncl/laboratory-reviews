@@ -12,6 +12,7 @@ import {
   SkeletonComponent
 } from '../../../shared/components/index';
 import { ModalService, NotificationService } from '../../../shared/services/index';
+import { I18nService } from '../../../core/services/i18n.service';
 import { PostsService } from '../../posts/services/posts.service';
 import { Post } from '../../../shared/models/post.model';
 import { PostFormComponent } from '../components/post-form/post-form.component';
@@ -104,27 +105,30 @@ export class PostsComponent {
     { key: 'createdAt', label: 'Creado', sortable: true }
   ];
 
-  readonly actions: TableAction[] = [
-    { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
-    { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
-    {
-      id: 'delete',
-      label: 'Eliminar',
-      icon: 'delete',
-      class: 'text-red-600 hover:text-red-700',
-      confirm: true,
-      confirmMessage: '¿Estás seguro de que deseas eliminar este post?'
-    }
-  ];
+  get actions(): TableAction[] {
+    return [
+      { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
+      { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
+      {
+        id: 'delete',
+        label: 'Eliminar',
+        icon: 'delete',
+        class: 'text-red-600 hover:text-red-700',
+        confirm: true,
+        confirmMessage: this.i18n.translate('dashboard.posts.deleteConfirmBody')
+      }
+    ];
+  }
 
   constructor(
     readonly postsService: PostsService,
     private modalService: ModalService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private i18n: I18nService
   ) {
     this.postsService.loadPosts().pipe(takeUntilDestroyed()).subscribe({
       next: () => this.updateStats(),
-      error: () => this.notificationService.toast('Error al cargar posts', 'error')
+      error: () => this.notificationService.toast(this.i18n.translate('dashboard.posts.loadError'), 'error')
     });
   }
 
@@ -153,7 +157,7 @@ export class PostsComponent {
   }
 
   viewPost(post: Post): void {
-    this.notificationService.toast('Post abierto', 'success');
+    this.notificationService.toast(this.i18n.translate('dashboard.posts.viewOpened'), 'success');
     this.modalService
       .openConfirm(post.title, `Autor: ${post.author}\nVistas: ${(post as any).views || 0}\nCreado: ${post.createdAt}`)
       .pipe(takeUntilDestroyed())
@@ -167,7 +171,7 @@ export class PostsComponent {
 
   deletePost(post: Post): void {
     this.modalService
-      .openConfirm('Confirmar eliminación', `¿Estás seguro de que deseas eliminar "${post.title}"?`, true)
+      .openConfirm(this.i18n.translate('dashboard.posts.deleteConfirmTitle'), this.i18n.translate('dashboard.posts.deleteConfirmBody').replace('{name}', post.title), true)
       .pipe(takeUntilDestroyed())
       .subscribe(result => {
         if (result.confirmed) {
@@ -175,9 +179,9 @@ export class PostsComponent {
           this.postsService.deletePost(postId).pipe(takeUntilDestroyed()).subscribe({
             next: () => {
               this.updateStats();
-              this.notificationService.toast('Post eliminado correctamente', 'success');
+              this.notificationService.toast(this.i18n.translate('dashboard.posts.deleteSuccess'), 'success');
             },
-            error: () => this.notificationService.toast('Error al eliminar el post', 'error')
+            error: () => this.notificationService.toast(this.i18n.translate('dashboard.posts.deleteError'), 'error')
           });
         }
       });

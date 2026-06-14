@@ -3,7 +3,7 @@ import {
   NOTIFICATIONS_VALIDATION_MESSAGES,
   NOTIFICATION_TYPES,
 } from '../../constants/notifications.constants';
-import { DomainException } from '../../../core/exceptions/app.exceptions';
+import { DomainException } from '../../../../core/exceptions/app.exceptions';
 
 export class NotificationEntity {
   readonly _id?: string;
@@ -80,7 +80,7 @@ export class NotificationEntity {
       throw new DomainException(NOTIFICATIONS_VALIDATION_MESSAGES.TYPE_REQUIRED);
     }
     const validTypes = Object.values(NOTIFICATION_TYPES);
-    if (!validTypes.includes(type)) {
+    if (!(validTypes as string[]).includes(type)) {
       throw new DomainException(NOTIFICATIONS_VALIDATION_MESSAGES.TYPE_INVALID);
     }
   }

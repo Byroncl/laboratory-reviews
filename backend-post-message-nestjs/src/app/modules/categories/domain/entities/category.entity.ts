@@ -2,7 +2,7 @@ import {
   CATEGORY_VALIDATION,
   CATEGORY_VALIDATION_MESSAGES,
 } from '../../constants/category.constants';
-import { DomainException } from '../../../core/exceptions/app.exceptions';
+import { DomainException } from '../../../../core/exceptions/app.exceptions';
 
 export class CategoryEntity {
   readonly _id?: string;
@@ -141,8 +141,8 @@ export class CategoryEntity {
     return this.update({ isActive: false });
   }
 
-  generateSlug(): string {
-    return this.name
+  generateSlug(name?: string): string {
+    return (name ?? this.name)
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
       .replace(/\s+/g, '-')

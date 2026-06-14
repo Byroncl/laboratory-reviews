@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { PostsService } from '../services';
 import { PostCardComponent, PostFilterComponent, PaginationComponent, BulkUploadComponent } from '../components';
 import { IPostFilters } from '../interfaces';
@@ -11,6 +12,7 @@ import { IPostFilters } from '../interfaces';
   imports: [
     CommonModule,
     RouterLink,
+    TranslatePipe,
     PostCardComponent,
     PostFilterComponent,
     PaginationComponent,

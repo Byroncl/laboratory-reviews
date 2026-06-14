@@ -1,7 +1,7 @@
 <div class="posts-container">
   <div class="posts-header">
-    <h1>Posts</h1>
-    <a routerLink="/posts/new" class="btn btn-primary">New Post</a>
+    <h1>{{ 'posts.list.title' | t }}</h1>
+    <a routerLink="/posts/new" class="btn btn-primary">{{ 'posts.list.newPost' | t }}</a>
   </div>
 
   <app-bulk-upload></app-bulk-upload>
@@ -14,13 +14,13 @@
 
   @if (loading$()) {
     <div class="posts-loading">
-      <p>Loading posts...</p>
+      <p>{{ 'posts.list.loading' | t }}</p>
     </div>
   }
 
   @if (error$()) {
     <div class="posts-error">
-      <p>Error: {{ error$() }}</p>
+      <p>{{ 'posts.list.error' | t }}: {{ error$() }}</p>
     </div>
   }
 
@@ -42,7 +42,7 @@
 
   @if (!loading$() && filteredPosts$().length === 0) {
     <div class="posts-empty">
-      <p>No posts found.</p>
+      <p>{{ 'posts.list.empty' | t }}</p>
     </div>
   }
 

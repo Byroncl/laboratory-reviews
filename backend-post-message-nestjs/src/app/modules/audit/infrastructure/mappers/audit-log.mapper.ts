@@ -25,7 +25,7 @@ export class AuditLogMapper {
 
   toResponse(entity: AuditLogEntity): AuditLogResponseDto {
     return {
-      id: entity._id,
+      id: entity._id ?? '',
       userId: entity.userId,
       action: entity.action,
       entityType: entity.entityType,

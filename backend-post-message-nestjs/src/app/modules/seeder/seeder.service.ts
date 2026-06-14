@@ -8,6 +8,9 @@ import { PostsService } from '../posts/services/posts.service';
 import { CommentsService } from '../comments/services/comments.service';
 import { FavoritesService } from '../favorites/services/favorites.service';
 import { NotificationsService } from '../notifications/services/notifications.service';
+import { NOTIFICATION_TYPES } from '../notifications/constants/notifications.constants';
+import { NotificationType } from '../notifications/schemas/notification.schema';
+import { PermissionType } from '../permissions/schemas/permission.schema';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -70,8 +73,8 @@ export class SeederService implements OnModuleInit {
   private async seedPermissions(): Promise<any[]> {
     this.logger.log('📋 Seeding permissions...');
 
-    const permissionData = [
-      { name: 'Create User', identifier: 'create_user', type: 'user' },
+    const permissionData: any[] = [
+      { name: 'Create User', identifier: 'create_user', type: 'user' as PermissionType },
       { name: 'Update User', identifier: 'update_user', type: 'user' },
       { name: 'Delete User', identifier: 'delete_user', type: 'user' },
       { name: 'View Users', identifier: 'view_users', type: 'user' },
@@ -97,7 +100,7 @@ export class SeederService implements OnModuleInit {
       { name: 'View Audit Logs', identifier: 'view_audit_logs', type: 'audits' },
     ];
 
-    const permissions = [];
+    const permissions: any[] = [];
     for (const perm of permissionData) {
       try {
         const created = await this.permissionsService.create(perm);
@@ -145,7 +148,7 @@ export class SeederService implements OnModuleInit {
       },
     ];
 
-    const roles = [];
+    const roles: any[] = [];
     for (const role of roleData) {
       try {
         const created = await this.rolesService.create(role);
@@ -171,7 +174,7 @@ export class SeederService implements OnModuleInit {
         lastname: 'User',
         username: 'admin',
         email: 'admin@example.com',
-        password: 'SecurePassword123!',
+        password_hash: 'SecurePassword123!',
         role: adminRole?._id,
         type: 'admin',
         isVerified: true,
@@ -182,7 +185,7 @@ export class SeederService implements OnModuleInit {
         lastname: 'Doe',
         username: 'johndoe',
         email: 'john@example.com',
-        password: 'SecurePassword123!',
+        password_hash: 'SecurePassword123!',
         role: userRole?._id,
         type: 'user',
         isVerified: true,
@@ -193,7 +196,7 @@ export class SeederService implements OnModuleInit {
         lastname: 'Smith',
         username: 'janesmith',
         email: 'jane@example.com',
-        password: 'SecurePassword123!',
+        password_hash: 'SecurePassword123!',
         role: userRole?._id,
         type: 'user',
         isVerified: true,
@@ -204,7 +207,7 @@ export class SeederService implements OnModuleInit {
         lastname: 'Johnson',
         username: 'bobjohnson',
         email: 'bob@example.com',
-        password: 'SecurePassword123!',
+        password_hash: 'SecurePassword123!',
         role: userRole?._id,
         type: 'user',
         isVerified: false,
@@ -212,7 +215,7 @@ export class SeederService implements OnModuleInit {
       },
     ];
 
-    const users = [];
+    const users: any[] = [];
     for (const user of userData) {
       try {
         const created = await this.usersService.create(user);
@@ -237,7 +240,7 @@ export class SeederService implements OnModuleInit {
         lastname: 'Corp',
         username: 'techcorp',
         email: 'contact@techcorp.com',
-        password: 'SecurePassword123!',
+        password_hash: 'SecurePassword123!',
         role: clientRole?._id,
         type: 'client',
         isActive: true,
@@ -247,7 +250,7 @@ export class SeederService implements OnModuleInit {
         lastname: 'Studio',
         username: 'designstudio',
         email: 'hello@designstudio.com',
-        password: 'SecurePassword123!',
+        password_hash: 'SecurePassword123!',
         role: clientRole?._id,
         type: 'client',
         isActive: true,
@@ -257,14 +260,14 @@ export class SeederService implements OnModuleInit {
         lastname: 'Agency',
         username: 'marketingagency',
         email: 'info@marketingagency.com',
-        password: 'SecurePassword123!',
+        password_hash: 'SecurePassword123!',
         role: clientRole?._id,
         type: 'client',
         isActive: true,
       },
     ];
 
-    const clients = [];
+    const clients: any[] = [];
     for (const client of clientData) {
       try {
         const created = await this.clientsService.create(client);
@@ -314,7 +317,7 @@ export class SeederService implements OnModuleInit {
       },
     ];
 
-    const categories = [];
+    const categories: any[] = [];
     for (const category of categoryData) {
       try {
         const created = await this.categoriesService.create(category);
@@ -331,11 +334,11 @@ export class SeederService implements OnModuleInit {
   private async seedPosts(clients: any[], categories: any[]): Promise<any[]> {
     this.logger.log('📝 Seeding posts...');
 
-    const posts = [];
+    const posts: any[] = [];
     const postData = [
       {
         title: 'The Future of Web Development',
-        body: 'Exploring emerging trends in web development including AI, WebAssembly, and edge computing.',
+        content:'Exploring emerging trends in web development including AI, WebAssembly, and edge computing.',
         author: clients[0]?.name || 'Tech Corp',
         authorId: clients[0]?._id?.toString(),
         categoryId: categories[0]?._id?.toString() || 'technology',
@@ -348,7 +351,7 @@ export class SeederService implements OnModuleInit {
       },
       {
         title: 'Design Systems: Building Scalable UI',
-        body: 'A comprehensive guide to creating design systems that scale across your organization.',
+        content:'A comprehensive guide to creating design systems that scale across your organization.',
         author: clients[1]?.name || 'Design Studio',
         authorId: clients[1]?._id?.toString(),
         categoryId: categories[1]?._id?.toString() || 'design',
@@ -361,7 +364,7 @@ export class SeederService implements OnModuleInit {
       },
       {
         title: 'Growth Hacking Strategies for Startups',
-        body: 'Proven strategies to accelerate growth in early-stage startups without massive budgets.',
+        content:'Proven strategies to accelerate growth in early-stage startups without massive budgets.',
         author: clients[2]?.name || 'Marketing Agency',
         authorId: clients[2]?._id?.toString(),
         categoryId: categories[3]?._id?.toString() || 'marketing',
@@ -374,7 +377,7 @@ export class SeederService implements OnModuleInit {
       },
       {
         title: 'API Design Best Practices',
-        body: 'Learn how to design APIs that are intuitive, scalable, and easy to maintain.',
+        content:'Learn how to design APIs that are intuitive, scalable, and easy to maintain.',
         author: clients[0]?.name || 'Tech Corp',
         authorId: clients[0]?._id?.toString(),
         categoryId: categories[4]?._id?.toString() || 'development',
@@ -387,7 +390,7 @@ export class SeederService implements OnModuleInit {
       },
       {
         title: 'Business Strategy in Digital Era',
-        body: 'How traditional businesses can adapt and thrive in the digital age.',
+        content:'How traditional businesses can adapt and thrive in the digital age.',
         author: clients[1]?.name || 'Design Studio',
         authorId: clients[1]?._id?.toString(),
         categoryId: categories[2]?._id?.toString() || 'business',
@@ -416,22 +419,22 @@ export class SeederService implements OnModuleInit {
   private async seedComments(posts: any[], users: any[]): Promise<any[]> {
     this.logger.log('💬 Seeding comments...');
 
-    const comments = [];
+    const comments: any[] = [];
 
     for (let i = 0; i < posts.length; i++) {
       const post = posts[i];
       const user = users[i % users.length];
 
-      const commentData = [
+      const commentData: any[] = [
         {
-          postId: post._id.toString(),
+          post: post._id.toString(),
           userId: user._id.toString(),
           content: `Great article! This is very helpful for my project.`,
           isActive: true,
           isDeleted: false,
         },
         {
-          postId: post._id.toString(),
+          post: post._id.toString(),
           userId: users[(i + 1) % users.length]._id.toString(),
           content: `Could you elaborate more on this topic? Would love to see some code examples.`,
           isActive: true,
@@ -446,11 +449,11 @@ export class SeederService implements OnModuleInit {
 
           // Add a nested reply to the first comment
           if (commentData.indexOf(comment) === 0) {
-            const replyData = {
-              postId: post._id.toString(),
+            const replyData: any = {
+              post: post._id.toString(),
               userId: users[(i + 2) % users.length]._id.toString(),
               content: `Thanks for sharing! I agree with your thoughts.`,
-              parentCommentId: created._id.toString(),
+              parentCommentId: (created as any)._id?.toString(),
               isActive: true,
               isDeleted: false,
             };
@@ -482,8 +485,7 @@ export class SeederService implements OnModuleInit {
 
       for (const post of postsToFavorite) {
         try {
-          await this.favoritesService.create({
-            clientId: client._id.toString(),
+          await this.favoritesService.addFavorite(client._id.toString(), {
             postId: post._id.toString(),
           });
           count++;
@@ -514,13 +516,12 @@ export class SeederService implements OnModuleInit {
       try {
         await this.notificationsService.create({
           userId: user._id.toString(),
-          type: 'comment_created',
+          type: NotificationType.COMMENT_CREATED,
           actorId: randomActor._id.toString(),
           actorName: `${randomActor.name} ${randomActor.lastname}`,
           postId: randomComment.postId,
           commentId: randomComment._id.toString(),
           message: `${randomActor.name} commented on a post you follow.`,
-          read: false,
         });
         count++;
       } catch (error) {
@@ -536,13 +537,12 @@ export class SeederService implements OnModuleInit {
       try {
         await this.notificationsService.create({
           userId: user._id.toString(),
-          type: 'reaction_added',
+          type: NotificationType.REACTION_ADDED,
           actorId: randomActor._id.toString(),
           actorName: `${randomActor.name} ${randomActor.lastname}`,
           postId: posts[0]?._id?.toString(),
           emoji: '👍',
           message: `${randomActor.name} reacted to your post.`,
-          read: false,
         });
         count++;
       } catch (error) {

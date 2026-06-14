@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormArray } fr
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { I18nService } from '../../../../core/services/i18n.service';
 import { RolesService } from '../../../admin/services/roles.service';
 import { PermissionsService } from '../../../admin/services/permissions.service';
 import { Role } from '../../../../shared/models/role.model';
@@ -36,7 +37,8 @@ export class RoleFormComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private rolesService: RolesService,
     private permissionsService: PermissionsService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private i18n: I18nService
   ) {}
 
   ngOnInit(): void {
@@ -60,7 +62,7 @@ export class RoleFormComponent implements OnInit, OnDestroy {
           this.permissions = this.permissionsService.permissions$();
         },
         error: () => {
-          this.notificationService.toast('Error al cargar permisos', 'error');
+          this.notificationService.toast(this.i18n.translate('dashboard.permissions.loadError'), 'error');
         }
       });
   }
@@ -132,24 +134,24 @@ export class RoleFormComponent implements OnInit, OnDestroy {
 
     if (field.hasError('required')) {
       return fieldName === 'permissions'
-        ? 'Debe seleccionar al menos un permiso'
-        : 'Este campo es requerido';
+        ? this.i18n.translate('dashboard.roles.validation.permissionsRequired')
+        : this.i18n.translate('dashboard.common.validation.required');
     }
     if (field.hasError('minlength')) {
       const minLength = field.getError('minlength').requiredLength;
-      return `Mínimo ${minLength} caracteres`;
+      return this.i18n.translate('dashboard.common.validation.minLength').replace('{n}', minLength.toString());
     }
     if (field.hasError('maxlength')) {
       const maxLength = field.getError('maxlength').requiredLength;
-      return `Máximo ${maxLength} caracteres`;
+      return this.i18n.translate('dashboard.common.validation.maxLength').replace('{n}', maxLength.toString());
     }
 
-    return 'Campo inválido';
+    return this.i18n.translate('dashboard.common.validation.invalid');
   }
 
   onSubmit(): void {
     if (this.form.invalid || this.selectedPermissions.size === 0) {
-      this.notificationService.toast('Por favor complete todos los campos requeridos', 'error');
+      this.notificationService.toast(this.i18n.translate('dashboard.roles.formIncomplete'), 'error');
       return;
     }
 
@@ -165,13 +167,13 @@ export class RoleFormComponent implements OnInit, OnDestroy {
         .subscribe({
           next: () => {
             this.isLoading = false;
-            this.notificationService.toast('Rol actualizado correctamente', 'success');
+            this.notificationService.toast(this.i18n.translate('dashboard.roles.updateSuccess'), 'success');
             this.formSubmitted.emit();
           },
           error: (error) => {
             this.isLoading = false;
             this.notificationService.toast(
-              error?.message || 'Error al actualizar rol',
+              error?.message || this.i18n.translate('dashboard.roles.updateError'),
               'error'
             );
           }
@@ -182,13 +184,13 @@ export class RoleFormComponent implements OnInit, OnDestroy {
         .subscribe({
           next: () => {
             this.isLoading = false;
-            this.notificationService.toast('Rol creado correctamente', 'success');
+            this.notificationService.toast(this.i18n.translate('dashboard.roles.createSuccess'), 'success');
             this.formSubmitted.emit();
           },
           error: (error) => {
             this.isLoading = false;
             this.notificationService.toast(
-              error?.message || 'Error al crear rol',
+              error?.message || this.i18n.translate('dashboard.roles.createError'),
               'error'
             );
           }

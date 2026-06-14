@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Types } from 'mongoose';
 import { AuthUserRepository } from './auth-user.repository';
 import { UserRepository } from '../../../users/domain/repositories/user.repository';
 import { CryptoUtils } from '../../../../core/utils/crypto.utils';
@@ -11,7 +12,7 @@ describe('AuthUserRepository', () => {
   let userRepository: jest.Mocked<UserRepository>;
 
   const mockUser: Partial<User> = {
-    _id: '507f1f77bcf86cd799439011',
+    _id: new Types.ObjectId('507f1f77bcf86cd799439011') as any,
     username: 'testuser',
     email: 'test@example.com',
     password_hash: 'hashed_password',

@@ -12,6 +12,7 @@ import {
   SkeletonComponent
 } from '../../../shared/components/index';
 import { ModalService, NotificationService } from '../../../shared/services/index';
+import { I18nService } from '../../../core/services/i18n.service';
 import { RolesService } from '../../admin/services/roles.service';
 import { Role } from '../../../shared/models/role.model';
 import { RoleFormComponent } from '../components/role-form/role-form.component';
@@ -89,26 +90,29 @@ export class RolesComponent {
     { key: 'createdAt', label: 'Creado', sortable: true }
   ];
 
-  readonly actions: TableAction[] = [
-    { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
-    { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
-    { id: 'assign', label: 'Permisos', icon: 'permissions', class: 'text-purple-600 hover:text-purple-700' },
-    {
-      id: 'delete',
-      label: 'Eliminar',
-      icon: 'delete',
-      class: 'text-red-600 hover:text-red-700',
-      confirm: true,
-      confirmMessage: '¿Estás seguro de que deseas eliminar este rol?'
-    }
-  ];
+  get actions(): TableAction[] {
+    return [
+      { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
+      { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
+      { id: 'assign', label: 'Permisos', icon: 'permissions', class: 'text-purple-600 hover:text-purple-700' },
+      {
+        id: 'delete',
+        label: 'Eliminar',
+        icon: 'delete',
+        class: 'text-red-600 hover:text-red-700',
+        confirm: true,
+        confirmMessage: this.i18n.translate('dashboard.roles.deleteConfirmInline')
+      }
+    ];
+  }
 
   readonly currentPage$ = signal(1);
 
   constructor(
     readonly rolesService: RolesService,
     private modalService: ModalService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private i18n: I18nService
   ) {
     this.loadRoles();
   }
@@ -183,8 +187,8 @@ export class RolesComponent {
   deleteRole(role: Role): void {
     this.modalService
       .openConfirm(
-        'Confirmar eliminacion',
-        `Esta seguro de que desea eliminar el rol "${role.name}"?`,
+        this.i18n.translate('dashboard.roles.deleteConfirmTitle'),
+        this.i18n.translate('dashboard.roles.deleteConfirmBody').replace('{name}', role.name),
         true
       )
       .pipe(takeUntilDestroyed())
@@ -194,10 +198,10 @@ export class RolesComponent {
           this.rolesService.deleteRole(roleId).pipe(takeUntilDestroyed()).subscribe({
             next: () => {
               this.updateStats();
-              this.notificationService.toast('Rol eliminado correctamente', 'success');
+              this.notificationService.toast(this.i18n.translate('dashboard.roles.deleteSuccess'), 'success');
             },
             error: () => {
-              this.notificationService.toast('Error al eliminar el rol', 'error');
+              this.notificationService.toast(this.i18n.translate('dashboard.roles.deleteError'), 'error');
             }
           });
         }
@@ -242,7 +246,7 @@ export class RolesComponent {
       .pipe(takeUntilDestroyed())
       .subscribe({
         next: () => this.updateStats(),
-        error: () => this.notificationService.toast('Error al cargar roles', 'error')
+        error: () => this.notificationService.toast(this.i18n.translate('dashboard.roles.loadError'), 'error')
       });
   }
 

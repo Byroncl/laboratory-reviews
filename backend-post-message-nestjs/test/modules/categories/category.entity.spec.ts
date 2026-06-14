@@ -81,7 +81,7 @@ describe('CategoryEntity', () => {
     it('should not allow direct property modification', () => {
       const entity = new CategoryEntity(validCategoryData);
       expect(() => {
-        entity.name = 'New Name';
+        (entity as any).name = 'New Name';
       }).toThrow();
     });
 
@@ -235,7 +235,7 @@ describe('CategoryEntity', () => {
   describe('edge cases', () => {
     it('should handle null description', () => {
       expect(() => {
-        new CategoryEntity({ ...validCategoryData, description: null });
+        new CategoryEntity({ ...validCategoryData, description: undefined });
       }).not.toThrow();
     });
 

@@ -38,10 +38,10 @@ describe('TransformInterceptor', () => {
     const handler = buildHandler(plain);
 
     interceptor.intercept(ctx, handler).subscribe((result) => {
-      expect(result.success).toBe(true);
-      expect(result.data).toEqual(plain);
-      expect(result.statusCode).toBe(200);
-      expect(result.timestamp).toBeDefined();
+      expect((result as any).success).toBe(true);
+      expect((result as any).data).toEqual(plain);
+      expect((result as any).statusCode).toBe(200);
+      expect((result as any).timestamp).toBeDefined();
       done();
     });
   });
@@ -51,8 +51,8 @@ describe('TransformInterceptor', () => {
     const handler = buildHandler(null);
 
     interceptor.intercept(ctx, handler).subscribe((result) => {
-      expect(result.success).toBe(true);
-      expect(result.data).toBeNull();
+      expect((result as any).success).toBe(true);
+      expect((result as any).data).toBeNull();
       done();
     });
   });
@@ -62,7 +62,7 @@ describe('TransformInterceptor', () => {
     const handler = buildHandler({ id: '1' });
 
     interceptor.intercept(ctx, handler).subscribe((result) => {
-      expect(result.statusCode).toBe(201);
+      expect((result as any).statusCode).toBe(201);
       done();
     });
   });

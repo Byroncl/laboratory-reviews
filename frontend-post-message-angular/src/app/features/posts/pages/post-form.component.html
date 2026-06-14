@@ -1,6 +1,6 @@
 <div class="form-container">
   <div class="form-header">
-    <h1>{{ isEditMode() ? 'Edit Post' : 'Create New Post' }}</h1>
+    <h1>{{ isEditMode() ? ('posts.form.editTitle' | t) : ('posts.form.createTitle' | t) }}</h1>
   </div>
 
   @if (error()) {
@@ -11,12 +11,12 @@
 
   <form [formGroup]="postForm" (ngSubmit)="onSubmit()" class="post-form">
     <div class="form-group">
-      <label for="title">Title</label>
+      <label for="title">{{ 'posts.form.titleLabel' | t }}</label>
       <input
         id="title"
         type="text"
         formControlName="title"
-        placeholder="Post title..."
+        [placeholder]="'posts.form.titlePlaceholder' | t"
         [attr.disabled]="isLoading() ? true : null"
       />
       @if (getFieldError('title')) {
@@ -25,11 +25,11 @@
     </div>
 
     <div class="form-group">
-      <label for="content">Content</label>
+      <label for="content">{{ 'posts.form.contentLabel' | t }}</label>
       <textarea
         id="content"
         formControlName="content"
-        placeholder="Post content..."
+        [placeholder]="'posts.form.contentPlaceholder' | t"
         rows="10"
         [attr.disabled]="isLoading() ? true : null"
       ></textarea>
@@ -39,13 +39,13 @@
     </div>
 
     <div class="form-group">
-      <label for="status">Status</label>
+      <label for="status">{{ 'posts.form.statusLabel' | t }}</label>
       <select
         id="status"
         formControlName="status"
         [attr.disabled]="isLoading() ? true : null"
       >
-        <option value="">No status (draft)</option>
+        <option value="">{{ 'posts.form.statusDefault' | t }}</option>
         @for (option of statusOptions; track option.value) {
           <option [value]="option.value">{{ option.label }}</option>
         }
@@ -53,22 +53,22 @@
     </div>
 
     <div class="form-group">
-      <label for="tags">Tags (comma-separated)</label>
+      <label for="tags">{{ 'posts.form.tagsLabel' | t }}</label>
       <input
         id="tags"
         type="text"
         formControlName="tags"
-        placeholder="tag1, tag2, tag3..."
+        [placeholder]="'posts.form.tagsPlaceholder' | t"
         [attr.disabled]="isLoading() ? true : null"
       />
     </div>
 
     <div class="form-actions">
       <button type="submit" class="btn btn-primary" [disabled]="isLoading()">
-        {{ isLoading() ? 'Saving...' : 'Save Post' }}
+        {{ isLoading() ? ('posts.form.saving' | t) : ('posts.form.save' | t) }}
       </button>
       <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isLoading()">
-        Cancel
+        {{ 'posts.form.cancel' | t }}
       </button>
     </div>
   </form>

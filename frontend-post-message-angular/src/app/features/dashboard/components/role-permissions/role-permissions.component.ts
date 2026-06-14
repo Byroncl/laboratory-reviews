@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { I18nService } from '../../../../core/services/i18n.service';
 import { RolesService } from '../../../admin/services/roles.service';
 import { PermissionsService } from '../../../admin/services/permissions.service';
 import { Role } from '../../../../shared/models/role.model';
@@ -30,7 +31,8 @@ export class RolePermissionsComponent implements OnInit, OnDestroy {
   constructor(
     public permissionsService: PermissionsService,
     private rolesService: RolesService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private i18n: I18nService
   ) {}
 
   ngOnInit(): void {
@@ -40,7 +42,7 @@ export class RolePermissionsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => this.buildGroups(),
         error: () => {
-          this.notificationService.toast('Error al cargar permisos', 'error');
+          this.notificationService.toast(this.i18n.translate('dashboard.permissions.loadError'), 'error');
           this.buildGroups();
         }
       });
@@ -125,12 +127,12 @@ export class RolePermissionsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.isLoading = false;
-          this.notificationService.toast('Permisos asignados correctamente', 'success');
+          this.notificationService.toast(this.i18n.translate('dashboard.roles.permissionsAssignSuccess'), 'success');
           this.saved.emit();
         },
         error: (error) => {
           this.isLoading = false;
-          this.notificationService.toast(error?.message || 'Error al asignar permisos', 'error');
+          this.notificationService.toast(error?.message || this.i18n.translate('dashboard.roles.permissionsAssignError'), 'error');
         }
       });
   }

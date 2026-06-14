@@ -22,11 +22,12 @@ export class ClientMapper {
 
   toResponse(entity: ClientEntity): ClientResponseDto {
     return {
-      _id: entity._id,
+      _id: entity._id ?? '',
       name: entity.name,
       lastname: entity.lastname,
       username: entity.username,
       email: entity.email,
+      password_hash: entity.password_hash,
       type: entity.type,
       isActive: entity.isActive,
       createdAt: entity.createdAt,

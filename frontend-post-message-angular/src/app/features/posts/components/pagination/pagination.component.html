@@ -1,6 +1,6 @@
 <div class="pagination-container">
   <div class="pagination-info">
-    <span>Page {{ currentPage }} of {{ totalPages }} ({{ pagination.total }} total items)</span>
+    <span>{{ 'posts.pagination.info' | t }} {{ currentPage }} {{ 'posts.pagination.of' | t }} {{ totalPages }} ({{ pagination.total }} {{ 'posts.pagination.total' | t }})</span>
   </div>
 
   <div class="pagination-buttons">
@@ -9,7 +9,7 @@
       (click)="onPrevPage()"
       [disabled]="!canGoPrev || isLoading"
     >
-      &larr; Previous
+      {{ 'posts.pagination.previous' | t }}
     </button>
 
     <div class="page-indicator">
@@ -21,7 +21,7 @@
       (click)="onNextPage()"
       [disabled]="!canGoNext || isLoading"
     >
-      Next &rarr;
+      {{ 'posts.pagination.next' | t }}
     </button>
   </div>
 </div>

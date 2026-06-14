@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
+import { Types } from 'mongoose';
 import { LoginUseCase } from './login.use-case';
 import { AuthRepository } from '../repositories/auth.repository';
 import { I18nService } from '../../../../core/i18n/i18n.service';
@@ -12,7 +13,7 @@ describe('LoginUseCase', () => {
   let i18nService: jest.Mocked<I18nService>;
 
   const mockUser: Partial<User> = {
-    _id: '507f1f77bcf86cd799439011',
+    _id: new Types.ObjectId('507f1f77bcf86cd799439011') as any,
     username: 'testuser',
     email: 'test@example.com',
     type: 'user',
@@ -87,7 +88,7 @@ describe('LoginUseCase', () => {
     it('should throw BadRequestException if user has no _id', async () => {
       const userWithoutId = { ...mockUser, _id: undefined };
       authRepository.validateCredentials.mockResolvedValue(
-        userWithoutId as User,
+        userWithoutId as unknown as User,
       );
 
       await expect(
@@ -114,7 +115,7 @@ describe('LoginUseCase', () => {
     });
 
     it('should default user type to "user" if not specified', async () => {
-      const userWithoutType = { ...mockUser, type: undefined } as User;
+      const userWithoutType = { ...mockUser, type: undefined } as unknown as User;
       authRepository.validateCredentials.mockResolvedValue(userWithoutType);
       authRepository.recordLoginAttempt.mockResolvedValue(void 0);
 

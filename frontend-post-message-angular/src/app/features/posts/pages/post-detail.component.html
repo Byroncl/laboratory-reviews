@@ -1,19 +1,19 @@
 <div class="post-detail-container">
   @if (postLoading()) {
     <div class="post-detail-loading">
-      <p>Loading post...</p>
+      <p>{{ 'posts.detail.loading' | t }}</p>
     </div>
   }
 
   @if (postError()) {
     <div class="post-detail-error">
-      <p>Error: {{ postError() }}</p>
+      <p>{{ 'posts.detail.error' | t }}: {{ postError() }}</p>
     </div>
   }
 
   @if (!postLoading() && post()) {
     <div class="post-detail">
-      <a routerLink="/posts" class="btn btn-secondary">&larr; Back to Posts</a>
+      <a routerLink="/posts" class="btn btn-secondary">{{ 'posts.list.backToPosts' | t }}</a>
 
       <div class="post-header">
         <h1>{{ post()!.title }}</h1>
@@ -25,17 +25,17 @@
       <div class="post-meta">
         @if (post()!.createdAt) {
           <span class="meta-item">
-            <strong>Published:</strong> {{ post()!.createdAt | date: 'long' }}
+            <strong>{{ 'posts.detail.published' | t }}:</strong> {{ post()!.createdAt | date: 'long' }}
           </span>
         }
         <span class="meta-item">
-          <strong>Views:</strong> {{ post()!.viewCount || 0 }}
+          <strong>{{ 'posts.detail.views' | t }}:</strong> {{ post()!.viewCount || 0 }}
         </span>
       </div>
 
       @if (post()!.tags && post()!.tags!.length > 0) {
         <div class="post-tags">
-          <strong>Tags:</strong>
+          <strong>{{ 'posts.detail.tags' | t }}:</strong>
           @for (tag of post()!.tags!; track tag) {
             <span class="tag">{{ tag }}</span>
           }
@@ -47,7 +47,7 @@
       </div>
 
       <div class="comments-section">
-        <h2>Comments ({{ post()!.commentCount || 0 }})</h2>
+        <h2>{{ 'posts.detail.commentsTitle' | t }} ({{ post()!.commentCount || 0 }})</h2>
 
         <app-comment-form
           [postId]="post()!.id || post()!._id || ''"
@@ -57,13 +57,13 @@
 
         @if (commentsLoading$()) {
           <div class="comments-loading">
-            <p>Loading comments...</p>
+            <p>{{ 'posts.detail.commentsLoading' | t }}</p>
           </div>
         }
 
         @if (commentsHasError$()) {
           <div class="comments-error">
-            <p>Failed to load comments</p>
+            <p>{{ 'posts.detail.commentsError' | t }}</p>
           </div>
         }
 
@@ -82,7 +82,7 @@
 
         @if (!commentsLoading$() && comments$().length === 0) {
           <div class="comments-empty">
-            <p>No comments yet. Be the first to comment!</p>
+            <p>{{ 'posts.detail.commentsEmpty' | t }}</p>
           </div>
         }
 

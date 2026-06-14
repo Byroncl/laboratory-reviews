@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AuditLog, AuditLogDocument } from '../../schemas/audit-log.schema';
 import { IAuditLogRepository, IAuditLog } from '../../interfaces/audit-log.interface';
-import { AuditLogMapper } from './audit-log.mapper';
+import { AuditLogMapper } from '../mappers/audit-log.mapper';
 import { AUDIT_PAGINATION } from '../../constants/audit.constants';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class AuditLogRepository implements IAuditLogRepository {
   ) {}
 
   async create(log: IAuditLog): Promise<IAuditLog> {
-    const created = await this.auditModel.create(log);
+    const created = await this.auditModel.create(log as any);
     return this.mapper.toResponse(this.mapper.toDomain(created));
   }
 
@@ -94,17 +94,20 @@ export class AuditLogRepository implements IAuditLogRepository {
       'Fecha',
     ];
 
-    const rows = logs.map(log => [
-      log._id?.toString() || '',
-      log.userId || '',
-      log.action || '',
-      log.entityType || '',
-      log.entityId || '',
-      log.status || '',
-      log.ipAddress || '',
-      log.message || '',
-      log.createdAt?.toISOString() || '',
-    ]);
+    const rows = logs.map(log => {
+      const l = log as any;
+      return [
+        l._id?.toString() || '',
+        l.userId || '',
+        l.action || '',
+        l.entityType || '',
+        l.entityId || '',
+        l.status || '',
+        l.ipAddress || '',
+        l.message || '',
+        l.createdAt?.toISOString() || '',
+      ];
+    });
 
     const csv = [
       headers.join(','),

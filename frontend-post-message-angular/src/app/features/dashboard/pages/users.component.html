@@ -4,7 +4,7 @@
     <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold text-gray-900">
-          {{ editingUserId$() ? 'Editar Usuario' : 'Crear Nuevo Usuario' }}
+          {{ editingUserId$() ? ('dashboard.users.editTitle' | t) : ('dashboard.users.createTitle' | t) }}
         </h2>
         <button (click)="closeForm()" class="text-gray-500 hover:text-gray-700 text-2xl">
           ×
@@ -26,7 +26,7 @@
       [disabled]="showUserForm$()"
       class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
     >
-      + Nuevo Usuario
+      {{ 'dashboard.users.newUser' | t }}
     </button>
   </div>
 
@@ -34,7 +34,7 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-white rounded-lg shadow p-4">
     <input
       type="text"
-      placeholder="Buscar por nombre o email..."
+      [placeholder]="'dashboard.users.searchPlaceholder' | t"
       [ngModel]="globalSearch$()"
       (ngModelChange)="globalSearch$.set($event)"
       (input)="onGlobalSearch()"
@@ -46,7 +46,7 @@
       (change)="onRoleFilterChange()"
       class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
     >
-      <option value="">Todos los roles</option>
+      <option value="">{{ 'dashboard.users.allRoles' | t }}</option>
       @for (option of roleFilterOptions; track option.value) {
         <option [value]="option.value">{{ option.label }}</option>
       }
@@ -57,7 +57,7 @@
       (change)="onStatusFilterChange()"
       class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
     >
-      <option value="">Todos los estados</option>
+      <option value="">{{ 'dashboard.users.allStatuses' | t }}</option>
       @for (option of statusFilterOptions; track option.value) {
         <option [value]="option.value">{{ option.label }}</option>
       }
@@ -71,7 +71,7 @@
         (click)="clearAllFilters()"
         class="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition font-medium"
       >
-        ✕ Limpiar filtros
+        {{ 'dashboard.users.clearFilters' | t }}
       </button>
     </div>
   }
@@ -102,7 +102,7 @@
       ></app-pagination>
     } @else {
       <div class="bg-white rounded-lg shadow p-8 text-center">
-        <p class="text-gray-500 font-medium">No hay usuarios que coincidan con los filtros</p>
+        <p class="text-gray-500 font-medium">{{ 'dashboard.users.noResults' | t }}</p>
       </div>
     }
   }
@@ -110,19 +110,19 @@
   <!-- User Statistics -->
   <div class="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
-      <p class="text-secondary text-xs font-medium uppercase tracking-wide">Total Users</p>
+      <p class="text-secondary text-xs font-medium uppercase tracking-wide">{{ 'dashboard.users.totalUsers' | t }}</p>
       <p class="text-3xl font-bold text-primary mt-2">{{ totalUsersCount() }}</p>
     </div>
     <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
-      <p class="text-secondary text-xs font-medium uppercase tracking-wide">Activos</p>
+      <p class="text-secondary text-xs font-medium uppercase tracking-wide">{{ 'dashboard.users.active' | t }}</p>
       <p class="text-3xl font-bold text-green-600 mt-2">{{ activeCount() }}</p>
     </div>
     <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
-      <p class="text-secondary text-xs font-medium uppercase tracking-wide">Administradores</p>
+      <p class="text-secondary text-xs font-medium uppercase tracking-wide">{{ 'dashboard.users.admins' | t }}</p>
       <p class="text-3xl font-bold text-yellow-600 mt-2">{{ adminCount() }}</p>
     </div>
     <div class="bg-white rounded-lg shadow p-4 border-l-4 border-red-500">
-      <p class="text-secondary text-xs font-medium uppercase tracking-wide">Suspendidos</p>
+      <p class="text-secondary text-xs font-medium uppercase tracking-wide">{{ 'dashboard.users.suspended' | t }}</p>
       <p class="text-3xl font-bold text-red-600 mt-2">{{ suspendedCount() }}</p>
     </div>
   </div>

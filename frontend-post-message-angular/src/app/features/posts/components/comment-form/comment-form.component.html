@@ -1,6 +1,6 @@
 @if (disabled) {
   <div class="comment-gate">
-    <p>Sign in to comment</p>
+    <p>{{ 'posts.comment.signInGate' | t }}</p>
   </div>
 } @else {
   <form [formGroup]="commentForm" (ngSubmit)="onSubmit()" class="comment-form">
@@ -11,11 +11,11 @@
     }
 
     <div class="form-group">
-      <label for="content">Comment</label>
+      <label for="content">{{ 'posts.comment.label' | t }}</label>
       <textarea
         id="content"
         formControlName="content"
-        placeholder="Add a comment..."
+        [placeholder]="'posts.comment.placeholder' | t"
         rows="4"
         [attr.disabled]="isSubmitting ? true : null"
       ></textarea>
@@ -26,10 +26,10 @@
 
     <div class="form-actions">
       <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
-        {{ isSubmitting ? 'Submitting...' : 'Submit' }}
+        {{ isSubmitting ? ('posts.comment.submitting' | t) : ('posts.comment.submit' | t) }}
       </button>
       <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSubmitting">
-        Cancel
+        {{ 'posts.comment.cancel' | t }}
       </button>
     </div>
   </form>

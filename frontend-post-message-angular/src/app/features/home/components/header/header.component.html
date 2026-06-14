@@ -6,7 +6,7 @@
       (click)="router.navigate(['/'])"
       (keydown.enter)="router.navigate(['/'])"
       tabindex="0"
-      aria-label="Albatros home"
+      [attr.aria-label]="'home.header.logoAlt' | t"
     >
       <img src="/images/logos/header-logo-2.png" alt="Albatros" class="h-8 w-auto" />
     </a>
@@ -40,7 +40,7 @@
                 role="menuitem"
                 (click)="onLogout()"
               >
-                Logout
+                {{ 'home.header.logout' | t }}
               </button>
             </div>
           }
@@ -52,14 +52,14 @@
           class="text-sm font-medium text-gray-700 hover:text-primary transition"
           (click)="navigateToLogin()"
         >
-          Sign in
+          {{ 'home.header.signIn' | t }}
         </button>
         <button
           data-cy="register-btn"
           class="text-sm font-medium bg-primary text-white px-4 py-1.5 rounded-lg hover:bg-black transition"
           (click)="navigateToRegister()"
         >
-          Register
+          {{ 'home.header.register' | t }}
         </button>
       }
     </nav>

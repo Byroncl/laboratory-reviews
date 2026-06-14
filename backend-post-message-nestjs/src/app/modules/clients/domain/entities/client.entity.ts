@@ -3,7 +3,7 @@ import {
   CLIENT_PATTERNS,
   CLIENT_VALIDATION_MESSAGES,
 } from '../../constants/client.constants';
-import { DomainException } from '../../../core/exceptions/app.exceptions';
+import { DomainException } from '../../../../core/exceptions/app.exceptions';
 
 export class ClientEntity {
   readonly _id?: string;

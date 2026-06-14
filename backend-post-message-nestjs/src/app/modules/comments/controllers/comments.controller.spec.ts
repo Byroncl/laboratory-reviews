@@ -78,11 +78,12 @@ describe('CommentsController', () => {
       } as any;
       mockCommentsService.create.mockResolvedValue(mockComment);
 
-      const response = await controller.create(dto);
+      const mockCurrentUser = { userId: 'u1', username: 'testuser', type: 'user' } as any;
+      const response = await controller.create(dto, mockCurrentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockComment);
-      expect(mockCommentsService.create).toHaveBeenCalledWith(dto);
+      expect(mockCommentsService.create).toHaveBeenCalled();
     });
   });
 

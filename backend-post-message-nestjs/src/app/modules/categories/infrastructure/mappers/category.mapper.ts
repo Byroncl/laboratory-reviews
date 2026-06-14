@@ -23,7 +23,7 @@ export class CategoryMapper {
 
   toResponse(entity: CategoryEntity): CategoryResponseDto {
     return {
-      id: entity._id,
+      id: entity._id ?? '',
       name: entity.name,
       slug: entity.slug,
       description: entity.description,

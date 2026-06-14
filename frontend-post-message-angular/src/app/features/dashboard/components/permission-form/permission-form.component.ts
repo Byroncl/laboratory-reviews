@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { NotificationService } from '../../../../shared/services/notification.service';
+import { I18nService } from '../../../../core/services/i18n.service';
 import { PermissionsService } from '../../../admin/services/permissions.service';
 import { Permission, PermissionType } from '../../../../shared/models/permission.model';
 import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
@@ -28,7 +29,8 @@ export class PermissionFormComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private permissionsService: PermissionsService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private i18n: I18nService
   ) {}
 
   ngOnInit(): void {
@@ -77,17 +79,17 @@ export class PermissionFormComponent implements OnInit, OnDestroy {
     const field = this.form.get(fieldName);
     if (!field || !field.errors) return '';
 
-    if (field.hasError('required')) return 'Este campo es requerido';
+    if (field.hasError('required')) return this.i18n.translate('dashboard.common.validation.required');
     if (field.hasError('minlength')) {
       const minLength = field.getError('minlength').requiredLength;
-      return `Mínimo ${minLength} caracteres`;
+      return this.i18n.translate('dashboard.common.validation.minLength').replace('{n}', minLength.toString());
     }
     if (field.hasError('maxlength')) {
       const maxLength = field.getError('maxlength').requiredLength;
-      return `Máximo ${maxLength} caracteres`;
+      return this.i18n.translate('dashboard.common.validation.maxLength').replace('{n}', maxLength.toString());
     }
 
-    return 'Campo inválido';
+    return this.i18n.translate('dashboard.common.validation.invalid');
   }
 
   formatType(type: string): string {
@@ -105,7 +107,7 @@ export class PermissionFormComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.form.invalid) {
-      this.notificationService.toast('Por favor complete todos los campos requeridos', 'error');
+      this.notificationService.toast(this.i18n.translate('dashboard.permissions.formIncomplete'), 'error');
       return;
     }
 
@@ -117,13 +119,13 @@ export class PermissionFormComponent implements OnInit, OnDestroy {
         .subscribe({
           next: () => {
             this.isLoading = false;
-            this.notificationService.toast('Permiso actualizado correctamente', 'success');
+            this.notificationService.toast(this.i18n.translate('dashboard.permissions.updateSuccess'), 'success');
             this.formSubmitted.emit();
           },
           error: (error) => {
             this.isLoading = false;
             this.notificationService.toast(
-              error?.message || 'Error al actualizar permiso',
+              error?.message || this.i18n.translate('dashboard.permissions.updateError'),
               'error'
             );
           }
@@ -134,13 +136,13 @@ export class PermissionFormComponent implements OnInit, OnDestroy {
         .subscribe({
           next: () => {
             this.isLoading = false;
-            this.notificationService.toast('Permiso creado correctamente', 'success');
+            this.notificationService.toast(this.i18n.translate('dashboard.permissions.createSuccess'), 'success');
             this.formSubmitted.emit();
           },
           error: (error) => {
             this.isLoading = false;
             this.notificationService.toast(
-              error?.message || 'Error al crear permiso',
+              error?.message || this.i18n.translate('dashboard.permissions.createError'),
               'error'
             );
           }

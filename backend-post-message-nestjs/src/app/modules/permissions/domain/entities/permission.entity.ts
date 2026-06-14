@@ -3,7 +3,7 @@ import {
   PERMISSIONS_VALIDATION_MESSAGES,
   PERMISSION_TYPES,
 } from '../../constants/permissions.constants';
-import { DomainException } from '../../../core/exceptions/app.exceptions';
+import { DomainException } from '../../../../core/exceptions/app.exceptions';
 
 export class PermissionEntity {
   readonly _id?: string;
@@ -62,7 +62,7 @@ export class PermissionEntity {
       throw new DomainException(PERMISSIONS_VALIDATION_MESSAGES.TYPE_REQUIRED);
     }
     const validTypes = Object.values(PERMISSION_TYPES);
-    if (!validTypes.includes(type)) {
+    if (!(validTypes as string[]).includes(type)) {
       throw new DomainException(PERMISSIONS_VALIDATION_MESSAGES.TYPE_INVALID);
     }
   }

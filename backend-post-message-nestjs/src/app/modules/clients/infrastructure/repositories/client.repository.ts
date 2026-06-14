@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { Client, ClientDocument } from '../../schemas/client.schema';
 import { IClientRepository, IClient } from '../../interfaces/client.interface';
 import { ClientEntity } from '../../domain/entities/client.entity';
-import { ClientMapper } from './client.mapper';
+import { ClientMapper } from '../mappers/client.mapper';
 import { CLIENT_MESSAGES } from '../../constants/client.constants';
 
 @Injectable()
@@ -27,30 +27,30 @@ export class ClientRepository implements IClientRepository {
 
     const entity = new ClientEntity(client);
     const created = await this.clientModel.create(this.mapper.toPersistence(entity));
-    return this.mapper.toResponse(this.mapper.toDomain(created));
+    return this.mapper.toResponse(this.mapper.toDomain(created)) as unknown as IClient;
   }
 
   async findById(id: string): Promise<IClient | null> {
     const client = await this.clientModel.findById(id).exec();
     if (!client) return null;
-    return this.mapper.toResponse(this.mapper.toDomain(client));
+    return this.mapper.toResponse(this.mapper.toDomain(client)) as unknown as IClient;
   }
 
   async findByEmail(email: string): Promise<IClient | null> {
     const client = await this.clientModel.findOne({ email }).exec();
     if (!client) return null;
-    return this.mapper.toResponse(this.mapper.toDomain(client));
+    return this.mapper.toResponse(this.mapper.toDomain(client)) as unknown as IClient;
   }
 
   async findByUsername(username: string): Promise<IClient | null> {
     const client = await this.clientModel.findOne({ username }).exec();
     if (!client) return null;
-    return this.mapper.toResponse(this.mapper.toDomain(client));
+    return this.mapper.toResponse(this.mapper.toDomain(client)) as unknown as IClient;
   }
 
   async findAll(): Promise<IClient[]> {
     const clients = await this.clientModel.find().exec();
-    return this.mapper.toResponseList(clients.map(c => this.mapper.toDomain(c)));
+    return this.mapper.toResponseList(clients.map(c => this.mapper.toDomain(c))) as unknown as IClient[];
   }
 
   async update(id: string, client: Partial<IClient>): Promise<IClient | null> {
@@ -79,7 +79,7 @@ export class ClientRepository implements IClientRepository {
       new: true,
     });
 
-    return result ? this.mapper.toResponse(this.mapper.toDomain(result)) : null;
+    return result ? this.mapper.toResponse(this.mapper.toDomain(result)) as unknown as IClient : null;
   }
 
   async delete(id: string): Promise<void> {

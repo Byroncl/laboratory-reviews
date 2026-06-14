@@ -1,3 +1,10 @@
+/**
+ * @deprecated Use i18n.translate('auth.messages.*') instead.
+ * Keys: loginSuccess, loginError, registerSuccess, registerError, logoutSuccess,
+ *       tokenExpired, tokenInvalid, networkError, validationError, passwordMismatch,
+ *       emailTaken, usernameTaken, weakPassword, accountLocked, sessionExpired,
+ *       unauthorized, forbidden
+ */
 export const AUTH_MESSAGES = {
   LOGIN_SUCCESS: 'Logged in successfully',
   LOGIN_ERROR: 'Invalid username or password',

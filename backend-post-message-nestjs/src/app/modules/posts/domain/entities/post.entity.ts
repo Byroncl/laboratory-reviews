@@ -2,7 +2,7 @@ import {
   POSTS_CONFIG,
   POSTS_VALIDATION_MESSAGES,
 } from '../../constants/posts.constants';
-import { DomainException } from '../../../core/exceptions/app.exceptions';
+import { DomainException } from '../../../../core/exceptions/app.exceptions';
 
 export class PostEntity {
   readonly _id?: string;

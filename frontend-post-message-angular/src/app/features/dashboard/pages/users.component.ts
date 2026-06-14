@@ -12,6 +12,7 @@ import {
   SkeletonComponent
 } from '../../../shared/components/index';
 import { ModalService, NotificationService } from '../../../shared/services/index';
+import { I18nService } from '../../../core/services/i18n.service';
 import { UsersService } from '../../admin/services/users.service';
 import { User } from '../../../shared/models/user.model';
 import { UserFormComponent } from '../components/user-form/user-form.component';
@@ -98,29 +99,32 @@ export class UsersComponent {
     { key: 'lastLogin', label: 'Último Login', sortable: true }
   ];
 
-  readonly actions: TableAction[] = [
-    { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
-    { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
-    {
-      id: 'toggle-status',
-      label: 'Activar/Desactivar',
-      icon: 'edit',
-      class: 'text-orange-600 hover:text-orange-700'
-    },
-    {
-      id: 'delete',
-      label: 'Eliminar',
-      icon: 'delete',
-      class: 'text-red-600 hover:text-red-700',
-      confirm: true,
-      confirmMessage: '¿Estás seguro de que deseas eliminar este usuario?'
-    }
-  ];
+  get actions(): TableAction[] {
+    return [
+      { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
+      { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
+      {
+        id: 'toggle-status',
+        label: 'Activar/Desactivar',
+        icon: 'edit',
+        class: 'text-orange-600 hover:text-orange-700'
+      },
+      {
+        id: 'delete',
+        label: 'Eliminar',
+        icon: 'delete',
+        class: 'text-red-600 hover:text-red-700',
+        confirm: true,
+        confirmMessage: this.i18n.translate('dashboard.users.deleteConfirmBody')
+      }
+    ];
+  }
 
   constructor(
     readonly usersService: UsersService,
     private modalService: ModalService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private i18n: I18nService
   ) {
     this.loadCurrentPage();
     this.usersService.loadStats().pipe(takeUntilDestroyed()).subscribe({
@@ -177,11 +181,11 @@ export class UsersComponent {
     action$.pipe(takeUntilDestroyed()).subscribe({
       next: () => {
         const statusMsg = isActive ? 'desactivado' : 'activado';
-        this.notificationService.toast(`Usuario ${statusMsg} correctamente`, 'success');
+        this.notificationService.toast(this.i18n.translate('dashboard.users.toggleSuccess').replace('{status}', statusMsg), 'success');
         this.updateStats();
       },
       error: () => {
-        this.notificationService.toast('Error al cambiar el estado del usuario', 'error');
+        this.notificationService.toast(this.i18n.translate('dashboard.users.toggleError'), 'error');
       }
     });
   }
@@ -204,8 +208,8 @@ export class UsersComponent {
   deleteUser(user: User): void {
     this.modalService
       .openConfirm(
-        'Confirmar eliminación',
-        `¿Estás seguro de que deseas eliminar a ${user.name}?`,
+        this.i18n.translate('dashboard.users.deleteConfirmTitle'),
+        this.i18n.translate('dashboard.users.deleteConfirmBody').replace('{name}', user.name),
         true
       )
       .pipe(takeUntilDestroyed())
@@ -215,10 +219,10 @@ export class UsersComponent {
           this.usersService.deleteUser(userId).pipe(takeUntilDestroyed()).subscribe({
             next: () => {
               this.updateStats();
-              this.notificationService.toast('Usuario eliminado correctamente', 'success');
+              this.notificationService.toast(this.i18n.translate('dashboard.users.deleteSuccess'), 'success');
             },
             error: () => {
-              this.notificationService.toast('Error al eliminar el usuario', 'error');
+              this.notificationService.toast(this.i18n.translate('dashboard.users.deleteError'), 'error');
             }
           });
         }
@@ -285,7 +289,7 @@ export class UsersComponent {
         this.updateStats();
       },
       error: () => {
-        this.notificationService.toast('Error al cargar usuarios', 'error');
+        this.notificationService.toast(this.i18n.translate('dashboard.users.loadError'), 'error');
       }
     });
   }

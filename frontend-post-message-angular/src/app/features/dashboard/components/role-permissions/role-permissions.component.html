@@ -2,8 +2,8 @@
     <div class="space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="font-semibold text-gray-900">Asignar Permisos</h3>
-          <p class="text-sm text-gray-500">Rol: <strong>{{ role.name }}</strong></p>
+          <h3 class="font-semibold text-gray-900">{{ 'dashboard.rolePermissions.title' | t }}</h3>
+          <p class="text-sm text-gray-500">{{ 'dashboard.rolePermissions.roleLabel' | t }} <strong>{{ role.name }}</strong></p>
         </div>
         <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
           {{ selectedPermissions.size }} seleccionados
@@ -29,7 +29,7 @@
                       (click)="selectAll(group.permissions)"
                       class="text-xs text-blue-600 hover:text-blue-800 font-medium"
                     >
-                      Todos
+                      {{ 'dashboard.rolePermissions.selectAll' | t }}
                     </button>
                     <span class="text-gray-300">|</span>
                     <button
@@ -37,7 +37,7 @@
                       (click)="deselectAll(group.permissions)"
                       class="text-xs text-gray-500 hover:text-gray-700 font-medium"
                     >
-                      Ninguno
+                      {{ 'dashboard.rolePermissions.deselectAll' | t }}
                     </button>
                   </div>
                 </div>
@@ -61,7 +61,7 @@
             }
           </div>
         } @else {
-          <p class="text-sm text-gray-500 italic text-center py-4">No hay permisos disponibles</p>
+          <p class="text-sm text-gray-500 italic text-center py-4">{{ 'dashboard.rolePermissions.noPermissions' | t }}</p>
         }
       }
 
@@ -75,7 +75,7 @@
           @if (isLoading) {
             <app-spinner size="sm" />
           }
-          Guardar Permisos
+          {{ 'dashboard.rolePermissions.savePermissions' | t }}
         </button>
         <button
           type="button"
@@ -83,7 +83,7 @@
           [disabled]="isLoading"
           class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium text-sm disabled:opacity-50"
         >
-          Cancelar
+          {{ 'dashboard.rolePermissions.cancel' | t }}
         </button>
       </div>
     </div>

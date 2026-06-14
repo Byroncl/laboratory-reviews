@@ -138,14 +138,14 @@ describe('ReactionsService', () => {
 
       const thumbsUp = result.find((r: any) => r.emoji === '👍');
       expect(thumbsUp).toBeDefined();
-      expect(thumbsUp.count).toBe(2);
-      expect(thumbsUp.users).toContain('u1');
-      expect(thumbsUp.users).toContain('u2');
+      expect(thumbsUp!.count).toBe(2);
+      expect(thumbsUp!.users).toContain('u1');
+      expect(thumbsUp!.users).toContain('u2');
 
       const heart = result.find((r: any) => r.emoji === '❤️');
       expect(heart).toBeDefined();
-      expect(heart.count).toBe(1);
-      expect(heart.users).toContain('u3');
+      expect(heart!.count).toBe(1);
+      expect(heart!.users).toContain('u3');
     });
 
     it('should return empty array when comment has no reactions', async () => {
@@ -177,8 +177,8 @@ describe('ReactionsService', () => {
       const thumbsUp = result.find((r: any) => r.emoji === '👍');
 
       // Set-based dedup: users list should have unique entries
-      const uniqueUsers = [...new Set(thumbsUp.users)];
-      expect(thumbsUp.users).toEqual(uniqueUsers);
+      const uniqueUsers = [...new Set(thumbsUp!.users)];
+      expect(thumbsUp!.users).toEqual(uniqueUsers);
     });
   });
 

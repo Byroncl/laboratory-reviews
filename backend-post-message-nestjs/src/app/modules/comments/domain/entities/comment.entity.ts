@@ -2,7 +2,7 @@ import {
   COMMENTS_CONFIG,
   COMMENTS_VALIDATION_MESSAGES,
 } from '../../constants/comments.constants';
-import { DomainException } from '../../../core/exceptions/app.exceptions';
+import { DomainException } from '../../../../core/exceptions/app.exceptions';
 
 export class CommentEntity {
   readonly _id?: string;

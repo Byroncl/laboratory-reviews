@@ -18,6 +18,15 @@ export const AUTH_MESSAGES = {
   TOKEN_INVALID: 'auth.token_invalid',
   TOKEN_EXPIRED: 'auth.token_expired',
   UNAUTHORIZED: 'auth.errors_unauthorized',
+  USERNAME_REQUIRED: 'auth.validation_username_required',
+  PASSWORD_REQUIRED: 'auth.validation_password_required',
+} as const;
+
+export const AUTH_VALIDATION = {
+  USERNAME_MIN_LENGTH: 3,
+  USERNAME_MAX_LENGTH: 20,
+  PASSWORD_MIN_LENGTH: 6,
+  PASSWORD_MAX_LENGTH: 200,
 } as const;
 
 export const AUTH_VALIDATION_MESSAGES = {

@@ -8,16 +8,16 @@
 
   <div class="post-meta">
     <span class="meta-item">
-      <strong>By:</strong> {{ post.author }}
+      <strong>{{ 'posts.card.by' | t }}:</strong> {{ post.author }}
     </span>
     @if (post.createdAt) {
       <span class="meta-item">
-        <strong>Date:</strong> {{ post.createdAt | date: 'short' }}
+        <strong>{{ 'posts.card.date' | t }}:</strong> {{ post.createdAt | date: 'short' }}
       </span>
     }
     @if (post.commentCount) {
       <span class="meta-item">
-        <strong>Comments:</strong> {{ post.commentCount }}
+        <strong>{{ 'posts.card.comments' | t }}:</strong> {{ post.commentCount }}
       </span>
     }
   </div>
@@ -36,23 +36,23 @@
 
   <div class="post-actions">
     <button class="btn btn-primary" (click)="onView()" [disabled]="isLoading">
-      View
+      {{ 'posts.card.view' | t }}
     </button>
     <button class="btn btn-secondary" (click)="onEdit()" [disabled]="isLoading">
-      Edit
+      {{ 'posts.card.edit' | t }}
     </button>
     @if (post.status === 'draft') {
       <button class="btn btn-success" (click)="onPublish()" [disabled]="isLoading">
-        Publish
+        {{ 'posts.card.publish' | t }}
       </button>
     }
     @if (post.status === 'published') {
       <button class="btn btn-warning" (click)="onArchive()" [disabled]="isLoading">
-        Archive
+        {{ 'posts.card.archive' | t }}
       </button>
     }
     <button class="btn btn-danger" (click)="onDelete()" [disabled]="isLoading">
-      Delete
+      {{ 'posts.card.delete' | t }}
     </button>
   </div>
 </div>

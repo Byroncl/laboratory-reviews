@@ -11,6 +11,7 @@ import {
   SkeletonComponent
 } from '../../../shared/components/index';
 import { NotificationService } from '../../../shared/services/index';
+import { I18nService } from '../../../core/services/i18n.service';
 import { AuditLogService } from '../../admin/services/audit-log.service';
 import { AuditLog, AuditLogFilter, AuditAction, EntityType } from '../../../shared/models/audit-log.model';
 import { sortByField } from '../../admin';
@@ -74,7 +75,8 @@ export class AuditLogsComponent {
 
   constructor(
     readonly auditLogService: AuditLogService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private i18n: I18nService
   ) {
     this.load();
   }
@@ -166,7 +168,7 @@ export class AuditLogsComponent {
       .getAuditLogs(this.filter$())
       .pipe(takeUntilDestroyed())
       .subscribe({
-        error: () => this.notificationService.toast('Error loading audit logs', 'error')
+        error: () => this.notificationService.toast(this.i18n.translate('dashboard.auditLogs.loadError'), 'error')
       });
   }
 }

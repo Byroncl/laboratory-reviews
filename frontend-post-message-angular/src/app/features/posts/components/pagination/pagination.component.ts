@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { IPagination } from '../../interfaces';
 import {
   calculateCurrentPage,
@@ -11,7 +12,7 @@ import {
 @Component({
   selector: 'app-pagination',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './pagination.component.html',
   styleUrls: ['./pagination.component.css'],
 })
