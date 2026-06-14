@@ -8,16 +8,17 @@ import { Store } from '@ngrx/store';
 import { PostsService } from '../../posts/services/posts.service';
 import { PostCardComponent } from '../components/post-card/post-card.component';
 import { HeaderComponent } from '../components/header/header.component';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { mapToPostViewModel } from '../../../shared/models/post.model';
 import { selectIsAuthenticated } from '../../auth/store/auth.selectors';
 import { PostViewModel } from '../types';
 import { filterPosts } from '../utils';
-import { HOME_ROUTES, HOME_MESSAGES } from '../constants';
+import { HOME_ROUTES } from '../constants';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, PostCardComponent, HeaderComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, PostCardComponent, HeaderComponent, TranslatePipe],
   templateUrl: './home.component.html',
 })
 export class HomeComponent implements OnInit {
@@ -26,7 +27,6 @@ export class HomeComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly messages = HOME_MESSAGES;
   readonly isAuthenticated = toSignal(this.store.select(selectIsAuthenticated), { initialValue: false });
   readonly loading = signal(false);
   readonly loadError = signal<string | null>(null);

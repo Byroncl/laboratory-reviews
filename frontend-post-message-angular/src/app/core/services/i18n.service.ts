@@ -439,9 +439,24 @@ export class I18nService {
           signIn: 'Iniciar sesión',
           register: 'Registrarse'
         },
+        hero: {
+          title: 'Descubre',
+          subtitle: 'Explora posts, únete a la conversación y comparte tus ideas.',
+          ctaAuthenticated: 'Crear Post',
+          ctaGuest: 'Inicia sesión para comentar'
+        },
+        search: {
+          placeholder: 'Buscar posts...'
+        },
+        empty: {
+          search: 'No hay posts que coincidan con tu búsqueda.',
+          posts: 'Sin posts aún.',
+          loadError: 'Error al cargar posts.'
+        },
         postCard: {
           by: 'por'
-        }
+        },
+        retry: 'Reintentar'
       },
       posts: {
         postCard: {
@@ -1002,9 +1017,24 @@ export class I18nService {
           signIn: 'Sign in',
           register: 'Register'
         },
+        hero: {
+          title: 'Discover',
+          subtitle: 'Explore posts, join the conversation, and share your ideas.',
+          ctaAuthenticated: 'Create Post',
+          ctaGuest: 'Sign in to Comment'
+        },
+        search: {
+          placeholder: 'Search posts...'
+        },
+        empty: {
+          search: 'No posts match your search.',
+          posts: 'No posts yet.',
+          loadError: 'Failed to load posts.'
+        },
         postCard: {
           by: 'by'
-        }
+        },
+        retry: 'Retry'
       },
       posts: {
         postCard: {
