@@ -6,7 +6,10 @@ import {
   Put,
   Delete,
   Param,
-  ForbiddenException,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,16 +18,17 @@ import {
   ApiBody,
   ApiResponse,
 } from '@nestjs/swagger';
-import { ClientsService } from '../services/clients.service';
+import { ClientUseCaseFactory } from '../application/use-cases/client.use-cases';
 import { CreateClientDto } from '../dto/create-client.dto';
 import { UpdateClientDto } from '../dto/update-client.dto';
-import { ClientResponseDto } from '../dto/client-response.dto';
+import { ClientResponseDto } from '../application/dtos/client-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
 import { CurrentUser } from '../../../core/decorators/current-user.decorator';
 import type { CurrentUserPayload } from '../../../core/decorators/current-user.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
-import { TranslationService } from '../../../core/utils/translation.service';
+import { ClientOrAdminGuard } from '../guards/client-or-admin.guard';
+import { I18nService } from '../../../core/i18n/i18n.service';
 import {
   CLIENT_SWAGGER,
   CLIENT_RESPONSE_DESCRIPTIONS,
@@ -36,8 +40,8 @@ import {
 @Controller('clients')
 export class ClientsController {
   constructor(
-    private readonly clientsService: ClientsService,
-    private readonly i18n: TranslationService,
+    private readonly clientUseCase: ClientUseCaseFactory,
+    private readonly i18n: I18nService,
   ) {}
 
   @ApiOperation(CLIENT_SWAGGER.CREATE)
@@ -47,37 +51,41 @@ export class ClientsController {
     description: CLIENT_RESPONSE_DESCRIPTIONS.CREATED,
     type: ClientResponseDto,
   })
-  @ApiResponse({ status: 400, description: CLIENT_RESPONSE_DESCRIPTIONS.VALIDATION_FAILED })
+  @ApiResponse({
+    status: 400,
+    description: CLIENT_RESPONSE_DESCRIPTIONS.VALIDATION_FAILED,
+  })
+  @HttpCode(HttpStatus.CREATED)
   @Post()
-  async create(@Body() createClientDto: CreateClientDto) {
-    const client = await this.clientsService.create(createClientDto);
+  async create(@Body(ValidationPipe) createClientDto: CreateClientDto) {
+    const client = await this.clientUseCase.createClient(createClientDto);
     return ApiRes.success(client, this.i18n.translate(CLIENT_MESSAGES.CREATED));
   }
 
   @Auth()
+  @UseGuards(ClientOrAdminGuard)
   @ApiOperation(CLIENT_SWAGGER.GET_PROFILE)
   @ApiResponse({
     status: 200,
     description: CLIENT_RESPONSE_DESCRIPTIONS.PROFILE,
     type: ClientResponseDto,
   })
-  @ApiResponse({ status: 403, description: CLIENT_RESPONSE_DESCRIPTIONS.FORBIDDEN })
-  @ApiResponse({ status: 401, description: CLIENT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED })
+  @ApiResponse({
+    status: 403,
+    description: CLIENT_RESPONSE_DESCRIPTIONS.FORBIDDEN,
+  })
+  @ApiResponse({
+    status: 401,
+    description: CLIENT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
   @Get('profile')
   async getProfile(@CurrentUser() user: CurrentUserPayload) {
-    const isClient = (user as any).type === 'client';
-    const isAdmin =
-      (user as any).role === 'admin' ||
-      (typeof (user as any).role === 'object' && (user as any).role?.name === 'admin');
-
-    if (!isClient && !isAdmin) {
-      throw new ForbiddenException(this.i18n.translate(CLIENT_MESSAGES.ACCESS_DENIED));
-    }
-    const client = await this.clientsService.findOne(user.id);
+    const client = await this.clientUseCase.getClientById(user.id);
     return ApiRes.success(client);
   }
 
   @Auth()
+  @UseGuards(ClientOrAdminGuard)
   @ApiOperation(CLIENT_SWAGGER.UPDATE_PROFILE)
   @ApiBody({ type: UpdateClientDto })
   @ApiResponse({
@@ -85,22 +93,20 @@ export class ClientsController {
     description: CLIENT_RESPONSE_DESCRIPTIONS.UPDATED,
     type: ClientResponseDto,
   })
-  @ApiResponse({ status: 403, description: CLIENT_RESPONSE_DESCRIPTIONS.FORBIDDEN })
-  @ApiResponse({ status: 401, description: CLIENT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED })
+  @ApiResponse({
+    status: 403,
+    description: CLIENT_RESPONSE_DESCRIPTIONS.FORBIDDEN,
+  })
+  @ApiResponse({
+    status: 401,
+    description: CLIENT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
   @Put('profile')
   async updateProfile(
     @CurrentUser() user: CurrentUserPayload,
-    @Body() updateClientDto: UpdateClientDto,
+    @Body(ValidationPipe) updateClientDto: UpdateClientDto,
   ) {
-    const isClient = (user as any).type === 'client';
-    const isAdmin =
-      (user as any).role === 'admin' ||
-      (typeof (user as any).role === 'object' && (user as any).role?.name === 'admin');
-
-    if (!isClient && !isAdmin) {
-      throw new ForbiddenException(this.i18n.translate(CLIENT_MESSAGES.ACCESS_DENIED));
-    }
-    const client = await this.clientsService.update(user.id, updateClientDto);
+    const client = await this.clientUseCase.updateClient(user.id, updateClientDto);
     return ApiRes.success(client, this.i18n.translate(CLIENT_MESSAGES.UPDATED));
   }
 
@@ -111,10 +117,13 @@ export class ClientsController {
     description: CLIENT_RESPONSE_DESCRIPTIONS.LIST,
     type: [ClientResponseDto],
   })
-  @ApiResponse({ status: 401, description: CLIENT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED })
+  @ApiResponse({
+    status: 401,
+    description: CLIENT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
   @Get()
   async findAll() {
-    const clients = await this.clientsService.findAll();
+    const clients = await this.clientUseCase.getAllClients();
     return ApiRes.success(clients);
   }
 
@@ -130,11 +139,17 @@ export class ClientsController {
     description: CLIENT_RESPONSE_DESCRIPTIONS.FOUND,
     type: ClientResponseDto,
   })
-  @ApiResponse({ status: 404, description: CLIENT_RESPONSE_DESCRIPTIONS.NOT_FOUND })
-  @ApiResponse({ status: 401, description: CLIENT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED })
+  @ApiResponse({
+    status: 404,
+    description: CLIENT_RESPONSE_DESCRIPTIONS.NOT_FOUND,
+  })
+  @ApiResponse({
+    status: 401,
+    description: CLIENT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
   @Get(':id')
   async findOne(@Param() findOneDto: FindOneDto) {
-    const client = await this.clientsService.findOne(findOneDto.id);
+    const client = await this.clientUseCase.getClientById(findOneDto.id);
     return ApiRes.success(client);
   }
 
@@ -151,14 +166,20 @@ export class ClientsController {
     description: CLIENT_RESPONSE_DESCRIPTIONS.UPDATED,
     type: ClientResponseDto,
   })
-  @ApiResponse({ status: 404, description: CLIENT_RESPONSE_DESCRIPTIONS.NOT_FOUND })
-  @ApiResponse({ status: 401, description: CLIENT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED })
+  @ApiResponse({
+    status: 404,
+    description: CLIENT_RESPONSE_DESCRIPTIONS.NOT_FOUND,
+  })
+  @ApiResponse({
+    status: 401,
+    description: CLIENT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
   @Put(':id')
   async update(
     @Param() findOneDto: FindOneDto,
-    @Body() updateClientDto: UpdateClientDto,
+    @Body(ValidationPipe) updateClientDto: UpdateClientDto,
   ) {
-    const client = await this.clientsService.update(
+    const client = await this.clientUseCase.updateClient(
       findOneDto.id,
       updateClientDto,
     );
@@ -172,12 +193,21 @@ export class ClientsController {
     type: 'string',
     description: CLIENT_PARAM_DESCRIPTIONS.ID,
   })
-  @ApiResponse({ status: 200, description: CLIENT_RESPONSE_DESCRIPTIONS.DELETED })
-  @ApiResponse({ status: 404, description: CLIENT_RESPONSE_DESCRIPTIONS.NOT_FOUND })
-  @ApiResponse({ status: 401, description: CLIENT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED })
+  @ApiResponse({
+    status: 200,
+    description: CLIENT_RESPONSE_DESCRIPTIONS.DELETED,
+  })
+  @ApiResponse({
+    status: 404,
+    description: CLIENT_RESPONSE_DESCRIPTIONS.NOT_FOUND,
+  })
+  @ApiResponse({
+    status: 401,
+    description: CLIENT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
   @Delete(':id')
   async remove(@Param() findOneDto: FindOneDto) {
-    await this.clientsService.remove(findOneDto.id);
+    await this.clientUseCase.deleteClient(findOneDto.id);
     return ApiRes.success(null, this.i18n.translate(CLIENT_MESSAGES.DELETED));
   }
 }

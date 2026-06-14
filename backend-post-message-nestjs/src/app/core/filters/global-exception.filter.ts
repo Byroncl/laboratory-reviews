@@ -33,8 +33,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       statusCode = exception.getStatus();
       const errorResponse = exception.getResponse();
 
-      if (typeof errorResponse === 'object' && errorResponse !== null && 'message' in errorResponse) {
-        message = (errorResponse as Record<string, unknown>)['message'] as string;
+      if (typeof errorResponse === 'object' && errorResponse !== null) {
+        const i18nKey = (errorResponse as Record<string, unknown>)['i18nKey'];
+        if (i18nKey && typeof i18nKey === 'string') {
+          message = this.translationService.translate(i18nKey, lang);
+        } else if ('message' in errorResponse) {
+          message = (errorResponse as Record<string, unknown>)['message'] as string;
+        } else {
+          message = exception.message;
+        }
         errors = (errorResponse as Record<string, unknown>)['errors'];
       } else {
         message = exception.message;

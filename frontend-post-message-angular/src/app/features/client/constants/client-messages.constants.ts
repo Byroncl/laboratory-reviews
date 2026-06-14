@@ -1,0 +1,54 @@
+export const CLIENT_MESSAGES = {
+  MY_POSTS: {
+    TITLE: 'client.my_posts.title',
+    EMPTY: 'client.my_posts.empty',
+    CREATE_BUTTON: 'client.my_posts.create_button',
+    CANCEL_BUTTON: 'client.my_posts.cancel_button',
+    LOADING: 'client.my_posts.loading',
+    PREVIOUS: 'client.my_posts.pagination_previous',
+    NEXT: 'client.my_posts.pagination_next',
+  },
+  MY_COMMENTS: {
+    TITLE: 'client.my_comments.title',
+    EMPTY: 'client.my_comments.empty',
+    LOADING: 'client.my_comments.loading',
+    DELETE_CONFIRM: 'client.my_comments.delete_confirm',
+  },
+  MY_FAVORITES: {
+    TITLE: 'client.my_favorites.title',
+    EMPTY: 'client.my_favorites.empty',
+    LOADING: 'client.my_favorites.loading',
+    PREVIOUS: 'client.my_favorites.pagination_previous',
+    NEXT: 'client.my_favorites.pagination_next',
+  },
+  PROFILE: {
+    TITLE: 'client.profile.title',
+    PERSONAL_INFO: 'client.profile.personal_info',
+    CHANGE_PASSWORD: 'client.profile.change_password',
+    ACCOUNT_INFO: 'client.profile.account_info',
+    UPDATE_SUCCESS: 'client.profile.update_success',
+    UPDATE_ERROR: 'client.profile.update_error',
+    PASSWORD_SUCCESS: 'client.profile.password_success',
+    PASSWORD_ERROR: 'client.profile.password_error',
+    LOADING: 'client.profile.loading',
+  },
+  POST_FORM: {
+    CREATE_TITLE: 'client.post_form.create_title',
+    UPDATE_TITLE: 'client.post_form.update_title',
+    TITLE_LABEL: 'client.post_form.title_label',
+    BODY_LABEL: 'client.post_form.body_label',
+    CATEGORY_LABEL: 'client.post_form.category_label',
+    CREATE_BUTTON: 'client.post_form.create_button',
+    UPDATE_BUTTON: 'client.post_form.update_button',
+    CANCEL_BUTTON: 'client.post_form.cancel_button',
+  },
+};
+
+export const CLIENT_VALIDATION_MESSAGES = {
+  POST_TITLE_MIN: 'client.validation.post_title_min',
+  POST_BODY_MIN: 'client.validation.post_body_min',
+  PASSWORD_MIN: 'client.validation.password_min',
+  PASSWORD_MISMATCH: 'client.validation.password_mismatch',
+  NAME_REQUIRED: 'client.validation.name_required',
+  EMAIL_REQUIRED: 'client.validation.email_required',
+};

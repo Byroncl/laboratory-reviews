@@ -3,7 +3,10 @@ import { getModelToken } from '@nestjs/mongoose';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { Category } from '../schemas/category.schema';
-import { CreateCategoryDto, UpdateCategoryDto } from '../dto/create-category.dto';
+import {
+  CreateCategoryDto,
+  UpdateCategoryDto,
+} from '../dto/create-category.dto';
 
 describe('CategoriesService', () => {
   let service: CategoriesService;
@@ -16,11 +19,17 @@ describe('CategoriesService', () => {
     save: mockSave,
   })) as any;
 
-  MockCategoryModel.find = jest.fn().mockReturnValue({ sort: jest.fn().mockReturnValue({ exec: mockExec }) });
+  MockCategoryModel.find = jest
+    .fn()
+    .mockReturnValue({ sort: jest.fn().mockReturnValue({ exec: mockExec }) });
   MockCategoryModel.findOne = jest.fn().mockReturnValue({ exec: mockExec });
   MockCategoryModel.findById = jest.fn().mockReturnValue({ exec: mockExec });
-  MockCategoryModel.findByIdAndUpdate = jest.fn().mockReturnValue({ exec: mockExec });
-  MockCategoryModel.findByIdAndDelete = jest.fn().mockReturnValue({ exec: mockExec });
+  MockCategoryModel.findByIdAndUpdate = jest
+    .fn()
+    .mockReturnValue({ exec: mockExec });
+  MockCategoryModel.findByIdAndDelete = jest
+    .fn()
+    .mockReturnValue({ exec: mockExec });
 
   const mockCategory = {
     _id: '507f1f77bcf86cd799439011',
@@ -53,7 +62,11 @@ describe('CategoriesService', () => {
     it('should create a category with auto-generated slug', async () => {
       const dto: CreateCategoryDto = { name: 'Backend Development' };
       mockExec.mockResolvedValueOnce(null); // findOne — slug not taken
-      mockSave.mockResolvedValueOnce({ ...mockCategory, name: 'Backend Development', slug: 'backend-development' });
+      mockSave.mockResolvedValueOnce({
+        ...mockCategory,
+        name: 'Backend Development',
+        slug: 'backend-development',
+      });
 
       const result = await service.create(dto);
 
@@ -105,13 +118,17 @@ describe('CategoriesService', () => {
       const result = await service.findOne('507f1f77bcf86cd799439011');
 
       expect(result).toEqual(mockCategory);
-      expect(MockCategoryModel.findById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+      expect(MockCategoryModel.findById).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011',
+      );
     });
 
     it('should throw NotFoundException when not found', async () => {
       mockExec.mockResolvedValueOnce(null);
 
-      await expect(service.findOne('ghost-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('ghost-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -122,13 +139,17 @@ describe('CategoriesService', () => {
       const result = await service.findBySlug('backend');
 
       expect(result).toEqual(mockCategory);
-      expect(MockCategoryModel.findOne).toHaveBeenCalledWith({ slug: 'backend' });
+      expect(MockCategoryModel.findOne).toHaveBeenCalledWith({
+        slug: 'backend',
+      });
     });
 
     it('should throw NotFoundException when slug not found', async () => {
       mockExec.mockResolvedValueOnce(null);
 
-      await expect(service.findBySlug('nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.findBySlug('nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -151,7 +172,9 @@ describe('CategoriesService', () => {
     it('should throw NotFoundException when category not found', async () => {
       mockExec.mockResolvedValueOnce(null);
 
-      await expect(service.update('ghost-id', {})).rejects.toThrow(NotFoundException);
+      await expect(service.update('ghost-id', {})).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -159,14 +182,20 @@ describe('CategoriesService', () => {
     it('should delete a category', async () => {
       mockExec.mockResolvedValueOnce(mockCategory);
 
-      await expect(service.remove('507f1f77bcf86cd799439011')).resolves.toBeUndefined();
-      expect(MockCategoryModel.findByIdAndDelete).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+      await expect(
+        service.remove('507f1f77bcf86cd799439011'),
+      ).resolves.toBeUndefined();
+      expect(MockCategoryModel.findByIdAndDelete).toHaveBeenCalledWith(
+        '507f1f77bcf86cd799439011',
+      );
     });
 
     it('should throw NotFoundException when category not found', async () => {
       mockExec.mockResolvedValueOnce(null);
 
-      await expect(service.remove('ghost-id')).rejects.toThrow(NotFoundException);
+      await expect(service.remove('ghost-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

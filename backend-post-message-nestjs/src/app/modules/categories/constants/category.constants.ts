@@ -8,22 +8,37 @@ export const CATEGORY_VALIDATION = {
   COLOR_REGEX: /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
 };
 
-// Category Messages (i18n)
+// Category Messages (i18n keys)
 export const CATEGORY_MESSAGES = {
-  CREATED: 'Categoría creada exitosamente',
-  UPDATED: 'Categoría actualizada exitosamente',
-  DELETED: 'Categoría eliminada exitosamente',
-  NOT_FOUND: 'Categoría no encontrada',
-  NAME_REQUIRED: 'El nombre es requerido',
-  NAME_TOO_SHORT: 'El nombre debe tener al menos 2 caracteres',
-  NAME_TOO_LONG: 'El nombre no puede exceder 100 caracteres',
-  NAME_ALREADY_EXISTS: 'Una categoría con este nombre ya existe',
-  SLUG_REQUIRED: 'El slug es requerido',
-  SLUG_ALREADY_EXISTS: 'Una categoría con este slug ya existe',
-  INVALID_COLOR: 'El color debe ser un código hexadecimal válido (#RRGGBB)',
-  DESCRIPTION_TOO_LONG: 'La descripción no puede exceder 500 caracteres',
-  CANNOT_DELETE_WITH_POSTS:
-    'No puede eliminar una categoría que tiene posts asociados',
+  CREATED: 'categories.created',
+  UPDATED: 'categories.updated',
+  DELETED: 'categories.deleted',
+  NOT_FOUND: 'categories.not_found',
+};
+
+// Category Validation Messages (i18n keys)
+export const CATEGORY_VALIDATION_MESSAGES = {
+  // Name
+  NAME_REQUIRED: 'categories.validation_name_required',
+  NAME_MIN_LENGTH: 'categories.validation_name_minLength',
+  NAME_MAX_LENGTH: 'categories.validation_name_maxLength',
+  NAME_ALREADY_EXISTS: 'categories.validation_name_exists',
+
+  // Slug
+  SLUG_REQUIRED: 'categories.validation_slug_required',
+  SLUG_MIN_LENGTH: 'categories.validation_slug_minLength',
+  SLUG_MAX_LENGTH: 'categories.validation_slug_maxLength',
+  SLUG_PATTERN: 'categories.validation_slug_pattern',
+  SLUG_ALREADY_EXISTS: 'categories.validation_slug_exists',
+
+  // Color
+  COLOR_INVALID: 'categories.validation_color_invalid',
+
+  // Description
+  DESCRIPTION_MAX_LENGTH: 'categories.validation_description_maxLength',
+
+  // Delete
+  CANNOT_DELETE_WITH_POSTS: 'categories.validation_cannot_delete_with_posts',
 };
 
 // Category Swagger Documentation

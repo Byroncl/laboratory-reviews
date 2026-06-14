@@ -1,0 +1,66 @@
+<div class="filter-container">
+  <form [formGroup]="filterForm" class="filter-form">
+    <div class="filter-group">
+      <label for="search">Search</label>
+      <input
+        id="search"
+        type="text"
+        formControlName="searchTerm"
+        placeholder="Search by title, body, or author..."
+        [attr.disabled]="isLoading ? true : null"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label for="author">Author</label>
+      <input
+        id="author"
+        type="text"
+        formControlName="author"
+        placeholder="Filter by author..."
+        [attr.disabled]="isLoading ? true : null"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label for="status">Status</label>
+      <select id="status" formControlName="status" [attr.disabled]="isLoading ? true : null">
+        <option value="">All Statuses</option>
+        @for (option of statusOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="dateFrom">From Date</label>
+      <input
+        id="dateFrom"
+        type="date"
+        formControlName="dateFrom"
+        [attr.disabled]="isLoading ? true : null"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label for="dateTo">To Date</label>
+      <input
+        id="dateTo"
+        type="date"
+        formControlName="dateTo"
+        [attr.disabled]="isLoading ? true : null"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="onReset()"
+        [disabled]="isLoading"
+      >
+        Reset Filters
+      </button>
+    </div>
+  </form>
+</div>

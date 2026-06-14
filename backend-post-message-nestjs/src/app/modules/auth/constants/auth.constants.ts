@@ -1,9 +1,12 @@
-export const AUTH_VALIDATION = {
+export const AUTH_CONFIG = {
   USERNAME_MIN_LENGTH: 3,
   USERNAME_MAX_LENGTH: 20,
   PASSWORD_MIN_LENGTH: 6,
   PASSWORD_MAX_LENGTH: 200,
-};
+  TOKEN_EXPIRATION: '24h',
+  REFRESH_TOKEN_EXPIRATION: '7d',
+  PASSWORD_SALT_ROUNDS: 10,
+} as const;
 
 export const AUTH_MESSAGES = {
   // Login messages
@@ -11,7 +14,13 @@ export const AUTH_MESSAGES = {
   LOGIN_INVALID_CREDENTIALS: 'auth.login_invalidCredentials',
   LOGIN_REQUIRED: 'auth.login_required',
   LOGIN_FAILED: 'auth.login_failed',
+  TOKEN_GENERATED: 'auth.token_generated',
+  TOKEN_INVALID: 'auth.token_invalid',
+  TOKEN_EXPIRED: 'auth.token_expired',
+  UNAUTHORIZED: 'auth.errors_unauthorized',
+} as const;
 
+export const AUTH_VALIDATION_MESSAGES = {
   // Username validation
   USERNAME_REQUIRED: 'auth.validation_username_required',
   USERNAME_STRING: 'auth.validation_username_mustBeString',
@@ -25,15 +34,9 @@ export const AUTH_MESSAGES = {
   PASSWORD_MIN_LENGTH: 'auth.validation_password_minLength',
   PASSWORD_MAX_LENGTH: 'auth.validation_password_maxLength',
 
-  // Token messages
-  TOKEN_GENERATED: 'auth.token_generated',
-  TOKEN_INVALID: 'auth.token_invalid',
-  TOKEN_EXPIRED: 'auth.token_expired',
-
-  // Auth errors
+  // Credentials validation
   INVALID_CREDENTIALS: 'auth.errors_invalidCredentials',
-  UNAUTHORIZED: 'auth.errors_unauthorized',
-};
+} as const;
 
 export const AUTH_SWAGGER = {
   LOGIN: {
@@ -54,6 +57,25 @@ export const AUTH_SWAGGER = {
   },
 };
 
+/**
+ * API Response Descriptions
+ */
+export const AUTH_RESPONSE_DESCRIPTIONS = {
+  LOGIN_SUCCESS: 'Login successful, JWT token returned',
+  LOGIN_FAILED: 'Login failed, invalid credentials',
+  UNAUTHORIZED: 'Unauthorized access',
+  TOKEN_INVALID: 'Token is invalid or expired',
+  VALIDATION_FAILED: 'Validation failed',
+} as const;
+
+/**
+ * API Parameter Descriptions
+ */
+export const AUTH_PARAM_DESCRIPTIONS = {
+  USERNAME: 'User login username',
+  PASSWORD: 'User login password',
+} as const;
+
 export const AUTH_EXAMPLES = {
   LOGIN_REQUEST: {
     username: 'johndoe',
@@ -69,21 +91,21 @@ export const AUTH_EXAMPLES = {
   },
 };
 
+/**
+ * DTO field descriptions for Swagger
+ */
 export const AUTH_DTO_DESCRIPTIONS = {
-  ACCESS_TOKEN: 'JWT access token para autenticación en requests posteriores',
-  ACCESS_TOKEN_FORMAT: 'Bearer token',
-  USERNAME: `Username (alphanumeric, ${AUTH_VALIDATION.USERNAME_MIN_LENGTH}-${AUTH_VALIDATION.USERNAME_MAX_LENGTH} characters)`,
-  PASSWORD: `Password (${AUTH_VALIDATION.PASSWORD_MIN_LENGTH}-${AUTH_VALIDATION.PASSWORD_MAX_LENGTH} characters)`,
-};
+  ACCESS_TOKEN: 'JWT access token for authentication in subsequent requests',
+  ACCESS_TOKEN_FORMAT: 'Bearer token format',
+  USERNAME: `Username (alphanumeric, ${AUTH_CONFIG.USERNAME_MIN_LENGTH}-${AUTH_CONFIG.USERNAME_MAX_LENGTH} characters)`,
+  PASSWORD: `Password (${AUTH_CONFIG.PASSWORD_MIN_LENGTH}-${AUTH_CONFIG.PASSWORD_MAX_LENGTH} characters)`,
+} as const;
 
+/**
+ * User roles
+ */
 export const AUTH_ROLES = {
   USER: 'user',
   CLIENT: 'client',
   ADMIN: 'admin',
 } as const;
-
-export const AUTH_DEFAULTS = {
-  TOKEN_EXPIRATION: '24h',
-  REFRESH_TOKEN_EXPIRATION: '7d',
-  PASSWORD_SALT_ROUNDS: 10,
-};

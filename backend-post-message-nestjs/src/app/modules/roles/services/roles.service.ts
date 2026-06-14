@@ -1,70 +1,102 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Injectable } from '@nestjs/common';
 import { Role } from '../schemas/role.schema';
 import { CreateRoleDto } from '../dto/create-role.dto';
 import { UpdateRoleDto } from '../dto/update-role.dto';
+import { RoleRepository } from '../domain/repositories/role.repository';
 
+/**
+ * RolesService acts as an orchestrator that delegates to the repository.
+ * All business logic is handled by the repository layer.
+ */
 @Injectable()
 export class RolesService {
-  constructor(@InjectModel(Role.name) private roleModel: Model<Role>) {}
+  constructor(private readonly roleRepository: RoleRepository) {}
 
+  /**
+   * Create a new role.
+   * @param createRoleDto - Data for creating the role
+   * @returns The created role
+   */
   async create(createRoleDto: CreateRoleDto): Promise<Role> {
-    const identifier = createRoleDto.name.toLowerCase().replace(/ /g, '-');
-    const createdRole = new this.roleModel({
-      ...createRoleDto,
-      identifier,
-    });
-    return createdRole.save();
+    return this.roleRepository.create(createRoleDto);
   }
 
+  /**
+   * Find all roles, optionally filtered by name.
+   * @param name - Optional name filter
+   * @returns Array of roles with permissions
+   */
   async findAll(name?: string): Promise<Role[]> {
-    const filter = name ? { name: { $regex: name, $options: 'i' } } : {};
-    return this.roleModel.find(filter).populate('permissions').exec();
+    return this.roleRepository.findAll(name);
   }
 
+  /**
+   * Find a role by ID.
+   * @param id - The role ID
+   * @returns The role with permissions
+   */
   async findOne(id: string): Promise<Role | null> {
-    return this.roleModel.findById(id).populate('permissions').exec();
+    return this.roleRepository.findOne(id);
   }
 
+  /**
+   * Update a role.
+   * @param id - The role ID
+   * @param updateRoleDto - Data to update
+   * @returns The updated role
+   */
   async update(id: string, updateRoleDto: UpdateRoleDto): Promise<Role | null> {
-    return this.roleModel
-      .findByIdAndUpdate(id, updateRoleDto, { new: true })
-      .exec();
+    return this.roleRepository.update(id, updateRoleDto);
   }
 
+  /**
+   * Delete a role.
+   * @param id - The role ID
+   * @returns The deleted role
+   */
   async remove(id: string): Promise<Role | null> {
-    return this.roleModel.findByIdAndDelete(id).exec();
+    return this.roleRepository.remove(id);
   }
 
-  async assignPermissions(roleId: string, permissionIds: string[]): Promise<Role> {
-    const objectIds = permissionIds.map(id => new Types.ObjectId(id));
-    const updated = await this.roleModel
-      .findByIdAndUpdate(
-        roleId,
-        { permissions: objectIds },
-        { new: true },
-      )
-      .populate('permissions')
-      .exec();
-
-    if (!updated) {
-      throw new NotFoundException('Role not found');
-    }
-    return updated;
+  /**
+   * Assign permissions to a role.
+   * @param roleId - The role ID
+   * @param permissionIds - Array of permission IDs
+   * @returns The updated role with permissions
+   */
+  async assignPermissions(
+    roleId: string,
+    permissionIds: string[],
+  ): Promise<Role> {
+    return this.roleRepository.assignPermissions(roleId, permissionIds);
   }
 
-  async hasPermission(roleId: string, permissionIdentifier: string): Promise<boolean> {
-    const role = await this.roleModel.findById(roleId).populate('permissions').exec();
-    if (!role) return false;
-    const perms = role.permissions as any[];
-    return perms.some(p => p.identifier === permissionIdentifier);
+  /**
+   * Check if a role has a specific permission.
+   * @param roleId - The role ID
+   * @param permissionIdentifier - The permission identifier
+   * @returns True if role has the permission
+   */
+  async hasPermission(
+    roleId: string,
+    permissionIdentifier: string,
+  ): Promise<boolean> {
+    return this.roleRepository.hasPermission(roleId, permissionIdentifier);
   }
 
-  async hasAllPermissions(roleId: string, permissionIdentifiers: string[]): Promise<boolean> {
-    const role = await this.roleModel.findById(roleId).populate('permissions').exec();
-    if (!role) return false;
-    const perms = role.permissions as any[];
-    return permissionIdentifiers.every(id => perms.some(p => p.identifier === id));
+  /**
+   * Check if a role has all specified permissions.
+   * @param roleId - The role ID
+   * @param permissionIdentifiers - Array of permission identifiers
+   * @returns True if role has all permissions
+   */
+  async hasAllPermissions(
+    roleId: string,
+    permissionIdentifiers: string[],
+  ): Promise<boolean> {
+    return this.roleRepository.hasAllPermissions(
+      roleId,
+      permissionIdentifiers,
+    );
   }
 }

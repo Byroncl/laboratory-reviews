@@ -1,0 +1,90 @@
+<div class="space-y-6">
+  <!-- Form Panel -->
+  @if (showPermissionForm$()) {
+    <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-gray-900">
+          {{ editingPermissionId$() ? 'Editar Permiso' : 'Crear Nuevo Permiso' }}
+        </h2>
+        <button (click)="closeForm()" class="text-gray-500 hover:text-gray-700 text-2xl">
+          ×
+        </button>
+      </div>
+      <app-permission-form
+        [editingPermissionId]="editingPermissionId$()"
+        (formSubmitted)="onFormSubmitted()"
+        (formCancelled)="closeForm()"
+      ></app-permission-form>
+    </div>
+  }
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <h1 class="text-3xl font-bold text-primary">{{ 'sidebar.permissions' | t }}</h1>
+    <button
+      (click)="onCreatePermission()"
+      [disabled]="showPermissionForm$()"
+      class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
+    >
+      + Nuevo Permiso
+    </button>
+  </div>
+
+  <!-- Search -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-white rounded-lg shadow p-4">
+    <input
+      type="text"
+      placeholder="Buscar por nombre..."
+      [(ngModel)]="globalSearch"
+      (input)="onGlobalSearch()"
+      class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+    />
+    @if (hasActiveFilters()) {
+      <button
+        (click)="clearAllFilters()"
+        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium text-sm"
+      >
+        ✕ Limpiar filtros
+      </button>
+    }
+  </div>
+
+  <!-- Loading State -->
+  @if (permissionsService.loading$()) {
+    <app-skeleton type="table"></app-skeleton>
+  } @else {
+    @if ((permissionsService.permissions$() ?? []).length > 0) {
+      <!-- Table -->
+      <app-table
+        [columns]="columns"
+        [data]="filteredPermissions()"
+        [actions]="actions"
+        [primaryColumnKey]="'name'"
+        (actionTriggered)="onTableAction($event)"
+        (sorted)="onSort($event)"
+        (filtered)="onColumnFilter($event)"
+      ></app-table>
+
+      <!-- Pagination -->
+      <app-pagination
+        [currentPage]="currentPage"
+        [totalPages]="totalPages()"
+        [total]="filteredPermissions().length"
+        [pageSize]="pageSize"
+        (pageChanged)="onPageChange($event)"
+      ></app-pagination>
+    } @else {
+      <div class="bg-white rounded-lg shadow p-8 text-center">
+        <p class="text-gray-500 font-medium">No hay permisos que coincidan con los filtros</p>
+      </div>
+    }
+  }
+
+  <!-- Stats -->
+  <div class="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+      <p class="text-secondary text-xs font-medium uppercase tracking-wide">Total Permisos</p>
+      <p class="text-3xl font-bold text-primary mt-2">{{ totalPermissionsCount() }}</p>
+    </div>
+  </div>
+</div>

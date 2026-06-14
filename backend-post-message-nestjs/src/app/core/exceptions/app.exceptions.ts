@@ -39,6 +39,22 @@ export class ValidationException extends HttpException {
   }
 }
 
+export class DomainException extends HttpException {
+  constructor(
+    public readonly i18nKey: string,
+    statusCode: number = HttpStatus.BAD_REQUEST,
+  ) {
+    super(
+      {
+        statusCode,
+        i18nKey,
+        error: 'VALIDATION_ERROR',
+      },
+      statusCode,
+    );
+  }
+}
+
 export class AppUnauthorizedException extends HttpException {
   constructor(message: string = 'Unauthorized') {
     super(

@@ -37,6 +37,12 @@ import { FindOneDto } from 'src/app/core/dto/find-one.dto';
 import { TranslationService } from '../../../core/utils/translation.service';
 import { AuditActionDecorator } from '../../../core/decorators/audit-action.decorator';
 import { AuditAction, EntityType } from '../../audit/schemas/audit-log.schema';
+import {
+  COMMENTS_SWAGGER,
+  COMMENTS_RESPONSE_DESCRIPTIONS,
+  COMMENTS_PARAM_DESCRIPTIONS,
+  COMMENTS_MESSAGES,
+} from '../constants/comments.constants';
 
 @ApiTags('comments')
 @Controller('comments')
@@ -51,11 +57,21 @@ export class CommentsController {
 
   @Auth()
   @AuditActionDecorator(AuditAction.CREATE, EntityType.COMMENT)
-  @ApiOperation({ summary: 'Create a new comment' })
+  @ApiOperation(COMMENTS_SWAGGER.CREATE)
   @ApiBody({ type: CreateCommentDto })
-  @ApiResponse({ status: 201, description: 'Comment created successfully', type: CommentResponseDto })
-  @ApiResponse({ status: 400, description: 'Validation failed' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 201,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.CREATED,
+    type: CommentResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.VALIDATION_FAILED,
+  })
+  @ApiResponse({
+    status: 401,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
   @Post()
   async create(
     @Body() createCommentDto: CreateCommentDto,
@@ -77,14 +93,18 @@ export class CommentsController {
       }
     }
 
-    return ApiRes.success(comment, this.i18n.translate('comments.created'));
+    return ApiRes.success(comment, this.i18n.translate(COMMENTS_MESSAGES.CREATED));
   }
 
   @Auth()
-  @ApiOperation({ summary: 'Get my comments (client or admin)' })
+  @ApiOperation(COMMENTS_SWAGGER.FIND_BY_USER)
   @ApiQuery({ name: 'page', required: false, type: 'number' })
   @ApiQuery({ name: 'limit', required: false, type: 'number' })
-  @ApiResponse({ status: 200, description: 'List of my comments', type: [CommentResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.LIST,
+    type: [CommentResponseDto],
+  })
   @Get('my-comments')
   async getMyComments(
     @CurrentUser() user: CurrentUserPayload,
@@ -97,16 +117,25 @@ export class CommentsController {
       (typeof (user as any).role === 'object' && (user as any).role?.name === 'admin');
 
     if (!isClient && !isAdmin) {
-      throw new ForbiddenException('Acceso denegado');
+      throw new ForbiddenException(this.i18n.translate(COMMENTS_MESSAGES.UNAUTHORIZED_DELETE));
     }
     const skip = (page - 1) * limit;
     const result = await this.commentsService.findByUserId(user.id, skip, limit);
     return ApiRes.success(result);
   }
 
-  @ApiOperation({ summary: 'Get all comments (optionally filtered by post)' })
-  @ApiQuery({ name: 'postId', required: true, type: 'string', description: 'MongoDB ObjectId of the post' })
-  @ApiResponse({ status: 200, description: 'List of comments', type: [CommentResponseDto] })
+  @ApiOperation(COMMENTS_SWAGGER.FIND_ALL)
+  @ApiQuery({
+    name: 'postId',
+    required: true,
+    type: 'string',
+    description: COMMENTS_PARAM_DESCRIPTIONS.POST_ID,
+  })
+  @ApiResponse({
+    status: 200,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.LIST,
+    type: [CommentResponseDto],
+  })
   @Get()
   async findAll(@Query() findCommentsByPostDto: FindCommentsByPostDto) {
     const comments = await this.commentsService.findAll(
@@ -115,10 +144,21 @@ export class CommentsController {
     return ApiRes.success(comments);
   }
 
-  @ApiOperation({ summary: 'Get a comment by ID' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Comment MongoDB ObjectId' })
-  @ApiResponse({ status: 200, description: 'Comment found', type: CommentResponseDto })
-  @ApiResponse({ status: 404, description: 'Comment not found' })
+  @ApiOperation(COMMENTS_SWAGGER.FIND_ONE)
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: COMMENTS_PARAM_DESCRIPTIONS.ID,
+  })
+  @ApiResponse({
+    status: 200,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.FOUND,
+    type: CommentResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.NOT_FOUND,
+  })
   @Get(':id')
   async findOne(@Param() findOneDto: FindOneDto) {
     const comment = await this.commentsService.findOne(findOneDto.id);
@@ -127,12 +167,26 @@ export class CommentsController {
 
   @Auth()
   @AuditActionDecorator(AuditAction.UPDATE, EntityType.COMMENT, { captureSnapshot: true })
-  @ApiOperation({ summary: 'Update a comment' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Comment MongoDB ObjectId' })
+  @ApiOperation(COMMENTS_SWAGGER.UPDATE)
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: COMMENTS_PARAM_DESCRIPTIONS.ID,
+  })
   @ApiBody({ type: UpdateCommentDto })
-  @ApiResponse({ status: 200, description: 'Comment updated successfully', type: CommentResponseDto })
-  @ApiResponse({ status: 404, description: 'Comment not found' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 200,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.UPDATED,
+    type: CommentResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.NOT_FOUND,
+  })
+  @ApiResponse({
+    status: 401,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
   @Put(':id')
   async update(
     @Param() findOneDto: FindOneDto,
@@ -142,31 +196,58 @@ export class CommentsController {
       findOneDto.id,
       updateCommentDto,
     );
-    return ApiRes.success(comment, this.i18n.translate('comments.updated'));
+    return ApiRes.success(comment, this.i18n.translate(COMMENTS_MESSAGES.UPDATED));
   }
 
   @Auth()
   @AuditActionDecorator(AuditAction.DELETE, EntityType.COMMENT)
-  @ApiOperation({ summary: 'Delete a comment' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Comment MongoDB ObjectId' })
-  @ApiResponse({ status: 200, description: 'Comment deleted successfully' })
-  @ApiResponse({ status: 404, description: 'Comment not found' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiOperation(COMMENTS_SWAGGER.DELETE)
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: COMMENTS_PARAM_DESCRIPTIONS.ID,
+  })
+  @ApiResponse({
+    status: 200,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.DELETED,
+  })
+  @ApiResponse({
+    status: 404,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.NOT_FOUND,
+  })
+  @ApiResponse({
+    status: 401,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
   @Delete(':id')
   async remove(@Param() findOneDto: FindOneDto) {
     await this.commentsService.remove(findOneDto.id);
-    return ApiRes.success(null, this.i18n.translate('comments.deleted'));
+    return ApiRes.success(null, this.i18n.translate(COMMENTS_MESSAGES.DELETED));
   }
 
   // ─── Nested comments / Replies ────────────────────────────────────────────
 
   @Auth()
-  @ApiOperation({ summary: 'Create a reply to a comment' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Parent comment ID' })
+  @ApiOperation(COMMENTS_SWAGGER.CREATE)
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: COMMENTS_PARAM_DESCRIPTIONS.ID,
+  })
   @ApiBody({ type: CreateCommentDto })
-  @ApiResponse({ status: 201, description: 'Reply created successfully', type: CommentResponseDto })
-  @ApiResponse({ status: 404, description: 'Parent comment not found' })
-  @ApiResponse({ status: 400, description: 'Cannot reply to a reply (max 2 levels)' })
+  @ApiResponse({
+    status: 201,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.CREATED,
+    type: CommentResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.NOT_FOUND,
+  })
+  @ApiResponse({
+    status: 400,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.VALIDATION_FAILED,
+  })
   @Post(':id/replies')
   async createReply(
     @Param() findOneDto: FindOneDto,
@@ -186,14 +267,22 @@ export class CommentsController {
       reply: formattedReply,
     });
 
-    return ApiRes.success(formattedReply, this.i18n.translate('comments.reply_created'));
+    return ApiRes.success(formattedReply, this.i18n.translate(COMMENTS_MESSAGES.CREATED));
   }
 
-  @ApiOperation({ summary: 'Get all replies to a comment' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Parent comment ID' })
+  @ApiOperation(COMMENTS_SWAGGER.GET_REPLIES)
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: COMMENTS_PARAM_DESCRIPTIONS.ID,
+  })
   @ApiQuery({ name: 'skip', required: false, type: 'number' })
   @ApiQuery({ name: 'limit', required: false, type: 'number' })
-  @ApiResponse({ status: 200, description: 'List of replies', type: [CommentResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.REPLIES,
+    type: [CommentResponseDto],
+  })
   @Get(':id/replies')
   async getReplies(
     @Param() findOneDto: FindOneDto,
@@ -207,18 +296,34 @@ export class CommentsController {
     return ApiRes.success({ items, total, parentCommentId: findOneDto.id });
   }
 
-  @ApiOperation({ summary: 'Get entire comment thread (root + all nested replies)' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Comment ID (root or reply)' })
-  @ApiResponse({ status: 200, description: 'Full comment thread', type: CommentThreadDto })
+  @ApiOperation(COMMENTS_SWAGGER.GET_THREAD)
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: COMMENTS_PARAM_DESCRIPTIONS.ID,
+  })
+  @ApiResponse({
+    status: 200,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.THREAD,
+    type: CommentThreadDto,
+  })
   @Get(':id/thread')
   async getCommentThread(@Param() findOneDto: FindOneDto) {
     const thread = await this.commentsService.getCommentThread(findOneDto.id);
-    return ApiRes.success(thread, this.i18n.translate('comments.thread_retrieved'));
+    return ApiRes.success(thread, this.i18n.translate(COMMENTS_MESSAGES.CREATED));
   }
 
-  @ApiOperation({ summary: 'Get comment with immediate replies' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Comment ID' })
-  @ApiResponse({ status: 200, description: 'Comment with direct replies', type: CommentTreeNodeDto })
+  @ApiOperation('Get comment with immediate replies')
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: COMMENTS_PARAM_DESCRIPTIONS.ID,
+  })
+  @ApiResponse({
+    status: 200,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.FOUND,
+    type: CommentTreeNodeDto,
+  })
   @Get(':id/with-replies')
   async getCommentWithReplies(@Param() findOneDto: FindOneDto) {
     const tree = await this.commentsService.getCommentWithReplies(findOneDto.id);
@@ -228,10 +333,17 @@ export class CommentsController {
   // ─── Reactions ────────────────────────────────────────────────────────────
 
   @Auth()
-  @ApiOperation({ summary: 'Add reaction to comment' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Comment MongoDB ObjectId' })
+  @ApiOperation(COMMENTS_SWAGGER.ADD_REACTION)
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: COMMENTS_PARAM_DESCRIPTIONS.ID,
+  })
   @ApiBody({ type: CreateReactionDto })
-  @ApiResponse({ status: 200, description: 'Reaction added successfully' })
+  @ApiResponse({
+    status: 200,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.REACTION_ADDED,
+  })
   @Post(':id/reactions')
   async addReaction(
     @Param() findOneDto: FindOneDto,
@@ -255,14 +367,21 @@ export class CommentsController {
       reactions: reactionsSummary,
     });
 
-    return ApiRes.success(reaction, this.i18n.translate('comments.reaction_added'));
+    return ApiRes.success(reaction, this.i18n.translate(COMMENTS_MESSAGES.REACTION_ADDED));
   }
 
   @Auth()
-  @ApiOperation({ summary: 'Remove reaction from comment' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Comment MongoDB ObjectId' })
+  @ApiOperation(COMMENTS_SWAGGER.REMOVE_REACTION)
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: COMMENTS_PARAM_DESCRIPTIONS.ID,
+  })
   @ApiParam({ name: 'emoji', type: 'string', description: 'Emoji to remove' })
-  @ApiResponse({ status: 200, description: 'Reaction removed successfully' })
+  @ApiResponse({
+    status: 200,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.REACTION_REMOVED,
+  })
   @Delete(':id/reactions/:emoji')
   async removeReaction(
     @Param() params: { id: string; emoji: string },
@@ -281,16 +400,20 @@ export class CommentsController {
       reactions: reactionsSummary,
     });
 
-    return ApiRes.success(null, this.i18n.translate('comments.reaction_removed'));
+    return ApiRes.success(null, this.i18n.translate(COMMENTS_MESSAGES.REACTION_REMOVED));
   }
 
-  /**
-   * @public — no @Auth() decorator.
-   * userReacted always false — @CurrentUser() returns undefined without optional-auth layer; see follow-up.
-   */
-  @ApiOperation({ summary: 'Get all reactions for a comment' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Comment MongoDB ObjectId' })
-  @ApiResponse({ status: 200, description: 'Reactions summary', type: ReactionResponseDto })
+  @ApiOperation('Get all reactions for a comment')
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: COMMENTS_PARAM_DESCRIPTIONS.ID,
+  })
+  @ApiResponse({
+    status: 200,
+    description: COMMENTS_RESPONSE_DESCRIPTIONS.FOUND,
+    type: ReactionResponseDto,
+  })
   @Get(':id/reactions')
   async getReactions(
     @Param() findOneDto: FindOneDto,

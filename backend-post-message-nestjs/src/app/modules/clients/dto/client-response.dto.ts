@@ -1,7 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ClientResponseDto {
-  @ApiProperty({ example: '507f1f77bcf86cd799439011', description: 'Client ID' })
+  @ApiProperty({
+    example: '507f1f77bcf86cd799439011',
+    description: 'Client ID',
+  })
   id: string;
 
   @ApiProperty({ example: 'Jane', description: 'First name' })

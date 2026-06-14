@@ -126,9 +126,14 @@ export const CLIENT_DTO_DESCRIPTIONS = {
 
   // ClientResponseDto
   ID: 'Unique client identifier',
+  NAME_RESPONSE: `First name of the client (${CLIENT_VALIDATION.NAME_MIN_LENGTH}-${CLIENT_VALIDATION.NAME_MAX_LENGTH} characters)`,
+  LASTNAME_RESPONSE: `Last name of the client (${CLIENT_VALIDATION.LASTNAME_MIN_LENGTH}-${CLIENT_VALIDATION.LASTNAME_MAX_LENGTH} characters)`,
+  USERNAME_RESPONSE: `Unique username (${CLIENT_VALIDATION.USERNAME_MIN_LENGTH}-${CLIENT_VALIDATION.USERNAME_MAX_LENGTH} alphanumeric characters)`,
+  EMAIL_RESPONSE: 'Valid email address',
+  TYPE_RESPONSE: `Client type (${CLIENT_VALIDATION.TYPE_MIN_LENGTH}-${CLIENT_VALIDATION.TYPE_MAX_LENGTH} characters)`,
+  IS_ACTIVE: 'Whether the client account is active',
   CREATED_AT: 'Account creation date',
   UPDATED_AT: 'Last update date',
-  IS_ACTIVE: 'Whether the client account is active',
 };
 
 // Regex Patterns

@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CategoryEntity } from '../../domain/entities/category.entity';
-import { CategoryResponseDto, CategoriesListResponseDto } from '../../application/dtos/category-response.dto';
+import {
+  CategoryResponseDto,
+  CategoriesListResponseDto,
+} from '../../application/dtos/category-response.dto';
 
 @Injectable()
 export class CategoryMapper {
@@ -39,7 +42,7 @@ export class CategoryMapper {
     limit: number,
   ): CategoriesListResponseDto {
     return {
-      items: entities.map(e => this.toResponse(e)),
+      items: entities.map((e) => this.toResponse(e)),
       total,
       page,
       limit,

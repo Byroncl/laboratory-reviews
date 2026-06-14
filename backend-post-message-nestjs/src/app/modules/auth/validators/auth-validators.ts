@@ -3,7 +3,10 @@ import {
   ValidatorConstraintInterface,
   ValidationArguments,
   isAlphanumeric,
-  isLength,
+  registerDecorator,
+  ValidationOptions,
+  MinLength,
+  MaxLength,
 } from 'class-validator';
 import { Injectable } from '@nestjs/common';
 import { I18nService } from '../../../core/i18n/i18n.service';
@@ -19,10 +22,13 @@ export class IsValidUsernameConstraint implements ValidatorConstraintInterface {
   constructor(private readonly i18nService: I18nService) {}
 
   validate(value: string): boolean {
+    if (!value || typeof value !== 'string') {
+      return false;
+    }
     if (!isAlphanumeric(value)) {
       return false;
     }
-    return isLength(value, { min: 3, max: 20 });
+    return value.length >= 3 && value.length <= 20;
   }
 
   defaultMessage(args: ValidationArguments): string {
@@ -40,13 +46,46 @@ export class IsValidPasswordConstraint implements ValidatorConstraintInterface {
   constructor(private readonly i18nService: I18nService) {}
 
   validate(value: string): boolean {
-    return isLength(value, {
-      min: AUTH_CONFIG.PASSWORD_MIN_LENGTH,
-      max: AUTH_CONFIG.PASSWORD_MAX_LENGTH,
-    });
+    if (!value || typeof value !== 'string') {
+      return false;
+    }
+    return (
+      value.length >= AUTH_CONFIG.PASSWORD_MIN_LENGTH &&
+      value.length <= AUTH_CONFIG.PASSWORD_MAX_LENGTH
+    );
   }
 
   defaultMessage(args: ValidationArguments): string {
     return this.i18nService.translate('validation.password_invalid');
   }
+}
+
+/**
+ * Decorator for validating username
+ */
+export function IsValidUsername(validationOptions?: ValidationOptions) {
+  return function (target: object, propertyName: string) {
+    registerDecorator({
+      target: target.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      constraints: [],
+      validator: IsValidUsernameConstraint,
+    });
+  };
+}
+
+/**
+ * Decorator for validating password
+ */
+export function IsValidPassword(validationOptions?: ValidationOptions) {
+  return function (target: object, propertyName: string) {
+    registerDecorator({
+      target: target.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      constraints: [],
+      validator: IsValidPasswordConstraint,
+    });
+  };
 }

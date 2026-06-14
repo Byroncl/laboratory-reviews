@@ -1,0 +1,58 @@
+<div class="post-card" [class.loading]="isLoading">
+  <div class="post-card-header">
+    <h3 class="post-title">{{ post.title }}</h3>
+    <span class="post-status" [ngClass]="'status-' + post.status">
+      {{ post.status | postStatus }}
+    </span>
+  </div>
+
+  <div class="post-meta">
+    <span class="meta-item">
+      <strong>By:</strong> {{ post.author }}
+    </span>
+    @if (post.createdAt) {
+      <span class="meta-item">
+        <strong>Date:</strong> {{ post.createdAt | date: 'short' }}
+      </span>
+    }
+    @if (post.commentCount) {
+      <span class="meta-item">
+        <strong>Comments:</strong> {{ post.commentCount }}
+      </span>
+    }
+  </div>
+
+  <div class="post-body">
+    <p>{{ post.body | slice: 0:150 }}...</p>
+  </div>
+
+  @if (post.tags && post.tags.length > 0) {
+    <div class="post-tags">
+      @for (tag of post.tags; track tag) {
+        <span class="tag">{{ tag }}</span>
+      }
+    </div>
+  }
+
+  <div class="post-actions">
+    <button class="btn btn-primary" (click)="onView()" [disabled]="isLoading">
+      View
+    </button>
+    <button class="btn btn-secondary" (click)="onEdit()" [disabled]="isLoading">
+      Edit
+    </button>
+    @if (post.status === 'draft') {
+      <button class="btn btn-success" (click)="onPublish()" [disabled]="isLoading">
+        Publish
+      </button>
+    }
+    @if (post.status === 'published') {
+      <button class="btn btn-warning" (click)="onArchive()" [disabled]="isLoading">
+        Archive
+      </button>
+    }
+    <button class="btn btn-danger" (click)="onDelete()" [disabled]="isLoading">
+      Delete
+    </button>
+  </div>
+</div>

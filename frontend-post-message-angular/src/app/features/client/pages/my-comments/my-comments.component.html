@@ -1,0 +1,45 @@
+
+    <div class="my-comments">
+      <div class="header">
+        <h2>Mis Comentarios</h2>
+        <span class="count">{{ comments().length }} comentario(s)</span>
+      </div>
+
+      <div class="loading" *ngIf="isLoading()">
+        Cargando tus comentarios...
+      </div>
+
+      <div class="empty-state" *ngIf="!isLoading() && comments().length === 0">
+        <p>No has hecho comentarios aún</p>
+      </div>
+
+      <div class="comments-list" *ngIf="!isLoading() && comments().length > 0">
+        <app-comment-card
+          *ngFor="let comment of comments()"
+          [comment]="comment"
+          [showDelete]="true"
+          [postId]="comment.postId"
+          (delete)="onDeleteComment($event)"
+        ></app-comment-card>
+      </div>
+
+      <div class="pagination" *ngIf="totalPages() > 1">
+        <button
+          class="btn btn-small"
+          [disabled]="currentPage() === 1"
+          (click)="previousPage()"
+        >
+          Anterior
+        </button>
+        <span class="page-info">
+          Página {{ currentPage() }} de {{ totalPages() }}
+        </span>
+        <button
+          class="btn btn-small"
+          [disabled]="currentPage() === totalPages()"
+          (click)="nextPage()"
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>

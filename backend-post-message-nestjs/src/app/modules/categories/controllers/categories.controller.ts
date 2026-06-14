@@ -22,7 +22,10 @@ import {
 import { CategoryUseCaseFactory } from '../application/use-cases/category.use-cases';
 import { CreateCategoryDto } from '../application/dtos/create-category.dto';
 import { UpdateCategoryDto } from '../application/dtos/update-category.dto';
-import { CategoryResponseDto, CategoriesListResponseDto } from '../application/dtos/category-response.dto';
+import {
+  CategoryResponseDto,
+  CategoriesListResponseDto,
+} from '../application/dtos/category-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
 import { Auth } from '../../../core/decorators/auth.decorator';
 import { HasPermission } from '../../../core/decorators/has-permission.decorator';
@@ -30,7 +33,11 @@ import { FindOneDto } from '../../../core/dto/find-one.dto';
 import { PaginationQueryDto } from '../../../core/dto/pagination.dto';
 import { AuditActionDecorator } from '../../../core/decorators/audit-action.decorator';
 import { AuditAction, EntityType } from '../../audit/schemas/audit-log.schema';
-import { CATEGORY_SWAGGER, CATEGORY_MESSAGES, CATEGORY_PAGINATION } from '../constants/category.constants';
+import {
+  CATEGORY_SWAGGER,
+  CATEGORY_MESSAGES,
+  CATEGORY_PAGINATION,
+} from '../constants/category.constants';
 
 @ApiTags('Categories')
 @Controller('categories')
@@ -41,7 +48,12 @@ export class CategoriesController {
   @ApiOperation(CATEGORY_SWAGGER.GET_ALL)
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
-  @ApiQuery({ name: 'search', required: false, type: String, description: 'Search by name or slug' })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search by name or slug',
+  })
   @ApiResponse({
     status: 200,
     description: CATEGORY_SWAGGER.GET_ALL.description,
@@ -52,9 +64,14 @@ export class CategoriesController {
     @Query('search') search?: string,
   ) {
     const page = paginationDto.page || CATEGORY_PAGINATION.DEFAULT_PAGE;
-    const limit = Math.min(paginationDto.limit || CATEGORY_PAGINATION.DEFAULT_LIMIT, CATEGORY_PAGINATION.MAX_LIMIT);
+    const limit = Math.min(
+      paginationDto.limit || CATEGORY_PAGINATION.DEFAULT_LIMIT,
+      CATEGORY_PAGINATION.MAX_LIMIT,
+    );
 
-    const result = await this.categoriesUseCase.getAllCategories(page, limit, { search });
+    const result = await this.categoriesUseCase.getAllCategories(page, limit, {
+      search,
+    });
     return ApiRes.success(result);
   }
 
@@ -125,7 +142,8 @@ export class CategoriesController {
     type: CategoryResponseDto,
   })
   async create(@Body(ValidationPipe) createCategoryDto: CreateCategoryDto) {
-    const category = await this.categoriesUseCase.createCategory(createCategoryDto);
+    const category =
+      await this.categoriesUseCase.createCategory(createCategoryDto);
     return ApiRes.success(category, CATEGORY_MESSAGES.CREATED);
   }
 
@@ -140,15 +158,23 @@ export class CategoriesController {
     description: CATEGORY_SWAGGER.BULK_CREATE.description,
     type: [CategoryResponseDto],
   })
-  async bulkCreate(@Body(ValidationPipe) createCategoryDtos: CreateCategoryDto[]) {
-    const categories = await this.categoriesUseCase.bulkCreateCategories(createCategoryDtos);
-    return ApiRes.success(categories, `${categories.length} categorías creadas exitosamente`);
+  async bulkCreate(
+    @Body(ValidationPipe) createCategoryDtos: CreateCategoryDto[],
+  ) {
+    const categories =
+      await this.categoriesUseCase.bulkCreateCategories(createCategoryDtos);
+    return ApiRes.success(
+      categories,
+      `${categories.length} categorías creadas exitosamente`,
+    );
   }
 
   @Put(':id')
   @Auth()
   @HasPermission('manage_categories')
-  @AuditActionDecorator(AuditAction.UPDATE, EntityType.CATEGORY, { captureSnapshot: true })
+  @AuditActionDecorator(AuditAction.UPDATE, EntityType.CATEGORY, {
+    captureSnapshot: true,
+  })
   @HttpCode(HttpStatus.OK)
   @ApiOperation(CATEGORY_SWAGGER.UPDATE)
   @ApiParam({ name: 'id', type: String, description: 'ID de la categoría' })
@@ -158,8 +184,14 @@ export class CategoriesController {
     description: CATEGORY_SWAGGER.UPDATE.description,
     type: CategoryResponseDto,
   })
-  async update(@Param() { id }: FindOneDto, @Body(ValidationPipe) updateCategoryDto: UpdateCategoryDto) {
-    const category = await this.categoriesUseCase.updateCategory(id, updateCategoryDto);
+  async update(
+    @Param() { id }: FindOneDto,
+    @Body(ValidationPipe) updateCategoryDto: UpdateCategoryDto,
+  ) {
+    const category = await this.categoriesUseCase.updateCategory(
+      id,
+      updateCategoryDto,
+    );
     if (!category) {
       return ApiRes.error(CATEGORY_MESSAGES.NOT_FOUND, 404);
     }

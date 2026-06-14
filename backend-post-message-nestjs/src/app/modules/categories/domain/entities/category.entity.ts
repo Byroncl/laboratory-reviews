@@ -1,4 +1,8 @@
-import { CATEGORY_VALIDATION, CATEGORY_MESSAGES } from '../../constants/category.constants';
+import {
+  CATEGORY_VALIDATION,
+  CATEGORY_VALIDATION_MESSAGES,
+} from '../../constants/category.constants';
+import { DomainException } from '../../../core/exceptions/app.exceptions';
 
 export class CategoryEntity {
   readonly _id?: string;
@@ -40,40 +44,40 @@ export class CategoryEntity {
 
   private validateName(name: string): void {
     if (!name || name.trim().length === 0) {
-      throw new Error(CATEGORY_MESSAGES.NAME_REQUIRED);
+      throw new DomainException(CATEGORY_VALIDATION_MESSAGES.NAME_REQUIRED);
     }
     if (name.length < CATEGORY_VALIDATION.NAME_MIN_LENGTH) {
-      throw new Error(CATEGORY_MESSAGES.NAME_TOO_SHORT);
+      throw new DomainException(CATEGORY_VALIDATION_MESSAGES.NAME_MIN_LENGTH);
     }
     if (name.length > CATEGORY_VALIDATION.NAME_MAX_LENGTH) {
-      throw new Error(CATEGORY_MESSAGES.NAME_TOO_LONG);
+      throw new DomainException(CATEGORY_VALIDATION_MESSAGES.NAME_MAX_LENGTH);
     }
   }
 
   private validateSlug(slug: string): void {
     if (!slug || slug.trim().length === 0) {
-      throw new Error(CATEGORY_MESSAGES.SLUG_REQUIRED);
+      throw new DomainException(CATEGORY_VALIDATION_MESSAGES.SLUG_REQUIRED);
     }
     if (slug.length < CATEGORY_VALIDATION.SLUG_MIN_LENGTH) {
-      throw new Error('El slug debe tener al menos 2 caracteres');
+      throw new DomainException(CATEGORY_VALIDATION_MESSAGES.SLUG_MIN_LENGTH);
     }
     if (slug.length > CATEGORY_VALIDATION.SLUG_MAX_LENGTH) {
-      throw new Error('El slug no puede exceder 100 caracteres');
+      throw new DomainException(CATEGORY_VALIDATION_MESSAGES.SLUG_MAX_LENGTH);
     }
     if (!/^[a-z0-9-]+$/.test(slug)) {
-      throw new Error('El slug solo puede contener letras minúsculas, números y guiones');
+      throw new DomainException(CATEGORY_VALIDATION_MESSAGES.SLUG_PATTERN);
     }
   }
 
   private validateDescription(description?: string): void {
     if (description && description.length > CATEGORY_VALIDATION.DESCRIPTION_MAX_LENGTH) {
-      throw new Error(CATEGORY_MESSAGES.DESCRIPTION_TOO_LONG);
+      throw new DomainException(CATEGORY_VALIDATION_MESSAGES.DESCRIPTION_MAX_LENGTH);
     }
   }
 
   private validateColor(color: string): void {
     if (!CATEGORY_VALIDATION.COLOR_REGEX.test(color)) {
-      throw new Error(CATEGORY_MESSAGES.INVALID_COLOR);
+      throw new DomainException(CATEGORY_VALIDATION_MESSAGES.COLOR_INVALID);
     }
   }
 

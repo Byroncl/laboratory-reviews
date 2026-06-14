@@ -1,39 +1,37 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { PostsService } from './posts.service';
-import { ApiService } from '../../../core/services/api.service';
-import { Post } from '../../../shared/models/post.model';
-import { environment } from '../../../../environments/environment';
+import { IPost } from '../interfaces';
 
 describe('PostsService', () => {
   let service: PostsService;
   let httpMock: HttpTestingController;
 
-  const mockPosts: Post[] = [
+  const mockPosts: IPost[] = [
     {
       _id: '1',
       title: 'Angular Post',
-      content: 'Content 1',
+      body: 'Content 1',
       author: 'Alice',
-      userId: 'u1',
-      createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
+      status: 'published',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-01T00:00:00.000Z'),
     },
     {
       _id: '2',
       title: 'NestJS Post',
-      content: 'Content 2',
+      body: 'Content 2',
       author: 'Bob',
-      userId: 'u2',
-      createdAt: '2024-01-02T00:00:00.000Z',
-      updatedAt: '2024-01-02T00:00:00.000Z',
+      status: 'published',
+      createdAt: new Date('2024-01-02T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-02T00:00:00.000Z'),
     },
   ];
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [PostsService, ApiService],
+      providers: [PostsService],
     });
 
     service = TestBed.inject(PostsService);
@@ -56,68 +54,80 @@ describe('PostsService', () => {
     });
 
     const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: mockPosts, message: 'OK' });
-
-    tick(300); // bypass delay(300)
+    req.flush({
+      data: mockPosts,
+      pagination: { skip: 0, limit: 10, total: 2 },
+      message: 'OK',
+    });
 
     expect(completed).toBeTrue();
-    expect(service.posts().length).toBe(2);
-    expect(service.posts()[0].title).toBe('Angular Post');
+    expect(service.posts$().length).toBe(2);
+    expect(service.posts$()[0].title).toBe('Angular Post');
   }));
 
   it('should filter posts by text search query', fakeAsync(() => {
     service.loadPosts().subscribe();
 
     const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: mockPosts, message: 'OK' });
-    tick(300);
+    req.flush({
+      data: mockPosts,
+      pagination: { skip: 0, limit: 10, total: 2 },
+      message: 'OK',
+    });
 
-    service.setSearch('Angular');
+    service.updateFilters({ searchTerm: 'Angular' });
 
-    expect(service.filteredPosts().length).toBe(1);
-    expect(service.filteredPosts()[0].title).toContain('Angular');
+    expect(service.filteredPosts$().length).toBe(1);
+    expect(service.filteredPosts$()[0].title).toContain('Angular');
   }));
 
   it('should filter posts by author', fakeAsync(() => {
     service.loadPosts().subscribe();
 
     const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: mockPosts, message: 'OK' });
-    tick(300);
+    req.flush({
+      data: mockPosts,
+      pagination: { skip: 0, limit: 10, total: 2 },
+      message: 'OK',
+    });
 
-    service.filterAuthor.set('Bob');
+    service.updateFilters({ author: 'Bob' });
 
-    expect(service.filteredPosts().length).toBe(1);
-    expect(service.filteredPosts()[0].author).toBe('Bob');
+    expect(service.filteredPosts$().length).toBe(1);
+    expect(service.filteredPosts$()[0].author).toBe('Bob');
   }));
 
-  it('should reset filters', fakeAsync(() => {
+  it('should clear filters and restore all posts', fakeAsync(() => {
     service.loadPosts().subscribe();
 
     const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: mockPosts, message: 'OK' });
-    tick(300);
+    req.flush({
+      data: mockPosts,
+      pagination: { skip: 0, limit: 10, total: 2 },
+      message: 'OK',
+    });
 
-    service.filterAuthor.set('Alice');
-    expect(service.filteredPosts().length).toBe(1);
+    service.updateFilters({ author: 'Alice' });
+    expect(service.filteredPosts$().length).toBe(1);
 
-    service.resetFilters();
-    expect(service.filteredPosts().length).toBe(2);
-    expect(service.search()).toBe('');
-    expect(service.filterAuthor()).toBe('');
+    service.clearFilters();
+    expect(service.filteredPosts$().length).toBe(2);
+    expect(service.getFilters()).toEqual({});
   }));
 
   it('should create a new post and prepend it to the posts signal', fakeAsync(() => {
-    service.posts.set(mockPosts);
+    // Seed state directly via pagination signal (public on base)
+    service.pagination.set({ skip: 0, limit: 10, total: 2 });
+    service.items$.set(mockPosts);
 
-    const newPost: Post = {
+    const newPost: IPost = {
       _id: '3',
       title: 'New Post',
-      content: 'New Content',
+      body: 'New Content',
       author: 'Charlie',
-      userId: 'u3',
-      createdAt: '2024-01-03T00:00:00.000Z',
-      updatedAt: '2024-01-03T00:00:00.000Z',
+      status: 'draft',
+      createdAt: new Date('2024-01-03T00:00:00.000Z'),
+      updatedAt: new Date('2024-01-03T00:00:00.000Z'),
     };
 
     let completed = false;
@@ -129,12 +139,13 @@ describe('PostsService', () => {
     req.flush({ data: newPost, message: 'Created' });
 
     expect(completed).toBeTrue();
-    expect(service.posts().length).toBe(3);
-    expect(service.posts()[0].title).toBe('New Post');
+    expect(service.posts$().length).toBe(3);
+    expect(service.posts$()[0].title).toBe('New Post');
   }));
 
   it('should delete a post and remove it from the posts signal', fakeAsync(() => {
-    service.posts.set([...mockPosts]);
+    service.items$.set([...mockPosts]);
+    service.pagination.set({ skip: 0, limit: 10, total: 2 });
 
     let completed = false;
     service.deletePost('1').subscribe(() => {
@@ -145,8 +156,8 @@ describe('PostsService', () => {
     req.flush({ message: 'Deleted' });
 
     expect(completed).toBeTrue();
-    expect(service.posts().length).toBe(1);
-    expect(service.posts().find(p => p._id === '1')).toBeUndefined();
+    expect(service.posts$().length).toBe(1);
+    expect(service.posts$().find(p => p._id === '1')).toBeUndefined();
   }));
 
   it('should compute currentPage based on pagination signal', () => {
@@ -168,14 +179,17 @@ describe('PostsService', () => {
     expect(service.totalPages()).toBe(1);
   });
 
-  it('should handle paginated response shape { items, total }', fakeAsync(() => {
-    service.loadPosts(0, 10).subscribe();
+  it('should load posts with correct IPostListResponse shape', fakeAsync(() => {
+    service.loadPosts().subscribe();
 
     const req = httpMock.expectOne(r => r.url.includes('/posts'));
-    req.flush({ data: { items: mockPosts, total: 20 }, message: 'OK' });
-    tick(300);
+    req.flush({
+      data: mockPosts,
+      pagination: { skip: 0, limit: 10, total: 20 },
+      message: 'OK',
+    });
 
-    expect(service.posts().length).toBe(2);
+    expect(service.posts$().length).toBe(2);
     expect(service.pagination().total).toBe(20);
     expect(service.totalPages()).toBe(2);
   }));

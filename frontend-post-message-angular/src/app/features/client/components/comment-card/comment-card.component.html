@@ -1,0 +1,23 @@
+
+    <div class="comment-card">
+      <div class="comment-header">
+        <div class="comment-author">
+          <strong>{{ comment.name }}</strong>
+          <p class="comment-email">{{ comment.email }}</p>
+        </div>
+        <p class="comment-date">{{ comment.createdAt | date: 'short' }}</p>
+      </div>
+
+      <div class="comment-body">
+        <p>{{ comment.body }}</p>
+      </div>
+
+      <div class="comment-footer">
+        <button class="btn btn-small btn-danger" (click)="onDelete()" *ngIf="showDelete">
+          Eliminar
+        </button>
+        <a href="#" class="link" *ngIf="postId" (click)="onViewPost($event)">
+          Ver post
+        </a>
+      </div>
+    </div>

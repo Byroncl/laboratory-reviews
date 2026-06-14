@@ -1,70 +1,76 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Store } from '@ngrx/store';
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { selectIsLoading, selectAuthError, selectIsAuthenticated } from '../../store/auth.selectors';
-import * as AuthActions from '../../store/auth.actions';
-import { Observable } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
-import { I18nService } from '../../../../core/services/i18n.service';
+
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { LanguageSwitcherComponent } from '../../../../core/components/language-switcher.component';
+import { ErrorMessagePipe } from '../../pipes/error-message.pipe';
+import { FormErrorDirective } from '../../directives/form-error.directive';
+
+import { selectIsLoading, selectAuthError, selectIsAuthenticated } from '../../store/auth.selectors';
+import * as AuthActions from '../../store/auth.actions';
+
+import { AUTH_FORM_VALIDATORS } from '../../constants';
+import { hasFieldError, markFormAsTouched } from '../../utils';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslatePipe, LanguageSwitcherComponent],
+  imports: [
+    ReactiveFormsModule,
+    TranslatePipe,
+    LanguageSwitcherComponent,
+    ErrorMessagePipe,
+    FormErrorDirective
+  ],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  styleUrl: './login.component.scss'
 })
-export class LoginComponent implements OnInit {
-  loginForm!: FormGroup;
-  isLoading$!: Observable<boolean>;
-  error$!: Observable<string | null>;
-  isShowPassword = false;
+export class LoginComponent {
+  private readonly store = inject(Store);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly fb = inject(FormBuilder);
 
-  get i18n(): I18nService {
-    return this.i18nService;
-  }
+  readonly loginForm = this.fb.group({
+    username: ['', AUTH_FORM_VALIDATORS.USERNAME],
+    password: ['', AUTH_FORM_VALIDATORS.PASSWORD]
+  });
 
-  constructor(
-    private formBuilder: FormBuilder,
-    private store: Store,
-    private router: Router,
-    private route: ActivatedRoute,
-    private i18nService: I18nService
-  ) {}
+  readonly isLoading$ = toSignal(this.store.select(selectIsLoading), { initialValue: false });
+  readonly error$ = toSignal(this.store.select(selectAuthError), { initialValue: null });
+  readonly showPassword$ = signal(false);
+  readonly isSubmitted$ = signal(false);
 
-  ngOnInit(): void {
-    this.initForm();
-    this.isLoading$ = this.store.select(selectIsLoading);
-    this.error$ = this.store.select(selectAuthError);
-
-    this.store.select(selectIsAuthenticated)
-      .pipe(filter(auth => auth === true))
-      .subscribe(() => {
-        const returnUrl = this.route.snapshot.queryParams['returnUrl'] ?? '/dashboard';
-        this.router.navigate([returnUrl]);
-      });
-  }
-
-  private initForm(): void {
-    this.loginForm = this.formBuilder.group({
-      username: ['', [Validators.required]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+  constructor() {
+    this.store.select(selectIsAuthenticated).pipe(
+      filter(auth => auth === true),
+      takeUntilDestroyed()
+    ).subscribe(() => {
+      const returnUrl = this.route.snapshot.queryParams['returnUrl'] ?? '/dashboard';
+      this.router.navigate([returnUrl]);
     });
   }
 
+  hasError(field: string): boolean {
+    return hasFieldError(this.loginForm, field);
+  }
+
+  togglePassword(): void {
+    this.showPassword$.update(v => !v);
+  }
+
   onSubmit(): void {
+    this.isSubmitted$.set(true);
+    markFormAsTouched(this.loginForm);
+
     if (this.loginForm.valid) {
       const { username, password } = this.loginForm.value as { username: string; password: string };
       this.store.dispatch(AuthActions.login({ username, password }));
     }
-  }
-
-  togglePasswordVisibility(): void {
-    this.isShowPassword = !this.isShowPassword;
   }
 
   goToRegister(): void {

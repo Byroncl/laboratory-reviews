@@ -1,7 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type FavoriteDocument = Favorite & Document;
+export type FavoriteDocument = Favorite & Document & {
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 @Schema({
   timestamps: true,
@@ -16,6 +19,9 @@ export class Favorite {
 
   @Prop({ default: false })
   isDeleted: boolean;
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const FavoriteSchema = SchemaFactory.createForClass(Favorite);
