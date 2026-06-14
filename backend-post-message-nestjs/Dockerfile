@@ -29,7 +29,11 @@ RUN apk add --no-cache dumb-init
 # Copy from builder
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/src ./src
+COPY --from=builder /usr/src/app/test ./test
 COPY --from=builder /usr/src/app/package*.json ./
+COPY --from=builder /usr/src/app/tsconfig*.json ./
+COPY --from=builder /usr/src/app/jest.config.js ./
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \

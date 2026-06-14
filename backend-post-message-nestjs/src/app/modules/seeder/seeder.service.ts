@@ -30,8 +30,13 @@ export class SeederService implements OnModuleInit {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    const shouldSeed = process.env.SEED_DATABASE === 'true';
-    if (!shouldSeed) return;
+    const seedEnv = process.env.SEED_DATABASE;
+    this.logger.log(`SEED_DATABASE env value: "${seedEnv}" (type: ${typeof seedEnv})`);
+    const shouldSeed = seedEnv === 'true';
+    if (!shouldSeed) {
+      this.logger.log('Seeding disabled');
+      return;
+    }
 
     this.logger.log('🌱 Starting database seeding...');
     try {
@@ -74,7 +79,11 @@ export class SeederService implements OnModuleInit {
     this.logger.log('📋 Seeding permissions...');
 
     const permissionData: any[] = [
-      { name: 'Create User', identifier: 'create_user', type: 'user' as PermissionType },
+      {
+        name: 'Create User',
+        identifier: 'create_user',
+        type: 'user' as PermissionType,
+      },
       { name: 'Update User', identifier: 'update_user', type: 'user' },
       { name: 'Delete User', identifier: 'delete_user', type: 'user' },
       { name: 'View Users', identifier: 'view_users', type: 'user' },
@@ -84,20 +93,40 @@ export class SeederService implements OnModuleInit {
       { name: 'Delete Role', identifier: 'delete_role', type: 'roles' },
       { name: 'Assign Role', identifier: 'assign_role', type: 'roles' },
 
-      { name: 'Manage Permissions', identifier: 'manage_permissions', type: 'permissions' },
+      {
+        name: 'Manage Permissions',
+        identifier: 'manage_permissions',
+        type: 'permissions',
+      },
 
       { name: 'Create Post', identifier: 'create_post', type: 'posts' },
       { name: 'Update Post', identifier: 'update_post', type: 'posts' },
       { name: 'Delete Post', identifier: 'delete_post', type: 'posts' },
       { name: 'View Posts', identifier: 'view_posts', type: 'posts' },
 
-      { name: 'Create Comment', identifier: 'create_comment', type: 'comments' },
-      { name: 'Delete Comment', identifier: 'delete_comment', type: 'comments' },
+      {
+        name: 'Create Comment',
+        identifier: 'create_comment',
+        type: 'comments',
+      },
+      {
+        name: 'Delete Comment',
+        identifier: 'delete_comment',
+        type: 'comments',
+      },
       { name: 'Add Reaction', identifier: 'add_reaction', type: 'comments' },
 
-      { name: 'View Analytics', identifier: 'view_analytics', type: 'statistics' },
+      {
+        name: 'View Analytics',
+        identifier: 'view_analytics',
+        type: 'statistics',
+      },
 
-      { name: 'View Audit Logs', identifier: 'view_audit_logs', type: 'audits' },
+      {
+        name: 'View Audit Logs',
+        identifier: 'view_audit_logs',
+        type: 'audits',
+      },
     ];
 
     const permissions: any[] = [];
@@ -138,11 +167,10 @@ export class SeederService implements OnModuleInit {
         name: 'User',
         identifier: 'user',
         permissions: permissions
-          .filter(
-            (p) =>
-              ['create_post', 'create_comment', 'add_reaction'].includes(
-                p.identifier,
-              ),
+          .filter((p) =>
+            ['create_post', 'create_comment', 'add_reaction'].includes(
+              p.identifier,
+            ),
           )
           .map((p) => p._id),
       },
@@ -338,46 +366,68 @@ export class SeederService implements OnModuleInit {
     const postData = [
       {
         title: 'The Future of Web Development',
-        content:'Exploring emerging trends in web development including AI, WebAssembly, and edge computing.',
+        content:
+          'Exploring emerging trends in web development including AI, WebAssembly, and edge computing.',
         author: clients[0]?.name || 'Tech Corp',
         authorId: clients[0]?._id?.toString(),
         categoryId: categories[0]?._id?.toString() || 'technology',
         categoryName: 'Technology',
         imageUrl: 'https://via.placeholder.com/800x400?text=Web+Development',
         status: 'published',
-        tags: ['web-development', 'ai', 'webassembly', 'edge-computing', 'future'],
+        tags: [
+          'web-development',
+          'ai',
+          'webassembly',
+          'edge-computing',
+          'future',
+        ],
         isActive: true,
         isDeleted: false,
       },
       {
         title: 'Design Systems: Building Scalable UI',
-        content:'A comprehensive guide to creating design systems that scale across your organization.',
+        content:
+          'A comprehensive guide to creating design systems that scale across your organization.',
         author: clients[1]?.name || 'Design Studio',
         authorId: clients[1]?._id?.toString(),
         categoryId: categories[1]?._id?.toString() || 'design',
         categoryName: 'Design',
         imageUrl: 'https://via.placeholder.com/800x400?text=Design+Systems',
         status: 'published',
-        tags: ['design-systems', 'ui', 'scalability', 'component-library', 'best-practices'],
+        tags: [
+          'design-systems',
+          'ui',
+          'scalability',
+          'component-library',
+          'best-practices',
+        ],
         isActive: true,
         isDeleted: false,
       },
       {
         title: 'Growth Hacking Strategies for Startups',
-        content:'Proven strategies to accelerate growth in early-stage startups without massive budgets.',
+        content:
+          'Proven strategies to accelerate growth in early-stage startups without massive budgets.',
         author: clients[2]?.name || 'Marketing Agency',
         authorId: clients[2]?._id?.toString(),
         categoryId: categories[3]?._id?.toString() || 'marketing',
         categoryName: 'Marketing',
         imageUrl: 'https://via.placeholder.com/800x400?text=Growth+Hacking',
         status: 'published',
-        tags: ['growth-hacking', 'startups', 'marketing-strategies', 'viral-growth', 'acquisition'],
+        tags: [
+          'growth-hacking',
+          'startups',
+          'marketing-strategies',
+          'viral-growth',
+          'acquisition',
+        ],
         isActive: true,
         isDeleted: false,
       },
       {
         title: 'API Design Best Practices',
-        content:'Learn how to design APIs that are intuitive, scalable, and easy to maintain.',
+        content:
+          'Learn how to design APIs that are intuitive, scalable, and easy to maintain.',
         author: clients[0]?.name || 'Tech Corp',
         authorId: clients[0]?._id?.toString(),
         categoryId: categories[4]?._id?.toString() || 'development',
@@ -390,14 +440,21 @@ export class SeederService implements OnModuleInit {
       },
       {
         title: 'Business Strategy in Digital Era',
-        content:'How traditional businesses can adapt and thrive in the digital age.',
+        content:
+          'How traditional businesses can adapt and thrive in the digital age.',
         author: clients[1]?.name || 'Design Studio',
         authorId: clients[1]?._id?.toString(),
         categoryId: categories[2]?._id?.toString() || 'business',
         categoryName: 'Business',
         imageUrl: 'https://via.placeholder.com/800x400?text=Digital+Business',
         status: 'published',
-        tags: ['business-strategy', 'digital-transformation', 'innovation', 'leadership', 'future'],
+        tags: [
+          'business-strategy',
+          'digital-transformation',
+          'innovation',
+          'leadership',
+          'future',
+        ],
         isActive: true,
         isDeleted: false,
       },
@@ -510,7 +567,8 @@ export class SeederService implements OnModuleInit {
     // Notifications for new comments
     for (let i = 0; i < Math.min(3, users.length); i++) {
       const user = users[i];
-      const randomComment = comments[Math.floor(Math.random() * comments.length)];
+      const randomComment =
+        comments[Math.floor(Math.random() * comments.length)];
       const randomActor = users[Math.floor(Math.random() * users.length)];
 
       try {
