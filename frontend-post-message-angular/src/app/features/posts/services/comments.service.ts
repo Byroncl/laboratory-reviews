@@ -169,9 +169,22 @@ export class CommentsService {
   public getReplies(commentId: string): Observable<ICommentListResponse> {
     const url = `${this.baseUrl}${COMMENTS_API_ENDPOINTS.REPLIES.replace(':id', commentId)}`;
     return this.http
-      .get<ICommentListResponse>(url)
+      .get<any>(url)
       .pipe(
         retry(this.retryAttempts),
+        map((response) => {
+          const inner = response?.data || response;
+          const items = Array.isArray(inner) ? inner : (inner?.items || []);
+          return {
+            data: items,
+            pagination: {
+              skip: inner?.skip || 0,
+              limit: inner?.limit || 10,
+              total: inner?.total || items.length,
+            },
+            message: response?.message || '',
+          };
+        }),
         catchError((err) => this._handleError(err, 'Failed to load replies')),
       );
   }

@@ -7,28 +7,58 @@
   tabindex="0"
   role="article"
 >
-  <!-- Optional thumbnail -->
-  @if (post().imageUrl) {
-    <img
-      [src]="post().imageUrl"
-      [alt]="post().title"
-      class="w-full h-40 object-cover rounded-md mb-3"
-    />
+  <!-- Category Badge -->
+  @if (post().category) {
+    <div class="mb-3">
+      <span
+        class="category-badge"
+        [style.background-color]="post().category!.color + '15'"
+        [style.color]="post().category!.color"
+        [style.border-color]="post().category!.color + '33'"
+      >
+        {{ post().category!.name }}
+      </span>
+    </div>
   }
 
-  <h2 class="text-lg font-semibold text-primary mb-1 line-clamp-2">{{ post().title }}</h2>
-  <p class="text-sm text-gray-600 mb-3 line-clamp-3">{{ post().preview }}</p>
+  <!-- Optional thumbnail styled like Reddit -->
+  @if (post().imageUrl) {
+    <div class="post-image-container mb-4">
+      <img
+        [src]="post().imageUrl"
+        [alt]="post().title"
+        class="post-image"
+        (error)="cardImg.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'"
+        #cardImg
+      />
+    </div>
+  }
 
-  <div class="flex items-center justify-between text-xs text-gray-400">
+  <h2 class="text-lg font-semibold text-primary mb-2 line-clamp-2">{{ post().title }}</h2>
+  <p class="text-sm text-gray-600 mb-4 line-clamp-3">{{ post().preview }}</p>
+
+  <!-- Tags List -->
+  @if (post().tags && post().tags!.length > 0) {
+    <div class="flex flex-wrap gap-1.5 mb-4">
+      @for (tag of post().tags; track tag) {
+        <span class="inline-flex items-center text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-0.5 rounded transition">
+          #{{ tag }}
+        </span>
+      }
+    </div>
+  }
+
+  <div class="flex items-center justify-between text-xs text-gray-400 border-t border-gray-100 pt-3">
     <span>{{ 'home.postCard.by' | t }} <strong class="text-gray-600">{{ post().authorUsername }}</strong></span>
     <span>{{ post().createdAt | date:'mediumDate' }}</span>
   </div>
 
-  @if (post().commentCount != null && post().commentCount! > 0) {
-    <div class="mt-2">
-      <span class="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
-        💬 {{ post().commentCount }}
-      </span>
-    </div>
-  }
+  <div class="flex items-center gap-3 mt-3">
+    <span class="inline-flex items-center gap-1.5 text-xs bg-gray-50 text-gray-600 px-3 py-1.5 rounded-full border border-gray-100 hover:bg-gray-100 transition">
+      👍 {{ post().reactionsCount || 0 }} reacciones
+    </span>
+    <span class="inline-flex items-center gap-1.5 text-xs bg-gray-50 text-gray-600 px-3 py-1.5 rounded-full border border-gray-100 hover:bg-gray-100 transition">
+      💬 {{ post().commentCount || 0 }} comentarios
+    </span>
+  </div>
 </div>

@@ -4,12 +4,16 @@ import { PostsService } from './services/posts.service';
 import { PostsGateway } from './gateways/posts.gateway';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Post, PostSchema } from './schemas/post.schema';
+import { Comment, CommentSchema } from '../comments/schemas/comment.schema';
 import { FilesModule } from '../files/files.module';
 import { CategoriesModule } from '../categories/categories.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]),
+    MongooseModule.forFeature([
+      { name: Post.name, schema: PostSchema },
+      { name: Comment.name, schema: CommentSchema },
+    ]),
     FilesModule,
     CategoriesModule,
   ],

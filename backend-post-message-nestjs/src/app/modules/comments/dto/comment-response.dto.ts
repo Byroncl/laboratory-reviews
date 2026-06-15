@@ -32,6 +32,9 @@ export class CommentResponseDto {
   @ApiProperty({ example: 'Great post!', description: 'Comment content' })
   content: string;
 
+  @ApiProperty({ example: 'byron', description: 'Author of the comment', required: false })
+  author?: string;
+
   @ApiProperty({ example: '507f1f77bcf86cd799439012', description: 'ID of the post' })
   post: string;
 

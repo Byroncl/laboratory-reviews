@@ -1,13 +1,16 @@
 import { Component, Input, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { ReactionsService } from '../../services';
 import { IReactionSummary } from '../../interfaces';
 import { REACTION_EMOJIS } from '../../constants';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-reaction-bar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './reaction-bar.component.html',
   styleUrls: ['./reaction-bar.component.css'],
 })
@@ -15,6 +18,10 @@ export class ReactionBarComponent implements OnInit {
   @Input() commentId!: string;
 
   private reactionsService = inject(ReactionsService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  readonly showAuthModal = signal(false);
 
   readonly availableEmojis = REACTION_EMOJIS;
 
@@ -34,19 +41,38 @@ export class ReactionBarComponent implements OnInit {
   }
 
   getCount(emoji: string): number {
-    return this.summary().find((r) => r.emoji === emoji)?.count ?? 0;
+    const list = this.summary();
+    if (!Array.isArray(list)) return 0;
+    return list.find((r) => r.emoji === emoji)?.count ?? 0;
   }
 
   hasReacted(emoji: string): boolean {
-    return this.reactedEmojis().has(emoji);
+    const reacted = this.reactedEmojis();
+    return reacted instanceof Set ? reacted.has(emoji) : false;
   }
 
   toggleReaction(emoji: string): void {
+    if (!this.authService.isAuthenticated()) {
+      this.showAuthModal.set(true);
+      return;
+    }
     if (this.hasReacted(emoji)) {
       this._removeReaction(emoji);
     } else {
       this._addReaction(emoji);
     }
+  }
+
+  goToLogin(): void {
+    this.router.navigate(['/auth/login']);
+  }
+
+  goToRegister(): void {
+    this.router.navigate(['/auth/register']);
+  }
+
+  closeAuthModal(): void {
+    this.showAuthModal.set(false);
   }
 
   private _addReaction(emoji: string): void {
@@ -84,7 +110,7 @@ export class ReactionBarComponent implements OnInit {
   }
 
   private _updateSummaryCount(emoji: string, delta: number): void {
-    const current = this.summary();
+    const current = Array.isArray(this.summary()) ? this.summary() : [];
     const idx = current.findIndex((r) => r.emoji === emoji);
 
     if (idx >= 0) {

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { PostsService } from './posts.service';
 import { Post } from '../schemas/post.schema';
+import { Comment } from '../../comments/schemas/comment.schema';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { FilesService } from '../../files/services/files.service';
@@ -31,12 +32,28 @@ describe('PostsService', () => {
     _id: '507f1f77bcf86cd799439011',
     title: 'Test Post',
     content: 'Test content',
+    save: jest.fn().mockResolvedValue(true),
+    toObject: function () {
+      return { _id: this._id, title: this.title, content: this.content };
+    },
   };
 
   const mockPostWithImage = {
-    ...mockPost,
+    _id: '507f1f77bcf86cd799439011',
+    title: 'Test Post',
+    content: 'Test content',
     imageUrl: 'http://localhost:9000/posts/old.jpg',
     imageFilename: 'old.jpg',
+    save: jest.fn().mockResolvedValue(true),
+    toObject: function () {
+      return {
+        _id: this._id,
+        title: this.title,
+        content: this.content,
+        imageUrl: this.imageUrl,
+        imageFilename: this.imageFilename,
+      };
+    },
   };
 
   beforeEach(async () => {
@@ -48,10 +65,17 @@ describe('PostsService', () => {
       getImageUrl: jest.fn(),
     } as any;
 
+    const MockCommentModel = {
+      countDocuments: jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PostsService,
         { provide: getModelToken(Post.name), useValue: MockPostModel },
+        { provide: getModelToken(Comment.name), useValue: MockCommentModel },
         { provide: FilesService, useValue: mockFilesService },
       ],
     }).compile();
@@ -122,7 +146,13 @@ describe('PostsService', () => {
 
       const result = await service.findOne('507f1f77bcf86cd799439011');
 
-      expect(result).toEqual(mockPost);
+      expect(result).toEqual({
+        _id: mockPost._id,
+        title: mockPost.title,
+        content: mockPost.content,
+        commentCount: 0,
+        viewCount: 1,
+      });
       expect(MockPostModel.findById).toHaveBeenCalledWith(
         '507f1f77bcf86cd799439011',
       );

@@ -2,6 +2,7 @@ import { Injectable, Optional } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Post, PostDocument } from '../schemas/post.schema';
+import { Comment, CommentDocument } from '../../comments/schemas/comment.schema';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { FilesService } from '../../files/services/files.service';
@@ -12,6 +13,7 @@ import { PaginatedResponse } from 'src/app/core/dto/pagination.dto';
 export class PostsService {
   constructor(
     @InjectModel(Post.name) private postModel: Model<PostDocument>,
+    @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
     private readonly filesService: FilesService,
     @Optional() private readonly categoriesService?: CategoriesService,
   ) {}
@@ -89,8 +91,24 @@ export class PostsService {
       this.postModel.countDocuments(filter).exec(),
     ]);
 
+    const itemsWithCommentCount = await Promise.all(
+      items.map(async (item) => {
+        const commentCount = await this.commentModel.countDocuments({
+          postId: item._id.toString(),
+          isActive: true,
+          isDeleted: false,
+        }).exec();
+        const obj = item.toObject();
+        return {
+          ...obj,
+          content: (obj as any).content || obj.body || '',
+          commentCount,
+        } as any;
+      })
+    );
+
     return {
-      items,
+      items: itemsWithCommentCount,
       total,
       skip,
       limit,
@@ -98,7 +116,25 @@ export class PostsService {
   }
 
   async findOne(id: string): Promise<Post | null> {
-    return this.postModel.findById(id).populate('categoryId', 'name slug color').exec();
+    const post = await this.postModel.findById(id).populate('categoryId', 'name slug color').exec();
+    if (!post) return null;
+
+    post.viewCount = (post.viewCount || 0) + 1;
+    await post.save();
+
+    const commentCount = await this.commentModel.countDocuments({
+      postId: post._id.toString(),
+      isActive: true,
+      isDeleted: false,
+    }).exec();
+
+    const obj = post.toObject();
+    return {
+      ...obj,
+      content: (obj as any).content || obj.body || '',
+      commentCount,
+      viewCount: post.viewCount,
+    } as any;
   }
 
   async findByAuthorId(

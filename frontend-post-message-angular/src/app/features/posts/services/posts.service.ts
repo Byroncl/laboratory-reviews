@@ -156,6 +156,15 @@ export class PostsService extends PostsBaseService<IPost> {
     if (filters?.tags && filters.tags.length > 0) {
       params['tags'] = filters.tags.join(',');
     }
+    if (filters?.categoryId) {
+      params['categoryId'] = filters.categoryId;
+    }
+    if (filters?.limit !== undefined) {
+      params['limit'] = filters.limit;
+    }
+    if (filters?.skip !== undefined) {
+      params['skip'] = filters.skip;
+    }
 
     return params;
   }

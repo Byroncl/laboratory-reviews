@@ -326,6 +326,7 @@ async function seedUsers(
   roles: Array<{ _id: unknown; name: string; identifier: string }>,
 ): Promise<Array<{ _id: unknown; username: string }>> {
   const UserModel = app.get(getModelToken('User')) as {
+    findOne: (filter: unknown) => { exec: () => Promise<{ _id: unknown; username: string } | null> };
     create: (data: unknown) => Promise<{ _id: unknown; username: string }>;
   };
   const users: Array<{ _id: unknown; username: string }> = [];
@@ -339,15 +340,25 @@ async function seedUsers(
 
   const limit = Math.min(count, SEED_USERS.length);
   for (let i = 0; i < limit; i++) {
+    const { firstName, type } = SEED_USERS[i];
+    const username = firstName.toLowerCase();
+
+    // Check if user already exists first
+    const existing = await UserModel.findOne({ username }).exec();
+    if (existing) {
+      users.push(existing);
+      console.log(`   Skipped existing user: ${firstName}`);
+      continue;
+    }
+
     try {
-      const { firstName, type } = SEED_USERS[i];
       const assignedRole = roleAssignment[i] ?? userRole;
       const user = await UserModel.create({
         name: firstName,
         lastname: 'Seed',
-        username: firstName.toLowerCase(),
-        email: `${firstName.toLowerCase()}@example.com`,
-        password_hash: `$2b$10$seed.hash.for.${firstName.toLowerCase()}`,
+        username,
+        email: `${username}@example.com`,
+        password_hash: `$2b$10$seed.hash.for.${username}`,
         type,
         isActive: true,
         preferredLanguage: i % 2 === 0 ? 'en' : 'es',
@@ -358,8 +369,12 @@ async function seedUsers(
         `   Created user: ${firstName} (${assignedRole?.name ?? 'no role'})`,
       );
     } catch (error) {
-      if (error instanceof Error && error.message.includes('E11000')) {
-        console.log(`   User ${SEED_USERS[i].firstName} already exists, skipping`);
+      if (error instanceof Error && (error.message.includes('E11000') || error.message.includes('duplicate key'))) {
+        console.log(`   User ${firstName} duplicate on create, fetching...`);
+        const existingAfterError = await UserModel.findOne({ username }).exec();
+        if (existingAfterError) {
+          users.push(existingAfterError);
+        }
       } else {
         throw error;
       }
@@ -379,13 +394,17 @@ async function seedPosts(
     create: (data: unknown) => Promise<{ _id: unknown }>;
   };
   const posts: Array<{ _id: unknown }> = [];
+  const totalPostsToCreate = 11;
 
-  for (let i = 0; i < postsPerUser * users.length; i++) {
+  for (let i = 0; i < totalPostsToCreate; i++) {
     const user = users[i % users.length];
     const title = POST_TITLES[i % POST_TITLES.length];
     const categoryIndex = POST_CATEGORY_MAP[title] ?? i % categories.length;
     const category =
       categories[categoryIndex] ?? categories[i % categories.length];
+
+    // Every second post will have an imageUrl that doesn't exist
+    const imageUrl = i % 2 === 0 ? `http://localhost:3000/uploads/fake-image-seed-${i}.jpg` : undefined;
 
     const post = await PostModel.create({
       title,
@@ -395,6 +414,8 @@ async function seedPosts(
       isDeleted: false,
       categoryId: category._id,
       categoryName: category.name,
+      status: 'published',
+      imageUrl,
     });
     posts.push(post);
   }
@@ -430,6 +451,7 @@ async function seedComments(
       const comment = await CommentModel.create({
         content: `Great ${i % 2 === 0 ? 'post' : 'article'}! Very informative content here.`,
         userId: String(user._id),
+        author: user.username,
         postId: String(post._id),
         parentCommentId: null,
         childCommentIds: [],
@@ -445,6 +467,7 @@ async function seedComments(
         const reply = await CommentModel.create({
           content: 'I agree completely! Great insight.',
           userId: String(replyUser._id),
+          author: replyUser.username,
           postId: String(post._id),
           parentCommentId: String(comment._id),
           childCommentIds: [],

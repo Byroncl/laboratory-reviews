@@ -47,6 +47,12 @@ export class Post {
 
   @Prop({ type: [String], default: [] })
   tags?: string[];
+
+  @Prop({ default: 0 })
+  viewCount?: number;
+
+  @Prop({ default: 0 })
+  commentCount?: number;
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);

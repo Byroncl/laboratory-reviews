@@ -1,94 +1,244 @@
-<div class="post-detail-container">
-  @if (postLoading()) {
-    <div class="post-detail-loading">
-      <p>{{ 'posts.detail.loading' | t }}</p>
-    </div>
-  }
+<app-header />
 
-  @if (postError()) {
-    <div class="post-detail-error">
-      <p>{{ 'posts.detail.error' | t }}: {{ postError() }}</p>
-    </div>
-  }
-
-  @if (!postLoading() && post()) {
-    <div class="post-detail">
-      <a routerLink="/posts" class="btn btn-secondary">{{ 'posts.list.backToPosts' | t }}</a>
-
-      <div class="post-header">
-        <h1>{{ post()!.title }}</h1>
-        <span class="post-status" [ngClass]="'status-' + post()!.status">
-          {{ post()!.status }}
-        </span>
+<div class="post-detail-page-wrapper">
+  <div class="post-detail-layout-container">
+    @if (postLoading()) {
+      <div class="post-detail-loading">
+        <p>{{ 'posts.detail.loading' | t }}</p>
       </div>
+    }
 
-      <div class="post-meta">
-        @if (post()!.createdAt) {
-          <span class="meta-item">
-            <strong>{{ 'posts.detail.published' | t }}:</strong> {{ post()!.createdAt | date: 'long' }}
-          </span>
-        }
-        <span class="meta-item">
-          <strong>{{ 'posts.detail.views' | t }}:</strong> {{ post()!.viewCount || 0 }}
-        </span>
+    @if (postError()) {
+      <div class="post-detail-error">
+        <p>{{ 'posts.detail.error' | t }}: {{ postError() }}</p>
       </div>
+    }
 
-      @if (post()!.tags && post()!.tags!.length > 0) {
-        <div class="post-tags">
-          <strong>{{ 'posts.detail.tags' | t }}:</strong>
-          @for (tag of post()!.tags!; track tag) {
-            <span class="tag">{{ tag }}</span>
+    @if (!postLoading() && post()) {
+      <div class="post-detail-layout">
+        <!-- Left Sidebar (Navigation & Quick Info) -->
+        <aside class="post-detail-left-sidebar">
+          <div class="sidebar-widget mb-4">
+            <h3 class="widget-title">Navegación</h3>
+            <nav class="categories-menu">
+              <a routerLink="/" class="category-link">
+                <span class="icon">🏠</span>
+                <span>Inicio</span>
+              </a>
+            </nav>
+          </div>
+
+          <!-- Post Info Widget -->
+          <div class="sidebar-widget mb-4">
+            <h3 class="widget-title">Información del Post</h3>
+            <div class="post-info-widget-content">
+              <div class="author-profile-card mb-3">
+                <div class="author-avatar bg-gradient-to-tr">
+                  {{ (post()?.author || 'A').charAt(0).toUpperCase() }}
+                </div>
+                <div class="author-details">
+                  <span class="author-label">Autor</span>
+                  <span class="author-username">{{ '@' + (post()?.author || 'anónimo') }}</span>
+                </div>
+              </div>
+
+              <div class="post-stats-row mb-3">
+                <div class="stat-badge">
+                  <span class="stat-icon">👍</span>
+                  <span class="stat-value">{{ post()?.reactionsCount || 0 }} reacciones</span>
+                </div>
+                <div class="stat-badge">
+                  <span class="stat-icon">💬</span>
+                  <span class="stat-value">{{ post()?.commentCount || 0 }} comentarios</span>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <span class="date-label block mb-1" style="display: block; margin-bottom: 4px;">Estado</span>
+                <span class="post-status inline-block" [ngClass]="'status-' + post()!.status" style="display: inline-block;">
+                  {{ post()!.status }}
+                </span>
+              </div>
+
+              <div class="post-date-info">
+                <span class="date-label">Publicado</span>
+                <span class="date-value">{{ post()?.createdAt | date: 'mediumDate' }}</span>
+              </div>
+            </div>
+          </div>
+
+          @if (post()?.categoryId) {
+            <div class="sidebar-widget">
+              <h3 class="widget-title">Categoría</h3>
+              <div class="category-info-card p-2">
+                <span
+                  class="category-badge mb-2"
+                  [style.background-color]="post()!.categoryId!.color + '15'"
+                  [style.color]="post()!.categoryId!.color"
+                  [style.border-color]="post()!.categoryId!.color + '33'"
+                >
+                  {{ post()!.categoryId!.name }}
+                </span>
+                <p class="text-xs text-gray-500 mt-1">
+                  Publicación clasificada en la sección de {{ post()!.categoryId!.name }}.
+                </p>
+              </div>
+            </div>
           }
-        </div>
-      }
+        </aside>
 
-      <div class="post-body">
-        {{ post()!.content }}
-      </div>
+        <!-- Main Details Area -->
+        <div class="post-detail-main">
+          <div class="post-detail animate-fade-in">
+            <a routerLink="/" class="btn btn-secondary mb-4">{{ 'posts.list.backToPosts' | t }}</a>
 
-      <div class="comments-section">
-        <h2>{{ 'posts.detail.commentsTitle' | t }} ({{ post()!.commentCount || 0 }})</h2>
-
-        <app-comment-form
-          [postId]="post()!.id || post()!._id || ''"
-          (submitted)="onCommentSubmitted()"
-        ></app-comment-form>
-
-        @if (commentsLoading$()) {
-          <div class="comments-loading">
-            <p>{{ 'posts.detail.commentsLoading' | t }}</p>
-          </div>
-        }
-
-        @if (commentsHasError$()) {
-          <div class="comments-error">
-            <p>{{ 'posts.detail.commentsError' | t }}</p>
-          </div>
-        }
-
-        @if (!commentsLoading$() && comments$().length > 0) {
-          <div class="comments-list">
-            @for (comment of comments$(); track comment.id) {
-              <app-comment-item [comment]="comment" [postId]="postId" (replyAdded)="onCommentSubmitted()"></app-comment-item>
+            @if (post()!.imageUrl) {
+              <div class="post-detail-image-container">
+                <img
+                  [src]="post()!.imageUrl"
+                  [alt]="post()!.title"
+                  class="post-detail-image"
+                  (error)="detailImg.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'"
+                  #detailImg
+                />
+              </div>
             }
-          </div>
-        }
 
-        @if (!commentsLoading$() && comments$().length === 0) {
-          <div class="comments-empty">
-            <p>{{ 'posts.detail.commentsEmpty' | t }}</p>
-          </div>
-        }
+            <div class="post-header">
+              <h1>{{ post()!.title }}</h1>
+              <span class="post-status" [ngClass]="'status-' + post()!.status">
+                {{ post()!.status }}
+              </span>
+            </div>
 
-        @if (pagination$()) {
-          <app-pagination
-            [pagination]="pagination$()"
-            [isLoading]="commentsLoading$()"
-            (nextPage)="onNextPage()"
-            (prevPage)="onPrevPage()"
-          ></app-pagination>
-        }
+            <div class="post-meta">
+              @if (post()!.createdAt) {
+                <span class="meta-item">
+                  <strong>{{ 'posts.detail.published' | t }}:</strong> {{ post()!.createdAt | date: 'long' }}
+                </span>
+              }
+            </div>
+
+            <!-- Tags display moved to the right sidebar -->
+
+            <div class="post-body">
+              {{ post()!.content }}
+            </div>
+
+            <div class="comments-section">
+              <h2>{{ 'posts.detail.commentsTitle' | t }} ({{ post()!.commentCount || 0 }})</h2>
+
+              <app-comment-form
+                [postId]="post()!.id || post()!._id || ''"
+                (submitted)="onCommentSubmitted()"
+              ></app-comment-form>
+
+              @if (commentsLoading$()) {
+                <div class="comments-loading">
+                  <p>{{ 'posts.detail.commentsLoading' | t }}</p>
+                </div>
+              }
+
+              @if (commentsHasError$()) {
+                <div class="comments-error">
+                  <p>{{ 'posts.detail.commentsError' | t }}</p>
+                </div>
+              }
+
+              @if (!commentsLoading$() && comments$().length > 0) {
+                <div class="comments-list">
+                  @for (comment of comments$(); track comment._id || comment.id) {
+                    <app-comment-item
+                      [comment]="comment"
+                      [postId]="postId"
+                      [postAuthor]="post()?.author"
+                      (replyAdded)="onCommentSubmitted()"
+                    ></app-comment-item>
+                  }
+                </div>
+              }
+
+              @if (!commentsLoading$() && comments$().length === 0) {
+                <div class="comments-empty">
+                  <p>{{ 'posts.detail.commentsEmpty' | t }}</p>
+                </div>
+              }
+
+              @if (pagination$()) {
+                <app-pagination
+                  [pagination]="pagination$()"
+                  [isLoading]="commentsLoading$()"
+                  (nextPage)="onNextPage()"
+                  (prevPage)="onPrevPage()"
+                ></app-pagination>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Sidebar (Other Publications / Related Posts) -->
+        <aside class="post-detail-sidebar">
+          <div class="sidebar-widget mb-4">
+            <h3 class="widget-title">Otras Publicaciones</h3>
+            <div class="other-posts-list">
+              @for (p of otherPosts(); track p.id || p._id) {
+                <a [routerLink]="['/posts', p.id || p._id]" class="other-post-card">
+                  @if (p.imageUrl) {
+                    <div class="other-post-thumb">
+                      <img
+                        [src]="p.imageUrl"
+                        [alt]="p.title"
+                        (error)="thumbImg.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'"
+                        #thumbImg
+                      />
+                    </div>
+                  }
+                  <div class="other-post-info">
+                    <h4 class="other-post-title">{{ p.title }}</h4>
+                    <span class="other-post-meta">por {{ '@' + p.author }}</span>
+                  </div>
+                </a>
+              }
+              @if (otherPosts().length === 0) {
+                <p class="empty-text">No hay otras publicaciones</p>
+              }
+            </div>
+          </div>
+
+          <!-- Tags Widget -->
+          @if (post()?.tags && post()!.tags!.length > 0) {
+            <div class="sidebar-widget mb-4">
+              <h3 class="widget-title">Etiquetas</h3>
+              <div class="tags-cloud-widget">
+                @for (tag of post()!.tags!; track tag) {
+                  <span class="widget-tag">#{{ tag }}</span>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Community Guidelines Widget -->
+          <div class="sidebar-widget">
+            <h3 class="widget-title">Normas de Albatros</h3>
+            <div class="guidelines-widget-content">
+              <ul class="guidelines-list">
+                <li>
+                  <span class="num">1</span>
+                  <p><strong>Respeto mutuo:</strong> Trata a los demás con empatía y cortesía.</p>
+                </li>
+                <li>
+                  <span class="num">2</span>
+                  <p><strong>Comparte valor:</strong> Publica contenido relevante y constructivo.</p>
+                </li>
+                <li>
+                  <span class="num">3</span>
+                  <p><strong>Mantén el orden:</strong> Usa las categorías apropiadas para tus posts.</p>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </aside>
       </div>
-    </div>
-  }
+    }
+  </div>
 </div>

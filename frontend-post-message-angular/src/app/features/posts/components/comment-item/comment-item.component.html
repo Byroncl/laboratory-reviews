@@ -1,7 +1,12 @@
 <article class="comment-item">
   <!-- Header: author + date -->
   <header class="comment-header">
-    <span class="comment-author">{{ comment.author || ('posts.comments.anonymous' | t) }}</span>
+    <span class="comment-author" [class.is-op]="comment.author && postAuthor && comment.author === postAuthor">
+      {{ comment.author || ('posts.comments.anonymous' | t) }}
+    </span>
+    @if (comment.author && postAuthor && comment.author === postAuthor) {
+      <span class="op-badge" title="Original Poster">OP</span>
+    }
     @if (comment.createdAt) {
       <time class="comment-date" [dateTime]="comment.createdAt.toString()">
         {{ comment.createdAt | date: 'mediumDate' }}
@@ -81,13 +86,15 @@
 
   <!-- Action buttons -->
   <footer class="comment-actions">
-    <button
-      type="button"
-      class="btn-action"
-      (click)="showReplyForm.set(!showReplyForm())"
-    >
-      {{ showReplyForm() ? ('posts.comments.cancelReply' | t) : ('posts.comments.reply' | t) }}
-    </button>
+    @if (isLoggedIn()) {
+      <button
+        type="button"
+        class="btn-action"
+        (click)="showReplyForm.set(!showReplyForm())"
+      >
+        {{ showReplyForm() ? ('posts.comments.cancelReply' | t) : ('posts.comments.reply' | t) }}
+      </button>
+    }
 
     @if (hasReplies || replies().length > 0) {
       <button
@@ -124,6 +131,7 @@
         <app-comment-item
           [comment]="reply"
           [postId]="postId"
+          [postAuthor]="postAuthor"
           (replyAdded)="onReplyAdded()"
         />
       }

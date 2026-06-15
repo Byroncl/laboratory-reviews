@@ -534,6 +534,21 @@ export class I18nService {
           cancel: 'Cancelar',
           signInGate: 'Inicia sesión para comentar'
         },
+        reaction: {
+          signInTitle: 'Inicia sesión para reaccionar',
+          signInBody: 'Debes iniciar sesión para dejar una reacción.',
+          signInBtn: 'Iniciar sesión',
+          registerBtn: 'Registrarse',
+          cancelBtn: 'Cancelar'
+        },
+        comments: {
+          anonymous: 'Anónimo',
+          reply: 'Responder',
+          cancelReply: 'Cancelar Respuesta',
+          loadingReplies: 'Cargando respuestas...',
+          hideReplies: 'Ocultar Respuestas',
+          showReplies: 'Mostrar Respuestas'
+        },
         reply: {
           placeholder: 'Responder comentario...',
           submit: 'Responder',
@@ -1138,6 +1153,21 @@ export class I18nService {
           submitting: 'Submitting...',
           cancel: 'Cancel',
           signInGate: 'Sign in to comment'
+        },
+        reaction: {
+          signInTitle: 'Sign in to react',
+          signInBody: 'You must be signed in to leave a reaction.',
+          signInBtn: 'Sign In',
+          registerBtn: 'Register',
+          cancelBtn: 'Cancel'
+        },
+        comments: {
+          anonymous: 'Anonymous',
+          reply: 'Reply',
+          cancelReply: 'Cancel Reply',
+          loadingReplies: 'Loading replies...',
+          hideReplies: 'Hide Replies',
+          showReplies: 'Show Replies'
         },
         reply: {
           placeholder: 'Reply to comment...',
