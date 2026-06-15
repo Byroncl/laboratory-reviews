@@ -27,7 +27,7 @@ export interface IPost {
 
 export interface ICreatePostDTO {
   title: string;
-  body: string;
+  content: string;
   author: string;
   status?: PostStatus;
   tags?: string[];

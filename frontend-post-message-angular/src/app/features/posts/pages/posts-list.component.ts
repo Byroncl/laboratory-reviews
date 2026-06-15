@@ -223,7 +223,7 @@ export class PostsListComponent implements OnInit {
 
     const createData: any = {
       title: formValue.title,
-      body: formValue.body,
+      content: formValue.body,
       author,
       tags: formValue.tags
         ? formValue.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag)

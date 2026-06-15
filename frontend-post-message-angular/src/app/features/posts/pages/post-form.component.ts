@@ -95,7 +95,7 @@ export class PostFormComponent implements OnInit {
 
     const data: ICreatePostDTO = {
       title: formValue.title,
-      body: formValue.body,
+      content: formValue.body,
       author,
     };
 
