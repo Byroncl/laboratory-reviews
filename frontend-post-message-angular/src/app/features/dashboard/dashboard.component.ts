@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -10,6 +10,7 @@ import { SidebarComponent } from '../../core/components/sidebar.component';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { LanguageSelectorComponent } from './components/language-selector/language-selector.component';
 import { PermissionsService } from '../../core/services/permissions.service';
+import { NotificationsService } from '../../core/services/notifications.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,6 +31,8 @@ export class DashboardComponent implements OnInit {
   isSidebarOpen = false;
   private permissionsService = inject(PermissionsService);
   private router = inject(Router);
+  readonly notificationsService = inject(NotificationsService);
+  readonly showNotificationsMenu = signal(false);
 
   constructor(
     private store: Store
@@ -61,5 +64,17 @@ export class DashboardComponent implements OnInit {
 
   isAdmin(): boolean {
     return this.permissionsService.isAdmin();
+  }
+
+  toggleNotificationsMenu(): void {
+    this.showNotificationsMenu.update(open => !open);
+  }
+
+  closeNotificationsMenu(): void {
+    this.showNotificationsMenu.set(false);
+  }
+
+  markAsRead(notificationId: string): void {
+    this.notificationsService.markAsRead(notificationId).subscribe();
   }
 }

@@ -1,4 +1,5 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject, DestroyRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
@@ -11,11 +12,10 @@ import {
   SpinnerComponent,
   SkeletonComponent
 } from '../../../shared/components/index';
-import { ModalService, NotificationService } from '../../../shared/services/index';
+import { NotificationService } from '../../../shared/services/index';
 import { I18nService } from '../../../core/services/i18n.service';
 import { RolesService } from '../../admin/services/roles.service';
 import { Role } from '../../../shared/models/role.model';
-import { RoleFormComponent } from '../components/role-form/role-form.component';
 import { RolePermissionsComponent } from '../components/role-permissions/role-permissions.component';
 import {
   extractId,
@@ -28,6 +28,7 @@ import {
   selector: 'app-roles',
   standalone: true,
   imports: [
+    CommonModule,
     FormsModule,
     TranslatePipe,
     TableComponent,
@@ -35,23 +36,31 @@ import {
     BadgeComponent,
     SpinnerComponent,
     SkeletonComponent,
-    RoleFormComponent,
     RolePermissionsComponent
   ],
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss'
 })
 export class RolesComponent {
+  private destroyRef = inject(DestroyRef);
+  readonly rolesService = inject(RolesService);
+  private notificationService = inject(NotificationService);
+  private i18n = inject(I18nService);
+
   readonly pageSize = 10;
 
-  // State signals
-  readonly showRoleForm$ = signal(false);
-  readonly editingRoleId$ = signal<string | null>(null);
-  readonly assigningRole$ = signal<Role | null>(null);
-  readonly globalSearch$ = signal('');
-  readonly hasActiveFilters$ = signal(false);
+  // Modal states
+  readonly showCreateModal = signal(false);
+  readonly showViewModal = signal(false);
+  readonly showPermissionsModal = signal(false);
+  readonly selectedRole = signal<Role | null>(null);
+  readonly isSavingRole = signal(false);
 
-  // Stats signals
+  // Search & filters
+  readonly globalSearch = signal('');
+  readonly hasActiveFilters = signal(false);
+
+  // Stats
   readonly totalRolesCount = signal(0);
 
   // Private filter/sort state
@@ -83,6 +92,8 @@ export class RolesComponent {
     Math.ceil(this.filteredRoles().length / this.pageSize)
   );
 
+  readonly currentPage$ = signal(1);
+
   readonly columns: TableColumn[] = [
     { key: 'name', label: 'Nombre', sortable: true, filterable: true },
     { key: 'identifier', label: 'Identificador', sortable: true, filterable: true },
@@ -90,56 +101,68 @@ export class RolesComponent {
     { key: 'createdAt', label: 'Creado', sortable: true }
   ];
 
-  get actions(): TableAction[] {
-    return [
-      { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
-      { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
-      { id: 'assign', label: 'Permisos', icon: 'permissions', class: 'text-purple-600 hover:text-purple-700' },
-      {
-        id: 'delete',
-        label: 'Eliminar',
-        icon: 'delete',
-        class: 'text-red-600 hover:text-red-700',
-        confirm: true,
-        confirmMessage: this.i18n.translate('dashboard.roles.deleteConfirmInline')
-      }
-    ];
-  }
+  readonly actions: TableAction[] = [
+    { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
+    { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
+    { id: 'assign', label: 'Permisos', icon: 'permissions', class: 'text-purple-600 hover:text-purple-700' },
+    {
+      id: 'delete',
+      label: 'Eliminar',
+      icon: 'delete',
+      class: 'text-red-600 hover:text-red-700',
+      confirm: true,
+      confirmMessage: '¿Estás seguro?'
+    }
+  ];
 
-  readonly currentPage$ = signal(1);
-
-  constructor(
-    readonly rolesService: RolesService,
-    private modalService: ModalService,
-    private notificationService: NotificationService,
-    private i18n: I18nService
-  ) {
+  constructor() {
     this.loadRoles();
   }
 
-  onCreateRole(): void {
-    this.showRoleForm$.set(true);
-    this.editingRoleId$.set(null);
-    this.assigningRole$.set(null);
+  openCreateModal(): void {
+    this.selectedRole.set(null);
+    this.showCreateModal.set(true);
   }
 
-  closeForm(): void {
-    this.showRoleForm$.set(false);
-    this.editingRoleId$.set(null);
+  openViewModal(role: Role): void {
+    this.selectedRole.set(role);
+    this.showViewModal.set(true);
   }
 
-  closePermissionsPanel(): void {
-    this.assigningRole$.set(null);
+  closeViewModal(): void {
+    this.showViewModal.set(false);
+    this.selectedRole.set(null);
   }
 
-  onFormSubmitted(): void {
-    this.closeForm();
-    this.updateStats();
+  editRole(role: Role): void {
+    this.selectedRole.set(role);
+    this.showViewModal.set(false);
+    this.showCreateModal.set(true);
   }
 
-  onPermissionsSaved(): void {
-    this.closePermissionsPanel();
-    this.loadRoles();
+  closeCreateModal(): void {
+    this.showCreateModal.set(false);
+    this.selectedRole.set(null);
+  }
+
+  openPermissionsModal(role: Role): void {
+    this.selectedRole.set(role);
+    this.showPermissionsModal.set(true);
+  }
+
+  closePermissionsModal(): void {
+    this.showPermissionsModal.set(false);
+    this.selectedRole.set(null);
+  }
+
+  saveRole(): void {
+    this.isSavingRole.set(true);
+    // Refresh after save
+    setTimeout(() => {
+      this.isSavingRole.set(false);
+      this.closeCreateModal();
+      this.loadRoles();
+    }, 500);
   }
 
   onTableAction(event: { action: string; row: Record<string, unknown> }): void {
@@ -147,13 +170,13 @@ export class RolesComponent {
 
     switch (event.action) {
       case 'view':
-        this.viewRole(role);
+        this.openViewModal(role);
         break;
       case 'edit':
         this.editRole(role);
         break;
       case 'assign':
-        this.assignPermissions(role);
+        this.openPermissionsModal(role);
         break;
       case 'delete':
         this.deleteRole(role);
@@ -161,51 +184,17 @@ export class RolesComponent {
     }
   }
 
-  viewRole(role: Role): void {
-    const permCount = Array.isArray(role.permissions) ? role.permissions.length : 0;
-    this.modalService
-      .openConfirm(
-        role.name,
-        `Identificador: ${role.identifier ?? 'N/A'}\nPermisos asignados: ${permCount}\nActivo: ${role.isActive ? 'Si' : 'No'}\nCreado: ${role.createdAt}`
-      )
-      .pipe(takeUntilDestroyed())
-      .subscribe();
-  }
-
-  editRole(role: Role): void {
-    this.editingRoleId$.set(extractId(role));
-    this.showRoleForm$.set(true);
-    this.assigningRole$.set(null);
-  }
-
-  assignPermissions(role: Role): void {
-    this.assigningRole$.set(role);
-    this.showRoleForm$.set(false);
-    this.editingRoleId$.set(null);
-  }
-
   deleteRole(role: Role): void {
-    this.modalService
-      .openConfirm(
-        this.i18n.translate('dashboard.roles.deleteConfirmTitle'),
-        this.i18n.translate('dashboard.roles.deleteConfirmBody').replace('{name}', role.name),
-        true
-      )
-      .pipe(takeUntilDestroyed())
-      .subscribe(result => {
-        if (result.confirmed) {
-          const roleId = extractId(role);
-          this.rolesService.deleteRole(roleId).pipe(takeUntilDestroyed()).subscribe({
-            next: () => {
-              this.updateStats();
-              this.notificationService.toast(this.i18n.translate('dashboard.roles.deleteSuccess'), 'success');
-            },
-            error: () => {
-              this.notificationService.toast(this.i18n.translate('dashboard.roles.deleteError'), 'error');
-            }
-          });
-        }
-      });
+    const roleId = extractId(role);
+    this.rolesService.deleteRole(roleId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.notificationService.toast('✅ Rol eliminado correctamente', 'success');
+        this.loadRoles();
+      },
+      error: () => {
+        this.notificationService.toast('❌ Error al eliminar', 'error');
+      }
+    });
   }
 
   onGlobalSearch(): void {
@@ -233,20 +222,20 @@ export class RolesComponent {
   }
 
   clearAllFilters(): void {
-    this.globalSearch$.set('');
+    this.globalSearch.set('');
     this.columnFilters$.set({});
     this.currentPage$.set(1);
     this.updateActiveFilters();
     this.loadRoles();
   }
 
-  private loadRoles(): void {
+  loadRoles(): void {
     this.rolesService
-      .loadRoles(0, 10, this.globalSearch$() || undefined)
-      .pipe(takeUntilDestroyed())
+      .loadRoles(0, 10, this.globalSearch() || undefined)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.updateStats(),
-        error: () => this.notificationService.toast(this.i18n.translate('dashboard.roles.loadError'), 'error')
+        error: () => this.notificationService.toast('❌ Error cargando roles', 'error')
       });
   }
 

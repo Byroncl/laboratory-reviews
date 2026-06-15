@@ -1,57 +1,18 @@
 <div class="space-y-6">
-  <!-- Stats -->
-  <div class="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
-    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
-      <p class="text-secondary text-xs font-medium uppercase tracking-wide">{{ 'dashboard.roles.totalRoles' | t }}</p>
-      <p class="text-3xl font-bold text-primary mt-2">{{ totalRolesCount() }}</p>
-    </div>
+  <!-- Total de Roles Stats -->
+  <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+    <p class="text-secondary text-xs font-medium uppercase tracking-wide">Total de Roles</p>
+    <p class="text-3xl font-bold text-primary mt-2">{{ totalRolesCount() }}</p>
   </div>
-
-  <!-- Role Form Panel -->
-  @if (showRoleForm$()) {
-    <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-gray-900">
-          {{ editingRoleId$() ? ('dashboard.roles.editTitle' | t) : ('dashboard.roles.createTitle' | t) }}
-        </h2>
-        <button (click)="closeForm()" class="text-gray-500 hover:text-gray-700 text-2xl">
-          ×
-        </button>
-      </div>
-      <app-role-form
-        [editingRoleId]="editingRoleId$()"
-        (formSubmitted)="onFormSubmitted()"
-        (formCancelled)="closeForm()"
-      ></app-role-form>
-    </div>
-  }
-
-  <!-- Permissions Assignment Panel -->
-  @if (assigningRole$()) {
-    <div class="bg-white rounded-lg shadow p-6 border border-purple-200">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-gray-900">{{ 'dashboard.roles.managePermissions' | t }}</h2>
-        <button (click)="closePermissionsPanel()" class="text-gray-500 hover:text-gray-700 text-2xl">
-          ×
-        </button>
-      </div>
-      <app-role-permissions
-        [role]="assigningRole$()!"
-        (saved)="onPermissionsSaved()"
-        (cancelled)="closePermissionsPanel()"
-      ></app-role-permissions>
-    </div>
-  }
 
   <!-- Header -->
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
     <h1 class="text-3xl font-bold text-primary">{{ 'sidebar.roles' | t }}</h1>
     <button
-      (click)="onCreateRole()"
-      [disabled]="showRoleForm$() || !!assigningRole$()"
-      class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
+      (click)="openCreateModal()"
+      class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap"
     >
-      {{ 'dashboard.roles.newRole' | t }}
+      + Nuevo Rol
     </button>
   </div>
 
@@ -59,21 +20,119 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-white rounded-lg shadow p-4">
     <input
       type="text"
-      [placeholder]="'dashboard.roles.searchPlaceholder' | t"
-      [ngModel]="globalSearch$()"
-      (ngModelChange)="globalSearch$.set($event)"
+      placeholder="Buscar roles..."
+      [ngModel]="globalSearch()"
+      (ngModelChange)="globalSearch.set($event)"
       (input)="onGlobalSearch()"
       class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
     />
-    @if (hasActiveFilters$()) {
+    @if (hasActiveFilters()) {
       <button
         (click)="clearAllFilters()"
         class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium text-sm"
       >
-        {{ 'dashboard.roles.clearFilters' | t }}
+        Limpiar filtros
       </button>
     }
   </div>
+
+  <!-- View Modal -->
+  @if (showViewModal()) {
+    <div class="modal-overlay" (click)="closeViewModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">{{ selectedRole()?.name }}</h2>
+          <button (click)="closeViewModal()" class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Nombre</label>
+            <div class="form-field-readonly">{{ selectedRole()?.name }}</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Identificador</label>
+            <div class="form-field-readonly">{{ selectedRole()?.identifier }}</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Activo</label>
+            <div class="form-field-readonly">{{ selectedRole()?.isActive ? 'Sí' : 'No' }}</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Permisos Asignados</label>
+            <div class="form-field-readonly">{{ selectedRole()?.permissions?.length || 0 }} permisos</div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button (click)="editRole(selectedRole()!)" class="btn btn-primary">
+            Editar
+          </button>
+          <button (click)="closeViewModal()" class="btn btn-secondary">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Create/Edit Modal -->
+  @if (showCreateModal()) {
+    <div class="modal-overlay" (click)="closeCreateModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">{{ selectedRole() ? 'Editar Rol' : 'Crear Rol' }}</h2>
+          <button (click)="closeCreateModal()" class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-input" placeholder="Ej: Administrador" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Identificador</label>
+            <input type="text" class="form-input" placeholder="Ej: admin" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Activo</label>
+            <select class="form-input">
+              <option value="true">Sí</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button
+            (click)="saveRole()"
+            [disabled]="isSavingRole()"
+            class="btn btn-primary"
+          >
+            {{ isSavingRole() ? 'Guardando...' : 'Guardar' }}
+          </button>
+          <button (click)="closeCreateModal()" class="btn btn-secondary">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Permissions Modal -->
+  @if (showPermissionsModal() && selectedRole()) {
+    <div class="modal-overlay" (click)="closePermissionsModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">Permisos de {{ selectedRole()?.name }}</h2>
+          <button (click)="closePermissionsModal()" class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          <app-role-permissions
+            [role]="selectedRole()!"
+            (saved)="closePermissionsModal(); loadRoles()"
+            (cancelled)="closePermissionsModal()"
+          ></app-role-permissions>
+        </div>
+      </div>
+    </div>
+  }
 
   <!-- Loading State -->
   @if (rolesService.loading$()) {
@@ -101,7 +160,7 @@
       ></app-pagination>
     } @else {
       <div class="bg-white rounded-lg shadow p-8 text-center">
-        <p class="text-gray-500 font-medium">{{ 'dashboard.roles.noResults' | t }}</p>
+        <p class="text-gray-500 font-medium">Sin resultados</p>
       </div>
     }
   }

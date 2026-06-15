@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subscription, filter } from 'rxjs';
@@ -11,6 +11,7 @@ import { ToastComponent } from './shared/components/toast/toast.component';
 import { WebSocketService } from './core/services/websocket.service';
 import { NotificationsService } from './core/services/notifications.service';
 import { RealtimeNotifierService } from './core/services/realtime-notifier.service';
+import { NotificationService } from './shared/services/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -22,6 +23,7 @@ import { RealtimeNotifierService } from './core/services/realtime-notifier.servi
 export class AppComponent implements OnInit, OnDestroy {
   title = 'frontend-post-message-angular';
   private subs = new Subscription();
+  private notificationToastService = inject(NotificationService);
 
   constructor(
     private store: Store,
@@ -49,6 +51,11 @@ export class AppComponent implements OnInit, OnDestroy {
       ).subscribe(notification => {
         if (notification) {
           this.notificationsService.addNotification(notification as any);
+          // Show toast for new notification
+          this.notificationToastService.toast(
+            `${notification.actorName} ${this.getNotificationAction(notification.type)}`,
+            'success'
+          );
         }
       })
     );
@@ -57,5 +64,16 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subs.unsubscribe();
     this.wsService.disconnect();
+  }
+
+  private getNotificationAction(type: string): string {
+    const actions: Record<string, string> = {
+      'comment_created': 'comentó en tu post',
+      'reply_created': 'respondió tu comentario',
+      'reaction_added': 'reaccionó a tu comentario',
+      'post_created': 'creó un nuevo post',
+      'post_favorited': 'marcó como favorito tu post',
+    };
+    return actions[type] || 'envió una notificación';
   }
 }

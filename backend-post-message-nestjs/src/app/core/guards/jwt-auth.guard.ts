@@ -15,7 +15,6 @@ import { AUTH_KEY, AuthOptions, OPTIONAL_AUTH_KEY } from '../decorators/auth.dec
 import { JwtPayload } from '../interfaces/user.interface';
 import { CurrentUserPayload } from '../interfaces/user.interface';
 import { TranslationService } from '../utils/translation.service';
-import { User, UserDocument } from '../../modules/users/schemas/user.schema';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -25,7 +24,7 @@ export class JwtAuthGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly jwtService: JwtService,
     private readonly i18n: TranslationService,
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel('User') private userModel: Model<any>,
   ) {}
 
 

@@ -1,4 +1,4 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -30,12 +30,13 @@ import { sortByField } from '../../admin';
   templateUrl: './audit-logs.component.html',
   styleUrl: './audit-logs.component.scss'
 })
-export class AuditLogsComponent {
+export class AuditLogsComponent implements OnInit {
   // State signals
   readonly filter$ = signal<AuditLogFilter>({ page: 1, limit: 20 });
   readonly fromDate$ = signal('');
   readonly toDate$ = signal('');
   readonly selectedEntry$ = signal<AuditLog | null>(null);
+  readonly loading$ = signal(false);
 
   // Computed derived state
   readonly hasActiveFilters = computed(() => {
@@ -77,8 +78,33 @@ export class AuditLogsComponent {
     readonly auditLogService: AuditLogService,
     private notificationService: NotificationService,
     private i18n: I18nService
-  ) {
+  ) {}
+
+  ngOnInit(): void {
+    this.initializeDateFilter();
     this.load();
+  }
+
+  private initializeDateFilter(): void {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const fromISO = firstDay.toISOString().split('T')[0];
+    const toISO = lastDay.toISOString().split('T')[0];
+
+    this.fromDate$.set(fromISO);
+    this.toDate$.set(toISO);
+
+    // Update filter with dates
+    const from = new Date(fromISO).toISOString();
+    const to = new Date(toISO).toISOString();
+    this.filter$.set({
+      page: 1,
+      limit: 20,
+      from,
+      to
+    });
   }
 
   onFilterChange(patch: Partial<AuditLogFilter>): void {
@@ -164,11 +190,17 @@ export class AuditLogsComponent {
   }
 
   private load(): void {
+    this.loading$.set(true);
     this.auditLogService
       .getAuditLogs(this.filter$())
       .pipe(takeUntilDestroyed())
       .subscribe({
-        error: () => this.notificationService.toast(this.i18n.translate('dashboard.auditLogs.loadError'), 'error')
+        next: () => this.loading$.set(false),
+        error: (err) => {
+          this.loading$.set(false);
+          console.error('Error loading audit logs:', err);
+          this.notificationService.toast(this.i18n.translate('dashboard.auditLogs.loadError'), 'error');
+        }
       });
   }
 }
