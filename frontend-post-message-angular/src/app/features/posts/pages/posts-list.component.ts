@@ -234,7 +234,10 @@ export class PostsListComponent implements OnInit {
     // Add image URL if uploaded
     if (this.uploadedImageUrl()) {
       createData.imageUrl = this.uploadedImageUrl();
+      console.log('Image URL being sent:', createData.imageUrl);
     }
+
+    console.log('Complete post data:', createData);
 
     this.postsService.createPost(createData).subscribe({
       next: () => {
