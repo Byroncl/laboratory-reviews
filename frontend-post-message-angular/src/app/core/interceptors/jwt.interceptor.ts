@@ -39,13 +39,14 @@ export class JwtInterceptor implements HttpInterceptor {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
-          // Only logout if token exists but is invalid
-          // Don't logout if there was never a token
           const storedToken = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+
+          // Only logout if there was a token but it got rejected (actually authenticated but invalid)
+          // For now, just log the error instead of auto-logout to prevent getting stuck
           if (storedToken) {
-            const capturedUrl = this.router.url;
-            this.store.dispatch(AuthActions.logout());
-            this.router.navigate(['/auth/login'], { queryParams: { returnUrl: capturedUrl } });
+            console.warn('[JwtInterceptor] 401 Unauthorized with valid token. Token may be expired or invalid.', error);
+            // Optionally logout only on specific endpoints that explicitly require auth
+            // For other endpoints, let the app handle the error
           }
         }
         return throwError(() => error);

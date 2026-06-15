@@ -30,7 +30,7 @@ export const register = createAction(
 
 export const registerSuccess = createAction(
   '[Auth] Register Success',
-  props<{ user: AuthUser }>()
+  props<{ user: AuthUser; token: string }>()
 );
 
 export const registerFailure = createAction(

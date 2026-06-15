@@ -122,7 +122,7 @@ export class AuthEffects {
               localStorage.setItem('auth_token', access_token);
               localStorage.setItem('auth_user', JSON.stringify(user));
             }
-            return AuthActions.registerSuccess({ user });
+            return AuthActions.registerSuccess({ user, token: access_token });
           }),
           catchError((error) => {
             const errorMessage = this.extractErrorMessage(error, 'Registration failed');
