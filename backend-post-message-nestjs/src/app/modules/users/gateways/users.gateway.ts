@@ -31,19 +31,23 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleConnection(client: Socket): void {
     this.logger.log(`Client connected: ${client.id}`);
-    this.server.emit('user:connected', {
-      clientId: client.id,
-      totalConnected: this.connectedUsers.size + 1,
-    });
+    if (this.server) {
+      this.server.emit('user:connected', {
+        clientId: client.id,
+        totalConnected: this.connectedUsers.size + 1,
+      });
+    }
   }
 
   handleDisconnect(client: Socket): void {
     this.logger.log(`Client disconnected: ${client.id}`);
     this.connectedUsers.delete(client.id);
-    this.server.emit('user:disconnected', {
-      clientId: client.id,
-      totalConnected: this.connectedUsers.size,
-    });
+    if (this.server) {
+      this.server.emit('user:disconnected', {
+        clientId: client.id,
+        totalConnected: this.connectedUsers.size,
+      });
+    }
   }
 
   @SubscribeMessage('user:register')

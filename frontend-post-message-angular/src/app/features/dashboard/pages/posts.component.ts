@@ -16,6 +16,8 @@ import { I18nService } from '../../../core/services/i18n.service';
 import { PostsService } from '../../posts/services/posts.service';
 import { Post } from '../../../shared/models/post.model';
 import { PostFormComponent } from '../components/post-form/post-form.component';
+import { PostViewComponent } from '../components/post-view/post-view.component';
+import { PostDeleteConfirmComponent } from '../components/post-delete-confirm/post-delete-confirm.component';
 import { BulkPostUploadComponent } from '../components/bulk-post-upload/bulk-post-upload.component';
 
 @Component({
@@ -30,6 +32,8 @@ import { BulkPostUploadComponent } from '../components/bulk-post-upload/bulk-pos
     SpinnerComponent,
     SkeletonComponent,
     PostFormComponent,
+    PostViewComponent,
+    PostDeleteConfirmComponent,
     BulkPostUploadComponent
   ],
   templateUrl: './posts.component.html',
@@ -41,7 +45,12 @@ export class PostsComponent {
   // State signals
   readonly showPostForm$ = signal(false);
   readonly showBulkUpload$ = signal(false);
+  readonly showPostView$ = signal(false);
+  readonly showDeleteConfirm$ = signal(false);
   readonly editingPostId$ = signal<string | null>(null);
+  readonly viewingPost$ = signal<Post | null>(null);
+  readonly deletingPost$ = signal<Post | null>(null);
+  readonly isDeletingPost$ = signal(false);
   readonly globalSearch$ = signal('');
   readonly statusFilter$ = signal('');
   readonly hasActiveFilters$ = signal(false);
@@ -177,11 +186,21 @@ export class PostsComponent {
   }
 
   viewPost(post: Post): void {
-    this.notificationService.toast(this.i18n.translate('dashboard.posts.viewOpened'), 'success');
-    this.modalService
-      .openConfirm(post.title, `Autor: ${post.author}\nVistas: ${(post as any).views || 0}\nCreado: ${post.createdAt}`)
-      .pipe(takeUntilDestroyed())
-      .subscribe();
+    this.viewingPost$.set(post);
+    this.showPostView$.set(true);
+  }
+
+  closePostView(): void {
+    this.showPostView$.set(false);
+    this.viewingPost$.set(null);
+  }
+
+  viewToEdit(): void {
+    const post = this.viewingPost$();
+    if (post) {
+      this.closePostView();
+      this.editPost(post);
+    }
   }
 
   editPost(post: Post): void {
@@ -212,21 +231,33 @@ export class PostsComponent {
   }
 
   deletePost(post: Post): void {
-    this.modalService
-      .openConfirm(this.i18n.translate('dashboard.posts.deleteConfirmTitle'), this.i18n.translate('dashboard.posts.deleteConfirmBody').replace('{name}', post.title), true)
-      .pipe(takeUntilDestroyed())
-      .subscribe(result => {
-        if (result.confirmed) {
-          const postId = (post._id ?? post.id) as string;
-          this.postsService.deletePost(postId).pipe(takeUntilDestroyed()).subscribe({
-            next: () => {
-              this.reloadPosts();
-              this.notificationService.toast(this.i18n.translate('dashboard.posts.deleteSuccess'), 'success');
-            },
-            error: () => this.notificationService.toast(this.i18n.translate('dashboard.posts.deleteError'), 'error')
-          });
-        }
-      });
+    this.deletingPost$.set(post);
+    this.showDeleteConfirm$.set(true);
+  }
+
+  closeDeleteConfirm(): void {
+    this.showDeleteConfirm$.set(false);
+    this.deletingPost$.set(null);
+    this.isDeletingPost$.set(false);
+  }
+
+  confirmDeletePost(): void {
+    const post = this.deletingPost$();
+    if (!post) return;
+
+    this.isDeletingPost$.set(true);
+    const postId = (post._id ?? post.id) as string;
+    this.postsService.deletePost(postId).pipe(takeUntilDestroyed()).subscribe({
+      next: () => {
+        this.closeDeleteConfirm();
+        this.reloadPosts();
+        this.notificationService.toast(this.i18n.translate('dashboard.posts.deleteSuccess'), 'success');
+      },
+      error: () => {
+        this.isDeletingPost$.set(false);
+        this.notificationService.toast(this.i18n.translate('dashboard.posts.deleteError'), 'error');
+      }
+    });
   }
 
   onGlobalSearch(): void {

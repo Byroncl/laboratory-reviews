@@ -116,7 +116,10 @@ export class I18nService {
             minLength: 'Mínimo {n} caracteres',
             maxLength: 'Máximo {n} caracteres',
             invalid: 'Campo inválido'
-          }
+          },
+          close: 'Cerrar',
+          cancel: 'Cancelar',
+          cannotUndone: 'Esta acción no se puede deshacer'
         },
         posts: {
           loadError: 'Error al cargar posts',
@@ -164,7 +167,14 @@ export class I18nService {
           publishError: 'Error al publicar el post',
           archiveSuccess: 'Post archivado correctamente',
           archiveError: 'Error al archivar el post',
-          uploadPosts: 'Cargar Posts'
+          uploadPosts: 'Cargar Posts',
+          by: 'Por',
+          createdAt: 'Creado',
+          views: 'Vistas',
+          category: 'Categoría',
+          content: 'Contenido',
+          edit: 'Editar',
+          delete: 'Eliminar'
         },
         users: {
           loadError: 'Error al cargar usuarios',
@@ -799,7 +809,10 @@ export class I18nService {
             minLength: 'Minimum {n} characters',
             maxLength: 'Maximum {n} characters',
             invalid: 'Invalid field'
-          }
+          },
+          close: 'Close',
+          cancel: 'Cancel',
+          cannotUndone: 'This action cannot be undone'
         },
         posts: {
           loadError: 'Error loading posts',
@@ -847,7 +860,14 @@ export class I18nService {
           publishError: 'Error publishing post',
           archiveSuccess: 'Post archived successfully',
           archiveError: 'Error archiving post',
-          uploadPosts: 'Upload Posts'
+          uploadPosts: 'Upload Posts',
+          by: 'By',
+          createdAt: 'Created',
+          views: 'Views',
+          category: 'Category',
+          content: 'Content',
+          edit: 'Edit',
+          delete: 'Delete'
         },
         users: {
           loadError: 'Error loading users',

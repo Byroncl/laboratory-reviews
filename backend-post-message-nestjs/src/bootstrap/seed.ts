@@ -45,7 +45,7 @@ export async function seedDatabase(): Promise<void> {
     const permissions = await seedPermissions(app);
     const roles = await seedRoles(app, permissions);
     const users = await seedUsers(app, config.usersCount, roles);
-    const clients = await seedClients(app);
+    const clients = await seedClients(app, roles);
     const posts = await seedPosts(app, users, categories, config.postsPerUser);
     await seedComments(
       app,
@@ -396,6 +396,7 @@ async function seedUsers(
 
 async function seedClients(
   app: { get: (token: unknown) => unknown },
+  roles: Array<{ _id: unknown; name: string; identifier: string }>,
 ): Promise<Array<{ _id: unknown; username: string }>> {
   const ClientModel = app.get(getModelToken('Client')) as {
     findOne: (filter: unknown) => { exec: () => Promise<{ _id: unknown; username: string } | null> };
@@ -403,6 +404,7 @@ async function seedClients(
   };
 
   const clients: Array<{ _id: unknown; username: string }> = [];
+  const userRole = roles.find((r) => r.identifier === 'user');
 
   for (const clientData of SEED_CLIENTS) {
     const username = clientData.username.toLowerCase();
@@ -424,9 +426,10 @@ async function seedClients(
         password_hash: hashedPassword,
         type: clientData.type,
         isActive: true,
+        role: userRole ? userRole._id : undefined,
       });
       clients.push(client);
-      console.log(`   Created client: ${clientData.name} ${clientData.lastname} - Password: ${clientData.password}`);
+      console.log(`   Created client: ${clientData.name} ${clientData.lastname} (${userRole?.name ?? 'no role'}) - Password: ${clientData.password}`);
     } catch (error) {
       if (error instanceof Error && (error.message.includes('E11000') || error.message.includes('duplicate key'))) {
         console.log(`   Client ${clientData.name} duplicate on create, fetching...`);

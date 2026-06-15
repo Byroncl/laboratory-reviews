@@ -22,6 +22,29 @@
         </div>
       }
 
+      <!-- Post View Modal -->
+      @if (showPostView$() && viewingPost$()) {
+        <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+          <app-post-view
+            [post]="viewingPost$()!"
+            (close)="closePostView()"
+            (edit)="viewToEdit()"
+          ></app-post-view>
+        </div>
+      }
+
+      <!-- Post Delete Confirm Modal -->
+      @if (showDeleteConfirm$() && deletingPost$()) {
+        <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+          <app-post-delete-confirm
+            [post]="deletingPost$()!"
+            [isLoading]="isDeletingPost$()"
+            (confirm)="confirmDeletePost()"
+            (cancel)="closeDeleteConfirm()"
+          ></app-post-delete-confirm>
+        </div>
+      }
+
       <!-- Bulk Upload Modal -->
       @if (showBulkUpload$()) {
         <div class="bg-white rounded-lg shadow p-6 border border-gray-200">

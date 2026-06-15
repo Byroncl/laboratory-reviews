@@ -1,5 +1,6 @@
-import { Component, signal, computed } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, signal, computed, inject, DestroyRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import {
@@ -11,11 +12,10 @@ import {
   SpinnerComponent,
   SkeletonComponent
 } from '../../../shared/components/index';
-import { ModalService, NotificationService } from '../../../shared/services/index';
+import { NotificationService } from '../../../shared/services/index';
 import { I18nService } from '../../../core/services/i18n.service';
 import { PermissionsService } from '../../admin/services/permissions.service';
-import { Permission } from '../../../shared/models/permission.model';
-import { PermissionFormComponent } from '../components/permission-form/permission-form.component';
+import { Permission, PermissionType } from '../../../shared/models/permission.model';
 import { BulkPermissionUploadComponent } from '../components/bulk-permission-upload/bulk-permission-upload.component';
 import {
   extractId,
@@ -23,36 +23,50 @@ import {
   sortByField,
   applyColumnFilters
 } from '../../admin';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-permissions',
   standalone: true,
   imports: [
+    CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     TranslatePipe,
     TableComponent,
     PaginationComponent,
     BadgeComponent,
     SpinnerComponent,
-    SkeletonComponent,
-    PermissionFormComponent,
-    BulkPermissionUploadComponent
+    SkeletonComponent
   ],
   templateUrl: './permissions.component.html',
   styleUrl: './permissions.component.scss'
 })
 export class PermissionsComponent {
+  private fb = inject(FormBuilder);
+  private destroyRef = inject(DestroyRef);
+  readonly permissionsService = inject(PermissionsService);
+  private notificationService = inject(NotificationService);
+  private i18n = inject(I18nService);
+
   readonly pageSize = 10;
+  readonly permissionTypes = Object.values(PermissionType);
 
-  // State signals
-  readonly showPermissionForm$ = signal(false);
-  readonly showBulkUpload$ = signal(false);
-  readonly editingPermissionId$ = signal<string | null>(null);
-  readonly globalSearch$ = signal('');
-  readonly hasActiveFilters$ = signal(false);
+  // Modal states
+  readonly showCreateModal = signal(false);
+  readonly showViewModal = signal(false);
+  readonly selectedPermission = signal<Permission | null>(null);
+  readonly isSavingPermission = signal(false);
 
-  // Stats signals
+  // Search & filters
+  readonly globalSearch = signal('');
+  readonly hasActiveFilters = signal(false);
+
+  // Stats
   readonly totalPermissionsCount = signal(0);
+
+  // Form
+  permissionForm!: FormGroup;
 
   // Private filter/sort state
   private readonly columnFilters$ = signal<Record<string, string>>({});
@@ -60,10 +74,11 @@ export class PermissionsComponent {
     sortOrder: 'asc'
   });
 
-  // Computed filtered permissions
+  readonly currentPage$ = signal(1);
+
   readonly filteredPermissions = computed(() => {
     const permissions = this.permissionsService.permissions$();
-    const filters = { searchTerm: this.globalSearch$() };
+    const filters = { searchTerm: this.globalSearch() };
 
     let filtered = filterPermissions(permissions, filters);
     filtered = applyColumnFilters(filtered, this.columnFilters$());
@@ -85,68 +100,133 @@ export class PermissionsComponent {
 
   readonly columns: TableColumn[] = [
     { key: 'name', label: 'Nombre', sortable: true, filterable: true },
-    { key: 'description', label: 'Descripción', sortable: true, filterable: true },
+    { key: 'type', label: 'Tipo', sortable: true, filterable: true },
     { key: 'createdAt', label: 'Creado', sortable: true }
   ];
 
-  get actions(): TableAction[] {
-    return [
-      { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
-      { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
-      {
-        id: 'delete',
-        label: 'Eliminar',
-        icon: 'delete',
-        class: 'text-red-600 hover:text-red-700',
-        confirm: true,
-        confirmMessage: this.i18n.translate('dashboard.permissions.deleteConfirmInline')
-      }
-    ];
-  }
+  readonly actions: TableAction[] = [
+    { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
+    { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
+    {
+      id: 'delete',
+      label: 'Eliminar',
+      icon: 'delete',
+      class: 'text-red-600 hover:text-red-700',
+      confirm: true,
+      confirmMessage: '¿Estás seguro?'
+    }
+  ];
 
-  readonly currentPage$ = signal(1);
-
-  constructor(
-    readonly permissionsService: PermissionsService,
-    private modalService: ModalService,
-    private notificationService: NotificationService,
-    private i18n: I18nService
-  ) {
+  constructor() {
+    this.initForm();
     this.permissionsService
       .loadPermissions()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.updateStats(),
-        error: () => this.notificationService.toast(this.i18n.translate('dashboard.permissions.loadError'), 'error')
+        error: () => this.notificationService.toast('Error al cargar permisos', 'error')
       });
   }
 
-  onCreatePermission(): void {
-    this.showPermissionForm$.set(true);
-    this.editingPermissionId$.set(null);
+  private initForm(): void {
+    this.permissionForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+      type: ['', Validators.required]
+    });
   }
 
-  onBulkUpload(): void {
-    this.showBulkUpload$.set(true);
+  openCreateModal(): void {
+    this.permissionForm.reset();
+    this.selectedPermission.set(null);
+    this.showCreateModal.set(true);
   }
 
-  closeBulkUpload(): void {
-    this.showBulkUpload$.set(false);
+  openViewModal(permission: Permission): void {
+    this.selectedPermission.set(permission);
+    this.showViewModal.set(true);
   }
 
-  onBulkUploadComplete(): void {
-    this.closeBulkUpload();
-    this.reloadPermissions();
+  closeViewModal(): void {
+    this.showViewModal.set(false);
+    this.selectedPermission.set(null);
   }
 
-  closeForm(): void {
-    this.showPermissionForm$.set(false);
-    this.editingPermissionId$.set(null);
+  editPermission(permission: Permission): void {
+    this.selectedPermission.set(permission);
+    this.permissionForm.patchValue({
+      name: permission.name,
+      type: permission.type
+    });
+    this.showViewModal.set(false);
+    this.showCreateModal.set(true);
   }
 
-  onFormSubmitted(): void {
-    this.closeForm();
-    this.reloadPermissions();
+  closeCreateModal(): void {
+    this.showCreateModal.set(false);
+    this.selectedPermission.set(null);
+    this.permissionForm.reset();
+  }
+
+  savePermission(): void {
+    if (!this.permissionForm.valid) {
+      this.notificationService.toast('Por favor completa los campos requeridos', 'warning');
+      return;
+    }
+
+    this.isSavingPermission.set(true);
+    const formValue = this.permissionForm.value;
+    const permissionId = this.selectedPermission()?._id || this.selectedPermission()?.id;
+
+    console.log('Saving permission:', { permissionId, formValue });
+
+    if (permissionId) {
+      this.permissionsService.updatePermission(permissionId, formValue)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.isSavingPermission.set(false);
+            this.notificationService.toast('✅ Permiso actualizado correctamente', 'success');
+            this.closeCreateModal();
+            this.reloadPermissions();
+          },
+          error: (err) => {
+            this.isSavingPermission.set(false);
+            this.notificationService.toast(`❌ Error al actualizar: ${err?.message || 'Error desconocido'}`, 'error');
+            console.error('Update error:', err);
+          }
+        });
+    } else {
+      this.permissionsService.createPermission(formValue)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.isSavingPermission.set(false);
+            this.notificationService.toast('✅ Permiso creado correctamente', 'success');
+            this.closeCreateModal();
+            this.reloadPermissions();
+          },
+          error: (err) => {
+            this.isSavingPermission.set(false);
+            this.notificationService.toast(`❌ Error al crear: ${err?.message || 'Error desconocido'}`, 'error');
+            console.error('Create error:', err);
+          }
+        });
+    }
+  }
+
+  deletePermission(permission: Permission): void {
+    const permissionId = extractId(permission);
+    this.permissionsService.deletePermission(permissionId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.notificationService.toast('✅ Permiso eliminado correctamente', 'success');
+          this.reloadPermissions();
+        },
+        error: () => {
+          this.notificationService.toast('❌ Error al eliminar', 'error');
+        }
+      });
   }
 
   onTableAction(event: { action: string; row: Record<string, unknown> }): void {
@@ -154,7 +234,7 @@ export class PermissionsComponent {
 
     switch (event.action) {
       case 'view':
-        this.viewPermission(permission);
+        this.openViewModal(permission);
         break;
       case 'edit':
         this.editPermission(permission);
@@ -165,50 +245,14 @@ export class PermissionsComponent {
     }
   }
 
-  viewPermission(permission: Permission): void {
-    this.modalService
-      .openConfirm(
-        permission.name,
-        `Descripción: ${permission['description'] ?? 'N/A'}\nCreado: ${permission.createdAt}`
-      )
-      .pipe(takeUntilDestroyed())
-      .subscribe();
-  }
-
-  editPermission(permission: Permission): void {
-    this.editingPermissionId$.set(extractId(permission));
-    this.showPermissionForm$.set(true);
-  }
-
-  deletePermission(permission: Permission): void {
-    this.modalService
-      .openConfirm(
-        this.i18n.translate('dashboard.permissions.deleteConfirmTitle'),
-        this.i18n.translate('dashboard.permissions.deleteConfirmBody').replace('{name}', permission.name),
-        true
-      )
-      .pipe(takeUntilDestroyed())
-      .subscribe(result => {
-        if (result.confirmed) {
-          const permissionId = extractId(permission);
-          this.permissionsService.deletePermission(permissionId).pipe(takeUntilDestroyed()).subscribe({
-            next: () => {
-              this.reloadPermissions();
-              this.notificationService.toast(this.i18n.translate('dashboard.permissions.deleteSuccess'), 'success');
-            },
-            error: () => {
-              this.notificationService.toast(this.i18n.translate('dashboard.permissions.deleteError'), 'error');
-            }
-          });
-        }
-      });
-  }
 
   private reloadPermissions(): void {
-    this.permissionsService.reloadPermissions().pipe(takeUntilDestroyed()).subscribe({
-      next: () => this.updateStats(),
-      error: () => this.notificationService.toast(this.i18n.translate('dashboard.permissions.loadError'), 'error')
-    });
+    this.permissionsService.reloadPermissions()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.updateStats(),
+        error: () => this.notificationService.toast('Error al cargar permisos', 'error')
+      });
   }
 
   onGlobalSearch(): void {
@@ -235,7 +279,7 @@ export class PermissionsComponent {
   }
 
   clearAllFilters(): void {
-    this.globalSearch$.set('');
+    this.globalSearch.set('');
     this.columnFilters$.set({});
     this.currentPage$.set(1);
     this.updateActiveFilters();
@@ -246,8 +290,8 @@ export class PermissionsComponent {
   }
 
   private updateActiveFilters(): void {
-    this.hasActiveFilters$.set(
-      this.globalSearch$() !== '' ||
+    this.hasActiveFilters.set(
+      this.globalSearch() !== '' ||
         Object.keys(this.columnFilters$()).length > 0
     );
   }

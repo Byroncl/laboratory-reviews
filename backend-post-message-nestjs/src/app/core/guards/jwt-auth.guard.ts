@@ -8,11 +8,14 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { Request } from 'express';
 import { AUTH_KEY, AuthOptions, OPTIONAL_AUTH_KEY } from '../decorators/auth.decorator';
 import { JwtPayload } from '../interfaces/user.interface';
 import { CurrentUserPayload } from '../interfaces/user.interface';
 import { TranslationService } from '../utils/translation.service';
+import { User, UserDocument } from '../../modules/users/schemas/user.schema';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -22,6 +25,7 @@ export class JwtAuthGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly jwtService: JwtService,
     private readonly i18n: TranslationService,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
 
@@ -51,11 +55,50 @@ export class JwtAuthGuard implements CanActivate {
         this.logger.debug('AuthGuard: token found, verifying...');
         try {
           const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
+
+          // Load user with role and permissions from database
+          const user = await this.userModel
+            .findById(payload.sub)
+            .populate({
+              path: 'role',
+              populate: {
+                path: 'permissions',
+              },
+            })
+            .lean()
+            .exec();
+
+          if (!user) {
+            throw new UnauthorizedException(this.i18n.translate('auth.invalid_token'));
+          }
+
+          this.logger.debug(`User loaded: ${(user as any).username}, role:`, (user as any).role);
+          this.logger.debug(`Role details:`, {
+            hasRole: !!(user as any).role,
+            roleId: (user as any).role?._id,
+            roleName: (user as any).role?.name,
+            permissionsCount: ((user as any).role?.permissions || []).length,
+            permissions: ((user as any).role?.permissions || []).map((p: any) => p.identifier),
+          });
+
           const currentUser: CurrentUserPayload = {
             userId: payload.sub,
             username: payload.username,
             type: payload.type,
+            role: user.role ? {
+              _id: (user.role as any)._id.toString(),
+              name: (user.role as any).name,
+              identifier: (user.role as any).identifier,
+              permissions: ((user.role as any).permissions || []).map((p: any) => ({
+                _id: p._id.toString(),
+                identifier: p.identifier,
+                name: p.name,
+              })),
+            } : undefined,
           };
+
+          this.logger.debug(`Permissions loaded: ${currentUser.role?.permissions?.map(p => p.identifier).join(', ') || 'none'}`);
+
           (request as any).user = currentUser;
 
           // If @Auth() with roles, validate them
