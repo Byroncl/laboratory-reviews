@@ -49,9 +49,14 @@ export class AuthService {
     this.isLoading$.set(true);
     this.error$.set(null);
 
+    const normalizedRequest = {
+      ...request,
+      username: request.username.toLowerCase().trim()
+    };
+
     return this.http.post<any>(
       `${this.apiUrl}${AUTH_ENDPOINTS.LOGIN}`,
-      request
+      normalizedRequest
     ).pipe(
       retry(this.retryAttempts),
       map(response => response.data || response),
@@ -67,9 +72,15 @@ export class AuthService {
     this.isLoading$.set(true);
     this.error$.set(null);
 
+    const normalizedRequest = {
+      ...request,
+      username: request.username.toLowerCase().trim(),
+      email: request.email.toLowerCase().trim()
+    };
+
     return this.http.post<any>(
       `${this.apiUrl}${AUTH_ENDPOINTS.REGISTER}`,
-      request
+      normalizedRequest
     ).pipe(
       retry(this.retryAttempts),
       map(response => response.data || response),

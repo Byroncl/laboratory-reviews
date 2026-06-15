@@ -42,9 +42,12 @@ export class RegisterComponent implements OnInit {
     this.registerForm = this.formBuilder.group(
       {
         name: ['', [Validators.required, Validators.minLength(2)]],
+        lastname: ['', [Validators.required, Validators.minLength(2)]],
+        username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(20)]],
         email: ['', [Validators.required, Validators.email]],
         password: ['', [Validators.required, Validators.minLength(6)]],
-        confirmPassword: ['', [Validators.required]]
+        confirmPassword: ['', [Validators.required]],
+        type: ['user', [Validators.required]]
       },
       { validators: this.passwordMatchValidator }
     );
@@ -63,9 +66,19 @@ export class RegisterComponent implements OnInit {
       this.isLoading = true;
       this.error = null;
 
-      const { name, password } = this.registerForm.value as { name: string; password: string };
-      // Register dispatches login action with username; register endpoint is out of scope for this change
-      this.store.dispatch(AuthActions.register({ username: name, password }));
+      const { username, password, ...rest } = this.registerForm.value;
+      // Normalize username and email to lowercase
+      const normalizedUsername = username.toLowerCase().trim();
+      this.store.dispatch(
+        AuthActions.register({
+          username: normalizedUsername,
+          password,
+          name: rest.name,
+          lastname: rest.lastname,
+          email: rest.email.toLowerCase().trim(),
+          type: rest.type
+        })
+      );
       this.isLoading = false;
     }
   }

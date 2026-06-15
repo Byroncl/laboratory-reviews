@@ -69,7 +69,10 @@ export class LoginComponent {
 
     if (this.loginForm.valid) {
       const { username, password } = this.loginForm.value as { username: string; password: string };
-      this.store.dispatch(AuthActions.login({ username, password }));
+      this.store.dispatch(AuthActions.login({
+        username: username.toLowerCase().trim(),
+        password
+      }));
     }
   }
 
