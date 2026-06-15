@@ -65,6 +65,7 @@ describe('AuthController', () => {
       expect(mockAuthService.validateCredentials).toHaveBeenCalledWith(
         credentials.username,
         credentials.password,
+        undefined,
       );
       expect(mockAuthService.login).toHaveBeenCalledWith(user);
       expect(result).toEqual({
@@ -79,6 +80,7 @@ describe('AuthController', () => {
       const credentials: LoginDto = {
         username: 'clientuser',
         password: 'password123',
+        type: 'client',
       };
       const client = { _id: '607f1f77bcf86cd799439012', username: 'clientuser' };
       const tokenResult = {
@@ -97,6 +99,7 @@ describe('AuthController', () => {
       expect(mockAuthService.validateCredentials).toHaveBeenCalledWith(
         credentials.username,
         credentials.password,
+        'client',
       );
       expect(mockAuthService.login).toHaveBeenCalledWith(client);
       expect(result).toEqual({
