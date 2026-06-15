@@ -4,7 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { catchError, of, Subject } from 'rxjs';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, switchMap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { PostsService } from '../../posts/services/posts.service';
 import { FavoritesService } from '../../posts/services/favorites.service';
@@ -86,13 +86,19 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Load favorites only if authenticated
-    if (this.isAuthenticated()) {
-      this.favoritesService.loadFavorites().pipe(
-        takeUntil(this.destroy$),
-        catchError(() => of(null))
-      ).subscribe();
-    }
+    // Load favorites when authenticated (using the store directly)
+    this.store.select(selectIsAuthenticated).pipe(
+      takeUntil(this.destroy$),
+      switchMap(isAuth => {
+        if (isAuth) {
+          return this.favoritesService.loadFavorites().pipe(
+            catchError(() => of(null))
+          );
+        }
+        return of(null);
+      })
+    ).subscribe();
+
     this.loadData();
     this.loadSidebarData();
   }
