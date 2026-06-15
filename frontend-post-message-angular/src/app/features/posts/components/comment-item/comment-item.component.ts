@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { CommentsService } from '../../services';
 import { AuthService } from '../../../auth/services/auth.service';
+import { ToastService } from '../../../../core/services/toast.service';
 import { IComment } from '../../interfaces';
 import { getCommentId } from '../../utils/entity-id.util';
 import { ReactionBarComponent } from '../reaction-bar/reaction-bar.component';
@@ -27,6 +28,7 @@ export class CommentItemComponent {
 
   private commentsService = inject(CommentsService);
   private authService = inject(AuthService);
+  private toastService = inject(ToastService);
 
   readonly isLoggedIn = computed(() => this.authService.isAuthenticated());
   readonly currentUser = this.authService.currentUser$;
@@ -124,8 +126,12 @@ export class CommentItemComponent {
         this.comment.content = newContent;
         this.isEditing.set(false);
         this.editContent.set('');
+        this.toastService.success('Comentario actualizado exitosamente');
       },
-      error: (error) => console.error('Error updating comment:', error),
+      error: (error) => {
+        console.error('Error updating comment:', error);
+        this.toastService.error('Error al actualizar el comentario');
+      },
     });
   }
 
@@ -138,11 +144,13 @@ export class CommentItemComponent {
     this.isDeleting.set(true);
     this.commentsService.deleteComment(commentId).subscribe({
       next: () => {
+        this.toastService.success('Comentario eliminado exitosamente');
         this.commentDeleted.emit(commentId);
       },
       error: (error) => {
         console.error('Error deleting comment:', error);
         this.isDeleting.set(false);
+        this.toastService.error('Error al eliminar el comentario');
       },
     });
   }

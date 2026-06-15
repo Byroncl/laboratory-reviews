@@ -7,6 +7,7 @@ import { selectToken, selectIsAuthenticated } from './features/auth/store/auth.s
 import { AdvancedModalComponent } from './shared/components/modal/advanced-modal.component';
 import { MinimizedModalsTrayComponent } from './shared/components/modal/minimized-modals-tray.component';
 import { NotificationsToastComponent } from './shared/components/notifications-toast/notifications-toast.component';
+import { ToastComponent } from './shared/components/toast/toast.component';
 import { WebSocketService } from './core/services/websocket.service';
 import { NotificationsService } from './core/services/notifications.service';
 import { RealtimeNotifierService } from './core/services/realtime-notifier.service';
@@ -14,7 +15,7 @@ import { RealtimeNotifierService } from './core/services/realtime-notifier.servi
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, AdvancedModalComponent, MinimizedModalsTrayComponent, NotificationsToastComponent],
+  imports: [RouterOutlet, AdvancedModalComponent, MinimizedModalsTrayComponent, NotificationsToastComponent, ToastComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })

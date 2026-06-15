@@ -16,6 +16,7 @@ import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { CommentsService } from '../../services';
 import { ICreateCommentDTO } from '../../interfaces';
 import { AuthService } from '../../../auth/services/auth.service';
+import { ToastService } from '../../../../core/services/toast.service';
 import { MediaUploadComponent } from '../../../../shared/components/media-upload/media-upload.component';
 import { MediaUploadResult } from '../../../../shared/models/media-upload.model';
 
@@ -37,6 +38,7 @@ export class CommentFormComponent implements OnInit {
   private commentsService = inject(CommentsService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private toastService = inject(ToastService);
 
   readonly showAuthModal = signal(false);
   readonly isLoggedIn = computed(() => this.authService.isAuthenticated());
@@ -94,11 +96,14 @@ export class CommentFormComponent implements OnInit {
         this.isSubmitting = false;
         this.mediaResult.set(null);
         this.mediaUpload()?.reset();
+        this.toastService.success('Comentario creado exitosamente');
         this.submitted.emit(dto);
       },
       error: (err) => {
-        this.submitError = err?.message ?? 'Failed to submit comment.';
+        const errorMsg = err?.message ?? 'Failed to submit comment.';
+        this.submitError = errorMsg;
         this.isSubmitting = false;
+        this.toastService.error(errorMsg);
       },
     });
   }

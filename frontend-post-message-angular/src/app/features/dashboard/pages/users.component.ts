@@ -1,4 +1,4 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, DestroyRef } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
@@ -14,6 +14,7 @@ import {
 import { ModalService, NotificationService } from '../../../shared/services/index';
 import { I18nService } from '../../../core/services/i18n.service';
 import { UsersService } from '../../admin/services/users.service';
+import { RolesService } from '../../admin/services/roles.service';
 import { User } from '../../../shared/models/user.model';
 import { UserFormComponent } from '../components/user-form/user-form.component';
 import {
@@ -44,8 +45,12 @@ import {
 })
 export class UsersComponent {
   readonly pageSize = 10;
-  readonly roleFilterOptions = ROLE_FILTER_OPTIONS;
   readonly statusFilterOptions = STATUS_FILTER_OPTIONS;
+  private readonly rolesData = signal<any[]>([]);
+
+  readonly roleFilterOptions = computed(() =>
+    this.rolesData().map(role => ({ value: role.name, label: role.name }))
+  );
 
   // Signals para estado
   readonly showUserForm$ = signal(false);
@@ -87,14 +92,20 @@ export class UsersComponent {
       );
     }
 
-    return filtered;
+    return filtered.map(user => {
+      const u = user as any;
+      return {
+        ...user,
+        role: typeof u.role === 'object' && u.role ? u.role.name || u.role._id : u.role,
+        lastLogin: u.lastLogin || u.lastLoginAt || '-'
+      };
+    });
   });
 
   readonly columns: TableColumn[] = [
     { key: 'name', label: 'Nombre', sortable: true, filterable: true },
     { key: 'email', label: 'Email', sortable: true, filterable: true },
     { key: 'role', label: 'Rol', template: true, filterable: true },
-    { key: 'status', label: 'Estado', template: true, filterable: true },
     { key: 'createdAt', label: 'Registrado', sortable: true },
     { key: 'lastLogin', label: 'Último Login', sortable: true }
   ];
@@ -103,12 +114,6 @@ export class UsersComponent {
     return [
       { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
       { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
-      {
-        id: 'toggle-status',
-        label: 'Activar/Desactivar',
-        icon: 'edit',
-        class: 'text-orange-600 hover:text-orange-700'
-      },
       {
         id: 'delete',
         label: 'Eliminar',
@@ -122,18 +127,33 @@ export class UsersComponent {
 
   constructor(
     readonly usersService: UsersService,
+    private rolesService: RolesService,
     private modalService: ModalService,
     private notificationService: NotificationService,
-    private i18n: I18nService
+    private i18n: I18nService,
+    private destroyRef: DestroyRef
   ) {
+    this.loadRoles();
     this.loadCurrentPage();
-    this.usersService.loadStats().pipe(takeUntilDestroyed()).subscribe({
+    this.usersService.loadStats().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: response => {
         this.totalUsersCount.set(response.data.total);
         this.activeCount.set(response.data.active);
         this.adminCount.set((response.data as any).admin ?? 0);
       },
       error: () => {}
+    });
+  }
+
+  private loadRoles(): void {
+    this.rolesService.loadRoles(0, 100).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (response) => {
+        const rolesList = Array.isArray(response.data) ? response.data : response.data.items || [];
+        console.log('Roles loaded for filter:', rolesList);
+        this.rolesData.set(rolesList);
+        console.log('Role filter options:', this.roleFilterOptions());
+      },
+      error: (err) => console.error('Error loading roles for filter:', err)
     });
   }
 
@@ -162,41 +182,21 @@ export class UsersComponent {
       case 'edit':
         this.editUser(user);
         break;
-      case 'toggle-status':
-        this.toggleUserStatus(user);
-        break;
       case 'delete':
         this.deleteUser(user);
         break;
     }
   }
 
-  toggleUserStatus(user: User): void {
-    const userId = extractId(user);
-    const isActive = user.isActive ?? user.status === 'active';
-    const action$ = isActive
-      ? this.usersService.deactivateUser(userId)
-      : this.usersService.activateUser(userId);
-
-    action$.pipe(takeUntilDestroyed()).subscribe({
-      next: () => {
-        const statusMsg = isActive ? 'desactivado' : 'activado';
-        this.notificationService.toast(this.i18n.translate('dashboard.users.toggleSuccess').replace('{status}', statusMsg), 'success');
-        this.updateStats();
-      },
-      error: () => {
-        this.notificationService.toast(this.i18n.translate('dashboard.users.toggleError'), 'error');
-      }
-    });
-  }
-
   viewUser(user: User): void {
+    const roleName = typeof user.role === 'object' ? user.role?.name || 'N/A' : user.role || 'N/A';
+    const status = user.isActive ? 'Activo' : 'Inactivo';
     this.modalService
       .openConfirm(
         user.name,
-        `Email: ${user.email}\nRol: ${user.role}\nEstado: ${user.status}\nRegistrado: ${user.createdAt}`
+        `Email: ${user.email}\nRol: ${roleName}\nEstado: ${status}\nRegistrado: ${user.createdAt}`
       )
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
   }
 
@@ -212,11 +212,11 @@ export class UsersComponent {
         this.i18n.translate('dashboard.users.deleteConfirmBody').replace('{name}', user.name),
         true
       )
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(result => {
         if (result.confirmed) {
           const userId = extractId(user);
-          this.usersService.deleteUser(userId).pipe(takeUntilDestroyed()).subscribe({
+          this.usersService.deleteUser(userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: () => {
               this.updateStats();
               this.notificationService.toast(this.i18n.translate('dashboard.users.deleteSuccess'), 'success');
@@ -284,7 +284,7 @@ export class UsersComponent {
       email: this.globalSearch$() || undefined
     };
 
-    this.usersService.loadUsers(skip, this.pageSize, filters).pipe(takeUntilDestroyed()).subscribe({
+    this.usersService.loadUsers(skip, this.pageSize, filters).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.updateStats();
       },

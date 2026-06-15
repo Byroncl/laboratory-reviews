@@ -133,8 +133,7 @@ export class MediaUploadComponent implements OnDestroy {
     this._selectedFiles().reduce((sum, s) => sum + s.file.size, 0),
   );
 
-  readonly acceptAttr =
-    'image/*,video/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.*,application/vnd.ms-excel,application/vnd.ms-powerpoint,application/vnd.oasis.opendocument.*';
+  readonly acceptAttr = '.png,.jpg,.jpeg,.webp';
 
   private filesService = inject(FilesService);
 
@@ -217,10 +216,10 @@ export class MediaUploadComponent implements OnDestroy {
     let addedBytes = 0;
 
     for (const file of incoming) {
-      // Type check
-      const allowed = MEDIA_ALLOWED_TYPES.some(prefix => file.type.startsWith(prefix));
+      // Type check — images only
+      const allowed = MEDIA_ALLOWED_TYPES.includes(file.type);
       if (!allowed) {
-        errors.push(`"${file.name}" type not allowed (${file.type || 'unknown'})`);
+        errors.push(`"${file.name}" is not a valid image (PNG, JPG, WEBP only)`);
         continue;
       }
 

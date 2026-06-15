@@ -123,11 +123,11 @@ export class ReactionBarComponent implements OnInit {
       if (newCount === 0) {
         updated.splice(idx, 1);
       } else {
-        updated[idx] = { ...updated[idx], count: newCount };
+        updated[idx] = { ...updated[idx], count: newCount, reactedByMe: delta > 0 };
       }
       this.summary.set(updated);
     } else if (delta > 0) {
-      this.summary.set([...current, { emoji, count: delta }]);
+      this.summary.set([...current, { emoji, count: delta, reactedByMe: true }]);
     }
   }
 }

@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { CommentsService } from '../../services';
+import { ToastService } from '../../../../core/services/toast.service';
 import { ICreateCommentDTO } from '../../interfaces';
 import { MediaUploadComponent } from '../../../../shared/components/media-upload/media-upload.component';
 import { MediaUploadResult } from '../../../../shared/models/media-upload.model';
@@ -31,6 +32,7 @@ export class ReplyFormComponent implements OnInit {
 
   private fb = inject(FormBuilder);
   private commentsService = inject(CommentsService);
+  private toastService = inject(ToastService);
 
   // Media upload state
   readonly mediaResult = signal<MediaUploadResult | null>(null);
@@ -84,11 +86,14 @@ export class ReplyFormComponent implements OnInit {
         this.isSubmitting = false;
         this.mediaResult.set(null);
         this.mediaUpload()?.reset();
+        this.toastService.success('Respuesta creada exitosamente');
         this.submitted.emit();
       },
       error: (err) => {
-        this.submitError = err?.message ?? 'Failed to submit reply.';
+        const errorMsg = err?.message ?? 'Failed to submit reply.';
+        this.submitError = errorMsg;
         this.isSubmitting = false;
+        this.toastService.error(errorMsg);
       },
     });
   }

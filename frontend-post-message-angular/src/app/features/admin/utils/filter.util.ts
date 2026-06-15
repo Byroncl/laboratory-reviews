@@ -22,7 +22,7 @@ export function filterBySearchTerm<T>(
 /**
  * Filter users by multiple criteria
  */
-export function filterUsers<T extends { name?: string; email?: string; role?: string; status?: string }>(
+export function filterUsers<T extends { name?: string; email?: string; role?: string | { name?: string }; status?: string }>(
   users: T[],
   filters: IUserFilters
 ): T[] {
@@ -37,8 +37,11 @@ export function filterUsers<T extends { name?: string; email?: string; role?: st
     }
 
     // Role filter
-    if (filters.role && user.role !== filters.role) {
-      return false;
+    if (filters.role) {
+      const userRoleName = typeof user.role === 'object' ? user.role?.name : user.role;
+      if (userRoleName?.toLowerCase() !== filters.role.toLowerCase()) {
+        return false;
+      }
     }
 
     // Status filter

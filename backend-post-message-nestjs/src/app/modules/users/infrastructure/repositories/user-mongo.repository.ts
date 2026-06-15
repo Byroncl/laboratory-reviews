@@ -53,7 +53,7 @@ export class UserMongoRepository implements UserRepository {
       if (roleDoc) {
         query.role = roleDoc._id;
       } else {
-        return { items: [], total: 0, skip, limit };
+        console.warn(`[User Repository] Role "${filters.role}" not found. Continuing without role filter.`);
       }
     }
 
@@ -68,6 +68,8 @@ export class UserMongoRepository implements UserRepository {
     if (filters?.email) {
       query.email = { $regex: filters.email, $options: 'i' };
     }
+
+    console.log(`[User Repository] Query filter:`, query);
 
     const [items, total] = await Promise.all([
       this.userModel.find(query).skip(skip).limit(limit).populate('role').exec(),
