@@ -66,7 +66,8 @@ export class ReplyFormComponent implements OnInit {
     const m = this.mediaResult();
     const dto: ICreateCommentDTO = {
       content: this.replyForm.value.content,
-      post: this.postId,
+      postId: this.postId,
+      parentCommentId: this.parentCommentId,
       ...(m && m.mediaUrls.length
         ? {
             mediaUrls: m.mediaUrls,

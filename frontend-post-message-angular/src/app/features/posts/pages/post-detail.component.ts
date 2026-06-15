@@ -41,7 +41,7 @@ export class PostDetailComponent implements OnInit {
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
       const postId = params.get('id');
-      if (postId) {
+      if (postId && postId !== 'new') {
         this.loadPost(postId);
         this.loadComments(postId);
         this.loadOtherPosts(postId);

@@ -16,6 +16,7 @@ import { I18nService } from '../../../core/services/i18n.service';
 import { PostsService } from '../../posts/services/posts.service';
 import { Post } from '../../../shared/models/post.model';
 import { PostFormComponent } from '../components/post-form/post-form.component';
+import { BulkPostUploadComponent } from '../components/bulk-post-upload/bulk-post-upload.component';
 
 @Component({
   selector: 'app-posts',
@@ -28,7 +29,8 @@ import { PostFormComponent } from '../components/post-form/post-form.component';
     BadgeComponent,
     SpinnerComponent,
     SkeletonComponent,
-    PostFormComponent
+    PostFormComponent,
+    BulkPostUploadComponent
   ],
   templateUrl: './posts.component.html',
   styleUrl: './posts.component.scss'
@@ -38,6 +40,7 @@ export class PostsComponent {
 
   // State signals
   readonly showPostForm$ = signal(false);
+  readonly showBulkUpload$ = signal(false);
   readonly editingPostId$ = signal<string | null>(null);
   readonly globalSearch$ = signal('');
   readonly statusFilter$ = signal('');
@@ -109,6 +112,8 @@ export class PostsComponent {
     return [
       { id: 'view', label: 'Ver', icon: 'view', class: 'text-blue-600 hover:text-blue-700' },
       { id: 'edit', label: 'Editar', icon: 'edit', class: 'text-blue-600 hover:text-blue-700' },
+      { id: 'publish', label: 'Publicar', icon: 'publish', class: 'text-green-600 hover:text-green-700' },
+      { id: 'archive', label: 'Archivar', icon: 'archive', class: 'text-orange-600 hover:text-orange-700' },
       {
         id: 'delete',
         label: 'Eliminar',
@@ -137,6 +142,19 @@ export class PostsComponent {
     this.editingPostId$.set(null);
   }
 
+  onBulkUpload(): void {
+    this.showBulkUpload$.set(true);
+  }
+
+  closeBulkUpload(): void {
+    this.showBulkUpload$.set(false);
+  }
+
+  onBulkUploadComplete(): void {
+    this.closeBulkUpload();
+    this.reloadPosts();
+  }
+
   closeForm(): void {
     this.showPostForm$.set(false);
     this.editingPostId$.set(null);
@@ -144,7 +162,7 @@ export class PostsComponent {
 
   onFormSubmitted(): void {
     this.closeForm();
-    this.updateStats();
+    this.reloadPosts();
   }
 
   onTableAction(event: { action: string; row: Record<string, unknown> }): void {
@@ -152,6 +170,8 @@ export class PostsComponent {
     switch (event.action) {
       case 'view': this.viewPost(post); break;
       case 'edit': this.editPost(post); break;
+      case 'publish': this.publishPost(post); break;
+      case 'archive': this.archivePost(post); break;
       case 'delete': this.deletePost(post); break;
     }
   }
@@ -169,6 +189,28 @@ export class PostsComponent {
     this.showPostForm$.set(true);
   }
 
+  publishPost(post: Post): void {
+    const postId = (post._id ?? post.id) as string;
+    this.postsService.changePostStatus(postId, 'published').pipe(takeUntilDestroyed()).subscribe({
+      next: () => {
+        this.reloadPosts();
+        this.notificationService.toast(this.i18n.translate('dashboard.posts.publishSuccess'), 'success');
+      },
+      error: () => this.notificationService.toast(this.i18n.translate('dashboard.posts.publishError'), 'error')
+    });
+  }
+
+  archivePost(post: Post): void {
+    const postId = (post._id ?? post.id) as string;
+    this.postsService.changePostStatus(postId, 'archived').pipe(takeUntilDestroyed()).subscribe({
+      next: () => {
+        this.reloadPosts();
+        this.notificationService.toast(this.i18n.translate('dashboard.posts.archiveSuccess'), 'success');
+      },
+      error: () => this.notificationService.toast(this.i18n.translate('dashboard.posts.archiveError'), 'error')
+    });
+  }
+
   deletePost(post: Post): void {
     this.modalService
       .openConfirm(this.i18n.translate('dashboard.posts.deleteConfirmTitle'), this.i18n.translate('dashboard.posts.deleteConfirmBody').replace('{name}', post.title), true)
@@ -178,7 +220,7 @@ export class PostsComponent {
           const postId = (post._id ?? post.id) as string;
           this.postsService.deletePost(postId).pipe(takeUntilDestroyed()).subscribe({
             next: () => {
-              this.updateStats();
+              this.reloadPosts();
               this.notificationService.toast(this.i18n.translate('dashboard.posts.deleteSuccess'), 'success');
             },
             error: () => this.notificationService.toast(this.i18n.translate('dashboard.posts.deleteError'), 'error')
@@ -219,6 +261,13 @@ export class PostsComponent {
     this.columnFilters$.set({});
     this.currentPage$.set(1);
     this.updateActiveFilters();
+  }
+
+  private reloadPosts(): void {
+    this.postsService.loadPosts().pipe(takeUntilDestroyed()).subscribe({
+      next: () => this.updateStats(),
+      error: () => this.notificationService.toast(this.i18n.translate('dashboard.posts.loadError'), 'error')
+    });
   }
 
   private updateStats(): void {

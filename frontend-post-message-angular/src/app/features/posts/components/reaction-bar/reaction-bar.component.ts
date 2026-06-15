@@ -35,6 +35,10 @@ export class ReactionBarComponent implements OnInit {
       next: (data) => {
         this.summary.set(data);
         this.reactionsService.setLocalReactions(this.commentId, data);
+        const reactedEmojis = data
+          .filter(r => r.reactedByMe)
+          .map(r => r.emoji);
+        this.reactedEmojis.set(new Set(reactedEmojis));
       },
       error: (err) => console.error('[ReactionBarComponent] getReactions error:', err),
     });

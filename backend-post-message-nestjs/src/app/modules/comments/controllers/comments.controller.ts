@@ -30,7 +30,7 @@ import { FindCommentsByPostDto } from '../dto/find-comments-by-post.dto';
 import { CreateReactionDto } from '../dto/create-reaction.dto';
 import { ReactionResponseDto } from '../dto/reaction-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
-import { Auth } from '../../../core/decorators/auth.decorator';
+import { Auth, OptionalAuth } from '../../../core/decorators/auth.decorator';
 import { CurrentUser } from '../../../core/decorators/current-user.decorator';
 import type { CurrentUserPayload } from '../../../core/decorators/current-user.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
@@ -84,7 +84,7 @@ export class CommentsController {
     } as any);
 
     if (this.notificationsGateway) {
-      const post = await this.commentsService.getPostByCommentPostId(createCommentDto.post);
+      const post = await this.commentsService.getPostByCommentPostId(createCommentDto.postId);
       if (post && (post as any).authorId) {
         this.notificationsGateway.notifyCommentAdded(
           (post as any).authorId.toString(),
@@ -418,6 +418,7 @@ export class CommentsController {
     return ApiRes.success(null, this.i18n.translate(COMMENTS_MESSAGES.REACTION_REMOVED));
   }
 
+  @OptionalAuth()
   @ApiOperation({ summary: 'Get all reactions for a comment' })
   @ApiParam({
     name: 'id',

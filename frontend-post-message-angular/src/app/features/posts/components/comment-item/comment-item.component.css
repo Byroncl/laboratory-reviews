@@ -222,3 +222,49 @@
   background-color: #4b5563;
   border-color: #4b5563;
 }
+
+/* Thread level styling */
+.comment-level-1,
+.comment-level-2 {
+  margin-left: 1rem;
+  background-color: #f8fafc;
+  border-left: 3px solid #cbd5e1;
+  padding-left: 1rem;
+}
+
+.comment-level-1 {
+  border-left-color: #3b82f6;
+}
+
+.comment-level-2 {
+  border-left-color: #06b6d4;
+  margin-left: 1.5rem;
+}
+
+.comment-thread-indicator {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-style: italic;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.thread-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.reply-limit-msg {
+  font-size: 0.75rem;
+  color: #ea580c;
+  font-weight: 500;
+  padding: 4px 8px;
+  background-color: #fed7aa;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}

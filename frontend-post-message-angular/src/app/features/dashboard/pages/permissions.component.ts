@@ -16,6 +16,7 @@ import { I18nService } from '../../../core/services/i18n.service';
 import { PermissionsService } from '../../admin/services/permissions.service';
 import { Permission } from '../../../shared/models/permission.model';
 import { PermissionFormComponent } from '../components/permission-form/permission-form.component';
+import { BulkPermissionUploadComponent } from '../components/bulk-permission-upload/bulk-permission-upload.component';
 import {
   extractId,
   filterPermissions,
@@ -34,7 +35,8 @@ import {
     BadgeComponent,
     SpinnerComponent,
     SkeletonComponent,
-    PermissionFormComponent
+    PermissionFormComponent,
+    BulkPermissionUploadComponent
   ],
   templateUrl: './permissions.component.html',
   styleUrl: './permissions.component.scss'
@@ -44,6 +46,7 @@ export class PermissionsComponent {
 
   // State signals
   readonly showPermissionForm$ = signal(false);
+  readonly showBulkUpload$ = signal(false);
   readonly editingPermissionId$ = signal<string | null>(null);
   readonly globalSearch$ = signal('');
   readonly hasActiveFilters$ = signal(false);
@@ -123,6 +126,19 @@ export class PermissionsComponent {
     this.editingPermissionId$.set(null);
   }
 
+  onBulkUpload(): void {
+    this.showBulkUpload$.set(true);
+  }
+
+  closeBulkUpload(): void {
+    this.showBulkUpload$.set(false);
+  }
+
+  onBulkUploadComplete(): void {
+    this.closeBulkUpload();
+    this.reloadPermissions();
+  }
+
   closeForm(): void {
     this.showPermissionForm$.set(false);
     this.editingPermissionId$.set(null);
@@ -130,7 +146,7 @@ export class PermissionsComponent {
 
   onFormSubmitted(): void {
     this.closeForm();
-    this.updateStats();
+    this.reloadPermissions();
   }
 
   onTableAction(event: { action: string; row: Record<string, unknown> }): void {
@@ -177,7 +193,7 @@ export class PermissionsComponent {
           const permissionId = extractId(permission);
           this.permissionsService.deletePermission(permissionId).pipe(takeUntilDestroyed()).subscribe({
             next: () => {
-              this.updateStats();
+              this.reloadPermissions();
               this.notificationService.toast(this.i18n.translate('dashboard.permissions.deleteSuccess'), 'success');
             },
             error: () => {
@@ -186,6 +202,13 @@ export class PermissionsComponent {
           });
         }
       });
+  }
+
+  private reloadPermissions(): void {
+    this.permissionsService.reloadPermissions().pipe(takeUntilDestroyed()).subscribe({
+      next: () => this.updateStats(),
+      error: () => this.notificationService.toast(this.i18n.translate('dashboard.permissions.loadError'), 'error')
+    });
   }
 
   onGlobalSearch(): void {

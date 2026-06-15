@@ -1,13 +1,18 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
 import { Permission, CreatePermissionDto, UpdatePermissionDto, PermissionsPaginatedResponse } from '../../../shared/models/permission.model';
 import { AdminBaseService } from './admin-base.service';
 import { ADMIN_ENDPOINTS } from '../constants';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class PermissionsService extends AdminBaseService<Permission> {
   readonly permissions$ = this.items$;
+  private http = inject(HttpClient);
+  private baseUrl = environment.apiUrl;
 
   protected endpoint = ADMIN_ENDPOINTS.PERMISSIONS;
 
@@ -25,5 +30,19 @@ export class PermissionsService extends AdminBaseService<Permission> {
 
   deletePermission(id: string): Observable<{ message: string }> {
     return this.deleteItem(id) as Observable<any>;
+  }
+
+  bulkCreatePermissions(permissions: CreatePermissionDto[]): Observable<any> {
+    return this.http.post(`${this.baseUrl}${ADMIN_ENDPOINTS.PERMISSIONS}/bulk`, permissions).pipe(
+      tap((response: any) => {
+        if (response?.data && Array.isArray(response.data)) {
+          this.items$.set([...this.items$(), ...response.data]);
+        }
+      })
+    );
+  }
+
+  reloadPermissions(): Observable<PermissionsPaginatedResponse> {
+    return this.loadPermissions(0, 100);
   }
 }

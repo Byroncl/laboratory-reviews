@@ -1,6 +1,6 @@
 
     <div class="space-y-6">
-      <!-- Form Modal -->
+      <!-- Post Form Modal -->
       @if (showPostForm$()) {
         <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
           <div class="flex justify-between items-center mb-4">
@@ -22,16 +22,44 @@
         </div>
       }
 
+      <!-- Bulk Upload Modal -->
+      @if (showBulkUpload$()) {
+        <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-900">{{ 'dashboard.posts.bulkUpload' | t }}</h2>
+            <button
+              (click)="closeBulkUpload()"
+              class="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+          <app-bulk-post-upload
+            (uploadComplete)="onBulkUploadComplete()"
+            (uploadCancelled)="closeBulkUpload()"
+          ></app-bulk-post-upload>
+        </div>
+      }
+
       <!-- Header -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 class="text-3xl font-bold text-primary">{{ 'sidebar.posts' | t }}</h1>
-        <button
-          (click)="onCreatePost()"
-          [disabled]="showPostForm$()"
-          class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
-        >
-          {{ 'dashboard.posts.newPost' | t }}
-        </button>
+        <div class="flex gap-2">
+          <button
+            (click)="onBulkUpload()"
+            [disabled]="showPostForm$() || showBulkUpload$()"
+            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
+          >
+            {{ 'dashboard.posts.bulkUploadBtn' | t }}
+          </button>
+          <button
+            (click)="onCreatePost()"
+            [disabled]="showPostForm$() || showBulkUpload$()"
+            class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
+          >
+            {{ 'dashboard.posts.newPost' | t }}
+          </button>
+        </div>
       </div>
 
       <!-- Global Search and Filter -->

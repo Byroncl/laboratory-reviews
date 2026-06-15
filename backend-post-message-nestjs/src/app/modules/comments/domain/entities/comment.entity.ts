@@ -7,7 +7,7 @@ import { DomainException } from '../../../../core/exceptions/app.exceptions';
 export class CommentEntity {
   readonly _id?: string;
   readonly content: string;
-  readonly post: string;
+  readonly postId: string;
   readonly user: string;
   readonly parentComment?: string;
   readonly childComments: string[];
@@ -21,7 +21,7 @@ export class CommentEntity {
   constructor(props: {
     _id?: string;
     content: string;
-    post: string;
+    postId: string;
     user: string;
     parentComment?: string;
     childComments?: string[];
@@ -33,7 +33,7 @@ export class CommentEntity {
     updatedAt?: Date;
   }) {
     this.validateContent(props.content);
-    this.validatePost(props.post);
+    this.validatePost(props.postId);
     this.validateUser(props.user);
     if (props.parentComment) {
       this.validateParentComment(props.parentComment);
@@ -44,7 +44,7 @@ export class CommentEntity {
 
     this._id = props._id;
     this.content = props.content.trim();
-    this.post = props.post;
+    this.postId = props.postId;
     this.user = props.user;
     this.parentComment = props.parentComment;
     this.childComments = props.childComments ?? [];
@@ -119,7 +119,7 @@ export class CommentEntity {
     return new CommentEntity({
       _id: this._id,
       content: props.content ?? this.content,
-      post: this.post,
+      postId: this.postId,
       user: this.user,
       parentComment: this.parentComment,
       childComments: this.childComments,
@@ -136,7 +136,7 @@ export class CommentEntity {
     return new CommentEntity({
       _id: this._id,
       content: this.content,
-      post: this.post,
+      postId: this.postId,
       user: this.user,
       parentComment: this.parentComment,
       childComments: [...this.childComments, childCommentId],
@@ -153,7 +153,7 @@ export class CommentEntity {
     return new CommentEntity({
       _id: this._id,
       content: this.content,
-      post: this.post,
+      postId: this.postId,
       user: this.user,
       parentComment: this.parentComment,
       childComments: this.childComments.filter(id => id !== childCommentId),

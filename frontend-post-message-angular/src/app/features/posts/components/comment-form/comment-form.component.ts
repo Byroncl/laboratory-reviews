@@ -75,7 +75,7 @@ export class CommentFormComponent implements OnInit {
     const m = this.mediaResult();
     const dto: ICreateCommentDTO = {
       content: this.commentForm.value.content,
-      post: this.postId,
+      postId: this.postId,
       ...(m && m.mediaUrls.length
         ? {
             mediaUrls: m.mediaUrls,

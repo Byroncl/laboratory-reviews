@@ -146,8 +146,9 @@
                   @for (comment of comments$(); track comment._id || comment.id) {
                     <app-comment-item
                       [comment]="comment"
-                      [postId]="postId"
+                      [postId]="post()!.id || post()!._id || ''"
                       [postAuthor]="post()?.author"
+                      [level]="0"
                       (replyAdded)="onCommentSubmitted()"
                     ></app-comment-item>
                   }

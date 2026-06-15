@@ -8,7 +8,7 @@ import { UpdateCommentDto } from '../dto/update-comment.dto';
 import { FindCommentsByPostDto } from '../dto/find-comments-by-post.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
 import { TranslationService } from '../../../core/utils/translation.service';
-import { AUTH_KEY } from '../../../core/decorators/auth.decorator';
+import { AUTH_KEY, OPTIONAL_AUTH_KEY } from '../../../core/decorators/auth.decorator';
 
 describe('CommentsController', () => {
   let controller: CommentsController;
@@ -353,9 +353,9 @@ describe('CommentsController', () => {
       expect(metadata).toBeUndefined();
     });
 
-    it('getReactions handler does NOT carry AUTH_KEY metadata (public read)', () => {
-      const metadata = Reflect.getMetadata(AUTH_KEY, controller.getReactions);
-      expect(metadata).toBeUndefined();
+    it('getReactions handler carries OPTIONAL_AUTH_KEY metadata (optional auth)', () => {
+      const metadata = Reflect.getMetadata(OPTIONAL_AUTH_KEY, controller.getReactions);
+      expect(metadata).toBe(true);
     });
   });
 

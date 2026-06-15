@@ -34,7 +34,7 @@ export class CreateCommentDto {
   })
   @IsMongoId({ message: 'Post ID must be a valid MongoDB ObjectId' })
   @IsNotEmpty({ message: 'Post ID is required' })
-  post: string;
+  postId: string;
 
   @ApiProperty({
     example: '507f1f77bcf86cd799439012',

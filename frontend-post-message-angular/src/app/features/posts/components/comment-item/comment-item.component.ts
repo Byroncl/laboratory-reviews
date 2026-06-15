@@ -21,6 +21,7 @@ export class CommentItemComponent {
   @Input() comment!: IComment;
   @Input() postId!: string;
   @Input() postAuthor?: string;
+  @Input() level: number = 0; // 0 = top-level, 1 = first reply, 2 = second reply (max)
   @Output() replyAdded = new EventEmitter<void>();
   @Output() commentDeleted = new EventEmitter<string>();
 
@@ -33,6 +34,7 @@ export class CommentItemComponent {
     const current = this.currentUser();
     return current && this.comment?.author === current.username;
   });
+  readonly canReply = computed(() => this.level < 2); // Allow replies only up to level 1 (max depth 2)
 
   readonly showReplyForm = signal(false);
   readonly replies = signal<IComment[]>([]);

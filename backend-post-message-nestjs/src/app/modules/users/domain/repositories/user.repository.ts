@@ -24,6 +24,13 @@ export abstract class UserRepository {
   abstract findOneByEmail(email: string): Promise<User | null>;
   abstract activate(id: string): Promise<User | null>;
   abstract deactivate(id: string): Promise<User | null>;
-  abstract getStats(): Promise<{ total: number; active: number; verified: number }>;
+  abstract getStats(): Promise<{
+    total: number;
+    active: number;
+    verified: number;
+    posts: number;
+    comments: number;
+    growthPercentage: number;
+  }>;
   abstract updateLastLogin(id: string): Promise<void>;
 }

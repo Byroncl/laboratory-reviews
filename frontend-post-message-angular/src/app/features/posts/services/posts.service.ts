@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
 import { throwError } from 'rxjs';
@@ -130,6 +130,40 @@ export class PostsService extends PostsBaseService<IPost> {
    */
   public clearFilters(): void {
     this.filters.set({});
+  }
+
+  /**
+   * Change post status via PATCH endpoint
+   */
+  public changePostStatus(id: string, status: 'draft' | 'published' | 'archived'): Observable<IPostResponse> {
+    return this.updatePostStatus(id, status);
+  }
+
+  /**
+   * Bulk create posts from array
+   */
+  public override bulkCreatePosts(posts: any[]): Observable<any> {
+    return super.bulkCreatePosts(posts);
+  }
+
+  /**
+   * Get current user's posts
+   */
+  public getMyPosts(pagination?: { skip?: number; limit?: number }): Observable<IPostListResponse> {
+    let params = new HttpParams();
+    if (pagination?.skip !== undefined) {
+      params = params.set('skip', pagination.skip.toString());
+    }
+    if (pagination?.limit !== undefined) {
+      params = params.set('limit', pagination.limit.toString());
+    }
+
+    return this.http
+      .get<any>(`${this.baseUrl}/posts/my-posts`, { params })
+      .pipe(
+        tap((response) => this._handleLoadSuccess(response)),
+        catchError((err) => this._handleError(err, 'Failed to load my posts')),
+      ) as Observable<IPostListResponse>;
   }
 
   /**

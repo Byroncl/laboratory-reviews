@@ -1,4 +1,17 @@
-<article class="comment-item">
+<article class="comment-item" [class.comment-level-1]="level === 1" [class.comment-level-2]="level === 2">
+  <!-- Thread indicator for nested comments -->
+  @if (level > 0) {
+    <div class="comment-thread-indicator">
+      <span class="thread-level">
+        @if (level === 1) {
+          ↳ Respuesta
+        } @else if (level === 2) {
+          ↳↳ Respuesta a respuesta
+        }
+      </span>
+    </div>
+  }
+
   <!-- Header: author + date -->
   <header class="comment-header">
     <span class="comment-author" [class.is-op]="comment.author && postAuthor && comment.author === postAuthor">
@@ -113,7 +126,7 @@
 
   <!-- Action buttons -->
   <footer class="comment-actions">
-    @if (isLoggedIn() && !isEditing()) {
+    @if (isLoggedIn() && !isEditing() && canReply()) {
       <button
         type="button"
         class="btn-action"
@@ -121,6 +134,11 @@
       >
         {{ showReplyForm() ? ('posts.comments.cancelReply' | t) : ('posts.comments.reply' | t) }}
       </button>
+    }
+    @if (level >= 2) {
+      <span class="reply-limit-msg" title="Maximum nesting level reached">
+        ⚠️ Máx. 2 niveles de respuestas
+      </span>
     }
 
     @if (isCommentOwner() && !isEditing()) {
@@ -181,6 +199,7 @@
           [comment]="reply"
           [postId]="postId"
           [postAuthor]="postAuthor"
+          [level]="level + 1"
           (replyAdded)="onReplyAdded()"
         />
       }

@@ -9,7 +9,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { AUTH_KEY, AuthOptions } from '../decorators/auth.decorator';
+import { AUTH_KEY, AuthOptions, OPTIONAL_AUTH_KEY } from '../decorators/auth.decorator';
 import { JwtPayload } from '../interfaces/user.interface';
 import { CurrentUserPayload } from '../interfaces/user.interface';
 import { TranslationService } from '../utils/translation.service';
@@ -32,52 +32,66 @@ export class JwtAuthGuard implements CanActivate {
         AuthOptions | undefined
       >(AUTH_KEY, [context.getHandler(), context.getClass()]);
 
-      // No @Auth() decorator — public endpoint
-      if (authOptions === undefined) {
+      const optionalAuth = this.reflector.getAllAndOverride<boolean | undefined>(
+        OPTIONAL_AUTH_KEY,
+        [context.getHandler(), context.getClass()],
+      );
+
+      // No @Auth() and no @OptionalAuth() — public endpoint
+      if (authOptions === undefined && !optionalAuth) {
         this.logger.debug('AuthGuard: no auth required (no @Auth decorator)');
         return true;
       }
 
-      this.logger.debug('AuthGuard: auth required, extracting token...');
       const request = context.switchToHttp().getRequest<Request>();
       const token = this.extractBearerToken(request);
 
-      if (!token) {
-        this.logger.warn('AuthGuard: missing token');
-        const msg = this.i18n.translate('auth.missing_token');
-        throw new UnauthorizedException(msg);
-      }
+      // If token exists, try to extract user (works for @Auth() and @OptionalAuth())
+      if (token) {
+        this.logger.debug('AuthGuard: token found, verifying...');
+        try {
+          const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
+          const currentUser: CurrentUserPayload = {
+            userId: payload.sub,
+            username: payload.username,
+            type: payload.type,
+          };
+          (request as any).user = currentUser;
 
-      this.logger.debug('AuthGuard: verifying token...');
-      let payload: JwtPayload;
+          // If @Auth() with roles, validate them
+          if (authOptions) {
+            const { roles } = authOptions;
+            if (roles && roles.length > 0) {
+              if (!roles.includes(payload.type)) {
+                throw new ForbiddenException(
+                  `${this.i18n.translate('auth.access_denied')}: ${roles.join(', ')}`,
+                );
+              }
+            }
+          }
 
-      try {
-        payload = await this.jwtService.verifyAsync<JwtPayload>(token);
-      } catch (error) {
-        this.logger.error(`AuthGuard: token verification failed: ${error}`);
-        throw new UnauthorizedException(this.i18n.translate('auth.invalid_token'));
-      }
-
-      const currentUser: CurrentUserPayload = {
-        userId: payload.sub,
-        username: payload.username,
-        type: payload.type,
-      };
-
-      // Attach to request so controllers can access via @Req() or @CurrentUser()
-      (request as any).user = currentUser;
-
-      // If roles specified, validate role membership
-      const { roles } = authOptions;
-      if (roles && roles.length > 0) {
-        if (!roles.includes(payload.type)) {
-          throw new ForbiddenException(
-            `${this.i18n.translate('auth.access_denied')}: ${roles.join(', ')}`,
-          );
+          this.logger.debug('AuthGuard: auth check passed');
+          return true;
+        } catch (error) {
+          // Token exists but invalid — fail for @Auth(), allow for @OptionalAuth()
+          if (authOptions) {
+            this.logger.error(`AuthGuard: token verification failed: ${error}`);
+            throw new UnauthorizedException(this.i18n.translate('auth.invalid_token'));
+          }
+          this.logger.warn('AuthGuard: invalid token but optional, continuing as public');
+          return true;
         }
       }
 
-      this.logger.debug('AuthGuard: auth check passed');
+      // No token
+      if (authOptions) {
+        // @Auth() requires token
+        this.logger.warn('AuthGuard: missing token but @Auth() required');
+        throw new UnauthorizedException(this.i18n.translate('auth.missing_token'));
+      }
+
+      // @OptionalAuth() without token — just continue
+      this.logger.debug('AuthGuard: no token but @OptionalAuth() allows it');
       return true;
     } catch (error) {
       this.logger.error(`AuthGuard error: ${error instanceof Error ? error.message : error}`);

@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { UserMongoRepository } from './user-mongo.repository';
 import { User } from '../../schemas/user.schema';
+import { Post } from '../../../posts/schemas/post.schema';
+import { Comment } from '../../../comments/schemas/comment.schema';
 import { CreateUserDto } from '../../dto/create-user.dto';
 import { UpdateUserDto } from '../../dto/update-user.dto';
 
@@ -32,6 +34,15 @@ describe('UserMongoRepository', () => {
     exec: mockExec
   });
   MockUserModel.findByIdAndDelete = jest.fn().mockReturnValue({ exec: mockExec });
+  MockUserModel.countDocuments = jest.fn().mockReturnValue({ exec: mockExec });
+
+  const MockPostModel = {
+    countDocuments: jest.fn().mockReturnValue({ exec: mockExec }),
+  } as any;
+
+  const MockCommentModel = {
+    countDocuments: jest.fn().mockReturnValue({ exec: mockExec }),
+  } as any;
 
   const mockUser = {
     _id: '507f1f77bcf86cd799439011',
@@ -51,6 +62,8 @@ describe('UserMongoRepository', () => {
       providers: [
         UserMongoRepository,
         { provide: getModelToken(User.name), useValue: MockUserModel },
+        { provide: getModelToken(Post.name), useValue: MockPostModel },
+        { provide: getModelToken(Comment.name), useValue: MockCommentModel },
       ],
     }).compile();
 
@@ -329,18 +342,29 @@ describe('UserMongoRepository', () => {
   });
 
   describe('getStats', () => {
-    it('should return total, active, and verified counts', async () => {
+    it('should return total, active, verified, posts, comments counts and growthPercentage', async () => {
       MockUserModel.countDocuments = jest
         .fn()
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(100) })
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(80) })
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(50) });
 
+      MockPostModel.countDocuments = jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue(150) });
+
+      MockCommentModel.countDocuments = jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue(300) });
+
       const result = await repository.getStats();
 
       expect(result.total).toBe(100);
       expect(result.active).toBe(80);
       expect(result.verified).toBe(50);
+      expect(result.posts).toBe(150);
+      expect(result.comments).toBe(300);
+      expect(result.growthPercentage).toBe(80);
     });
 
     it('should return zero counts when database is empty', async () => {
@@ -350,11 +374,22 @@ describe('UserMongoRepository', () => {
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(0) })
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(0) });
 
+      MockPostModel.countDocuments = jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue(0) });
+
+      MockCommentModel.countDocuments = jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue(0) });
+
       const result = await repository.getStats();
 
       expect(result.total).toBe(0);
       expect(result.active).toBe(0);
       expect(result.verified).toBe(0);
+      expect(result.posts).toBe(0);
+      expect(result.comments).toBe(0);
+      expect(result.growthPercentage).toBe(0);
     });
   });
 
