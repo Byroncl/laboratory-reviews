@@ -1,4 +1,12 @@
 <div class="space-y-6">
+  <!-- Stats -->
+  <div class="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+      <p class="text-secondary text-xs font-medium uppercase tracking-wide">{{ 'dashboard.roles.totalRoles' | t }}</p>
+      <p class="text-3xl font-bold text-primary mt-2">{{ totalRolesCount() }}</p>
+    </div>
+  </div>
+
   <!-- Role Form Panel -->
   @if (showRoleForm$()) {
     <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
@@ -97,12 +105,4 @@
       </div>
     }
   }
-
-  <!-- Stats -->
-  <div class="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
-    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
-      <p class="text-secondary text-xs font-medium uppercase tracking-wide">{{ 'dashboard.roles.totalRoles' | t }}</p>
-      <p class="text-3xl font-bold text-primary mt-2">{{ totalRolesCount() }}</p>
-    </div>
-  </div>
 </div>
