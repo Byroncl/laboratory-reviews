@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthGuard } from './auth.guard';
+import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
 import {
@@ -22,7 +22,7 @@ function createMockExecutionContext(authHeader = ''): ExecutionContext {
 }
 
 describe('AuthGuard', () => {
-  let guard: AuthGuard;
+  let guard: JwtAuthGuard;
   let mockJwtService: jest.Mocked<JwtService>;
   let mockReflector: jest.Mocked<Reflector>;
   let mockTranslationService: jest.Mocked<TranslationService>;
@@ -43,14 +43,14 @@ describe('AuthGuard', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        AuthGuard,
+        JwtAuthGuard,
         { provide: JwtService, useValue: mockJwtService },
         { provide: Reflector, useValue: mockReflector },
         { provide: TranslationService, useValue: mockTranslationService },
       ],
     }).compile();
 
-    guard = module.get<AuthGuard>(AuthGuard);
+    guard = module.get<JwtAuthGuard>(JwtAuthGuard);
   });
 
   it('should be defined', () => {

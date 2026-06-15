@@ -4,6 +4,7 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { TranslationService } from '../utils/translation.service';
@@ -11,9 +12,12 @@ import { SupportedLanguage } from '../i18n/locales';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger('GlobalExceptionFilter');
+
   constructor(private readonly translationService: TranslationService) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
+    this.logger.error(`Unhandled exception: ${exception instanceof Error ? exception.message : String(exception)}`, exception instanceof Error ? exception.stack : '');
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();

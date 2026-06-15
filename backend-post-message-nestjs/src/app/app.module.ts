@@ -11,7 +11,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './modules/auth/auth.module';
 import { TranslationService } from './core/utils/translation.service';
-import { AuthGuard } from './core/guards/auth.guard';
+import { JwtAuthGuard } from './core/guards/jwt-auth.guard';
 import { I18nMiddleware } from './core/middleware/i18n.middleware';
 import { RequestLoggerMiddleware } from './core/middleware/request-logger.middleware';
 import { I18nModule } from './modules/i18n/i18n.module';
@@ -56,7 +56,7 @@ import { TestingModule } from './modules/testing/testing.module';
     TranslationService,
     {
       provide: APP_GUARD,
-      useClass: AuthGuard,
+      useClass: JwtAuthGuard,
     },
     {
       provide: APP_INTERCEPTOR,

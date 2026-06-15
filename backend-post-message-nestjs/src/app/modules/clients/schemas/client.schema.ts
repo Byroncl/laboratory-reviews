@@ -21,8 +21,8 @@ export class Client extends Document {
   @Prop({ required: true, unique: true, index: true })
   email: string;
 
-  @Prop({ required: false })
-  password?: string;
+  @Prop({ required: true })
+  password_hash: string;
 
   @Prop({ required: true })
   type: string;

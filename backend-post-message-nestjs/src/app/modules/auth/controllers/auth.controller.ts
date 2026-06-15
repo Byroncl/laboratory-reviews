@@ -1,5 +1,4 @@
-import { Controller, Request, Post, UseGuards, Body } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -16,7 +15,6 @@ import { AuditAction, EntityType } from '../../audit/schemas/audit-log.schema';
 import {
   AUTH_SWAGGER,
   AUTH_RESPONSE_DESCRIPTIONS,
-  AUTH_MESSAGES,
   AUTH_EXAMPLES,
 } from '../constants/auth.constants';
 
@@ -48,9 +46,18 @@ export class AuthController {
     description: AUTH_RESPONSE_DESCRIPTIONS.LOGIN_FAILED,
     example: AUTH_EXAMPLES.ERROR_INVALID_CREDENTIALS,
   })
-  @UseGuards(AuthGuard('local'))
   @Post('login')
-  async login(@Request() req) {
-    return this.authService.login(req.user);
+  async login(@Body() credentials: LoginDto) {
+    const result = await this.authService.validateCredentials(
+      credentials.username,
+      credentials.password,
+    );
+    if (!result) {
+      throw new BadRequestException(
+        this.i18n.translate('auth.invalid_credentials'),
+      );
+    }
+    const loginResponse = await this.authService.login(result.data);
+    return { ...loginResponse, userType: result.type };
   }
 }

@@ -34,6 +34,7 @@ export class I18nService {
         login: {
           title: 'Bienvenido de vuelta',
           subtitle: 'Inicia sesión en tu cuenta para continuar',
+          username: 'Nombre de usuario',
           email: 'Correo o usuario',
           password: 'Contraseña',
           rememberMe: 'Recordar mi contraseña',
@@ -43,6 +44,7 @@ export class I18nService {
           createAccount: 'Crear cuenta',
           copyright: '© 2024 Albatros. Todos los derechos reservados.',
           errors: {
+            usernameRequired: 'Se requiere nombre de usuario',
             invalidEmail: 'Correo inválido',
             minPassword: 'Mínimo 6 caracteres'
           }
@@ -547,7 +549,12 @@ export class I18nService {
           cancelReply: 'Cancelar Respuesta',
           loadingReplies: 'Cargando respuestas...',
           hideReplies: 'Ocultar Respuestas',
-          showReplies: 'Mostrar Respuestas'
+          showReplies: 'Mostrar Respuestas',
+          edit: 'Editar',
+          delete: 'Eliminar',
+          save: 'Guardar',
+          cancel: 'Cancelar',
+          deleting: 'Eliminando...'
         },
         reply: {
           placeholder: 'Responder comentario...',
@@ -654,6 +661,7 @@ export class I18nService {
         login: {
           title: 'Welcome back',
           subtitle: 'Sign in to your account to continue',
+          username: 'Username',
           email: 'Email or username',
           password: 'Password',
           rememberMe: 'Remember my password',
@@ -663,6 +671,7 @@ export class I18nService {
           createAccount: 'Create account',
           copyright: '© 2024 Albatros. All rights reserved.',
           errors: {
+            usernameRequired: 'Username is required',
             invalidEmail: 'Invalid email',
             minPassword: 'Minimum 6 characters'
           }
@@ -1167,7 +1176,12 @@ export class I18nService {
           cancelReply: 'Cancel Reply',
           loadingReplies: 'Loading replies...',
           hideReplies: 'Hide Replies',
-          showReplies: 'Show Replies'
+          showReplies: 'Show Replies',
+          edit: 'Edit',
+          delete: 'Delete',
+          save: 'Save',
+          cancel: 'Cancel',
+          deleting: 'Deleting...'
         },
         reply: {
           placeholder: 'Reply to comment...',

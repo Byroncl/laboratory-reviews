@@ -22,7 +22,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });
-  const host = process.env.HOST ?? (process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost');
+  // Always show all logs for debugging, regardless of NODE_ENV
+  app.useLogger(['log', 'error', 'warn', 'debug', 'verbose']);
+  // Always listen on 0.0.0.0 for Docker compatibility
+  const host = process.env.HOST ?? '0.0.0.0';
   const port = parseInt(process.env.PORT ?? '3000', 10);
   const name = process.env.APP_NAME ?? 'My App';
   const env = process.env.NODE_ENV ?? 'development';
@@ -32,6 +35,20 @@ async function bootstrap() {
 
   setupCors(app);
   setupSwagger(app, name);
+
+  // Log all HTTP requests
+  app.use((req, res, next) => {
+    const logger = new Logger('HTTP');
+    const { method, originalUrl, body } = req;
+    logger.log(`${method} ${originalUrl}`);
+    if (body && Object.keys(body).length > 0) {
+      logger.debug(`Body: ${JSON.stringify(body)}`);
+    }
+    res.on('finish', () => {
+      logger.log(`${method} ${originalUrl} - ${res.statusCode}`);
+    });
+    next();
+  });
 
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new GlobalExceptionFilter(app.get(TranslationService)));

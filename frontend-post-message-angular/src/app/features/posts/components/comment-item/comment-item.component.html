@@ -15,7 +15,34 @@
   </header>
 
   <!-- Body -->
-  <p class="comment-content">{{ comment.content }}</p>
+  @if (!isEditing()) {
+    <p class="comment-content">{{ comment.content }}</p>
+  } @else {
+    <div class="comment-edit-form">
+      <textarea
+        [(ngModel)]="editContent"
+        class="edit-textarea"
+        placeholder="Editar comentario..."
+      ></textarea>
+      <div class="edit-actions">
+        <button
+          type="button"
+          class="btn-action btn-save"
+          (click)="saveEdit()"
+          [disabled]="!editContent().trim()"
+        >
+          {{ 'posts.comments.save' | t }}
+        </button>
+        <button
+          type="button"
+          class="btn-action btn-cancel"
+          (click)="cancelEdit()"
+        >
+          {{ 'posts.comments.cancel' | t }}
+        </button>
+      </div>
+    </div>
+  }
 
   <!-- Media grid -->
   @if (comment.media && comment.media.length > 0) {
@@ -86,13 +113,35 @@
 
   <!-- Action buttons -->
   <footer class="comment-actions">
-    @if (isLoggedIn()) {
+    @if (isLoggedIn() && !isEditing()) {
       <button
         type="button"
         class="btn-action"
         (click)="showReplyForm.set(!showReplyForm())"
       >
         {{ showReplyForm() ? ('posts.comments.cancelReply' | t) : ('posts.comments.reply' | t) }}
+      </button>
+    }
+
+    @if (isCommentOwner() && !isEditing()) {
+      <button
+        type="button"
+        class="btn-action btn-edit"
+        (click)="startEdit()"
+      >
+        ✏️ {{ 'posts.comments.edit' | t }}
+      </button>
+      <button
+        type="button"
+        class="btn-action btn-delete"
+        (click)="deleteComment()"
+        [disabled]="isDeleting()"
+      >
+        @if (isDeleting()) {
+          ⏳ {{ 'posts.comments.deleting' | t }}
+        } @else {
+          🗑️ {{ 'posts.comments.delete' | t }}
+        }
       </button>
     }
 

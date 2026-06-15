@@ -27,22 +27,9 @@ export class ValidateUserUseCase {
         username,
         password,
       );
-
-      if (!user) {
-        throw new UnauthorizedException(
-          this.i18nService.translate('auth.invalid_credentials'),
-        );
-      }
-
-      return user;
+      return user || null;
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-
-      throw new UnauthorizedException(
-        this.i18nService.translate('auth.login_failed'),
-      );
+      return null;
     }
   }
 }

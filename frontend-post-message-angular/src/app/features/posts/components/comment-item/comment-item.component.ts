@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { CommentsService } from '../../services';
 import { AuthService } from '../../../auth/services/auth.service';
@@ -12,7 +13,7 @@ import { MEDIA_PREVIEW_LIMIT } from '../../../../shared/constants/media-upload.c
 @Component({
   selector: 'app-comment-item',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, ReactionBarComponent, ReplyFormComponent, CommentItemComponent],
+  imports: [CommonModule, FormsModule, TranslatePipe, ReactionBarComponent, ReplyFormComponent, CommentItemComponent],
   templateUrl: './comment-item.component.html',
   styleUrls: ['./comment-item.component.css'],
 })
@@ -21,16 +22,25 @@ export class CommentItemComponent {
   @Input() postId!: string;
   @Input() postAuthor?: string;
   @Output() replyAdded = new EventEmitter<void>();
+  @Output() commentDeleted = new EventEmitter<string>();
 
   private commentsService = inject(CommentsService);
   private authService = inject(AuthService);
 
   readonly isLoggedIn = computed(() => this.authService.isAuthenticated());
+  readonly currentUser = this.authService.currentUser$;
+  readonly isCommentOwner = computed(() => {
+    const current = this.currentUser();
+    return current && this.comment?.author === current.username;
+  });
 
   readonly showReplyForm = signal(false);
   readonly replies = signal<IComment[]>([]);
   readonly repliesLoading = signal(false);
   readonly showReplies = signal(false);
+  readonly isEditing = signal(false);
+  readonly editContent = signal('');
+  readonly isDeleting = signal(false);
 
   // Media display state
   readonly showAllMedia = signal(false);
@@ -86,8 +96,52 @@ export class CommentItemComponent {
   onReplyAdded(): void {
     this.showReplyForm.set(false);
     this.replyAdded.emit();
-    // Reload replies to reflect the new one
     this.showReplies.set(false);
     this.expandReplies();
+  }
+
+  startEdit(): void {
+    this.editContent.set(this.comment.content);
+    this.isEditing.set(true);
+  }
+
+  cancelEdit(): void {
+    this.isEditing.set(false);
+    this.editContent.set('');
+  }
+
+  saveEdit(): void {
+    const newContent = this.editContent().trim();
+    if (!newContent) return;
+
+    const commentId = this.commentId;
+    if (!commentId) return;
+
+    this.commentsService.updateComment(commentId, { content: newContent }).subscribe({
+      next: () => {
+        this.comment.content = newContent;
+        this.isEditing.set(false);
+        this.editContent.set('');
+      },
+      error: (error) => console.error('Error updating comment:', error),
+    });
+  }
+
+  deleteComment(): void {
+    if (!confirm('¿Estás seguro de que deseas eliminar este comentario?')) return;
+
+    const commentId = this.commentId;
+    if (!commentId) return;
+
+    this.isDeleting.set(true);
+    this.commentsService.deleteComment(commentId).subscribe({
+      next: () => {
+        this.commentDeleted.emit(commentId);
+      },
+      error: (error) => {
+        console.error('Error deleting comment:', error);
+        this.isDeleting.set(false);
+      },
+    });
   }
 }

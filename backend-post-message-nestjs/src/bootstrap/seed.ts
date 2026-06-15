@@ -3,6 +3,7 @@ import { AppModule } from '../app/app.module';
 import { getModelToken } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { getConnectionToken } from '@nestjs/mongoose';
+import * as bcrypt from 'bcrypt';
 
 interface SeedConfig {
   enabled: boolean;
@@ -29,7 +30,7 @@ export async function seedDatabase(): Promise<void> {
   }
 
   const app = await NestFactory.createApplicationContext(AppModule, {
-    logger: false,
+    logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });
 
   try {
@@ -276,14 +277,14 @@ async function seedCategories(app: {
 }
 
 const SEED_USERS = [
-  { firstName: 'Sofi', type: 'user' },
-  { firstName: 'Joselin', type: 'user' },
-  { firstName: 'Charlie', type: 'admin' },
-  { firstName: 'Bibi', type: 'user' },
-  { firstName: 'Fioravanti', type: 'user' },
-  { firstName: 'Idrovo', type: 'user' },
-  { firstName: 'Bianca', type: 'admin' },
-  { firstName: 'Byron', type: 'user' },
+  { firstName: 'Sofi', type: 'user', password: 'password123' },
+  { firstName: 'Joselin', type: 'user', password: 'password123' },
+  { firstName: 'Charlie', type: 'admin', password: 'password123' },
+  { firstName: 'Bibi', type: 'user', password: 'password123' },
+  { firstName: 'Fioravanti', type: 'user', password: 'password123' },
+  { firstName: 'Idrovo', type: 'user', password: 'password123' },
+  { firstName: 'Bianca', type: 'admin', password: 'password123' },
+  { firstName: 'Byron', type: 'user', password: 'password123' },
 ];
 
 const POST_TITLES = [
@@ -353,12 +354,13 @@ async function seedUsers(
 
     try {
       const assignedRole = roleAssignment[i] ?? userRole;
+      const hashedPassword = await bcrypt.hash(SEED_USERS[i].password, 10);
       const user = await UserModel.create({
         name: firstName,
         lastname: 'Seed',
         username,
         email: `${username}@example.com`,
-        password_hash: `$2b$10$seed.hash.for.${username}`,
+        password_hash: hashedPassword,
         type,
         isActive: true,
         preferredLanguage: i % 2 === 0 ? 'en' : 'es',
@@ -366,7 +368,7 @@ async function seedUsers(
       });
       users.push(user);
       console.log(
-        `   Created user: ${firstName} (${assignedRole?.name ?? 'no role'})`,
+        `   Created user: ${firstName} (${assignedRole?.name ?? 'no role'}) - Password: ${SEED_USERS[i].password}`,
       );
     } catch (error) {
       if (error instanceof Error && (error.message.includes('E11000') || error.message.includes('duplicate key'))) {
