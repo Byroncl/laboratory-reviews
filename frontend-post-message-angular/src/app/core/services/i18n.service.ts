@@ -43,6 +43,10 @@ export class I18nService {
           noAccount: '¿No tienes cuenta?',
           createAccount: 'Crear cuenta',
           copyright: '© 2024 Albatros. Todos los derechos reservados.',
+          types: {
+            user: 'Usuario',
+            client: 'Cliente'
+          },
           errors: {
             usernameRequired: 'Se requiere nombre de usuario',
             invalidEmail: 'Correo inválido',
@@ -53,9 +57,12 @@ export class I18nService {
           title: 'Crear cuenta',
           subtitle: 'Regístrate para comenzar',
           fullName: 'Nombre completo',
+          lastName: 'Apellido',
+          username: 'Nombre de usuario',
           email: 'Correo electrónico',
           password: 'Contraseña',
           confirmPassword: 'Confirmar contraseña',
+          accountType: 'Tipo de cuenta',
           createAccount: 'Crear cuenta',
           creating: 'Creando cuenta...',
           haveAccount: '¿Ya tienes cuenta?',
@@ -64,8 +71,14 @@ export class I18nService {
           termsLink: 'Términos de servicio',
           joinTitle: 'Únete a nosotros',
           joinSubtitle: 'Crea tu cuenta y comienza a gestionar tu plataforma hoy',
+          types: {
+            user: 'Usuario',
+            client: 'Cliente'
+          },
           errors: {
             nameRequired: 'Se requiere nombre (mínimo 2 caracteres)',
+            lastNameRequired: 'Se requiere apellido (mínimo 2 caracteres)',
+            usernameRequired: 'Se requiere nombre de usuario (3-20 caracteres)',
             invalidEmail: 'Correo electrónico inválido',
             minPassword: 'Mínimo 6 caracteres',
             confirmRequired: 'Confirma tu contraseña',
@@ -672,6 +685,10 @@ export class I18nService {
           noAccount: "Don't have an account?",
           createAccount: 'Create account',
           copyright: '© 2024 Albatros. All rights reserved.',
+          types: {
+            user: 'User',
+            client: 'Client'
+          },
           errors: {
             usernameRequired: 'Username is required',
             invalidEmail: 'Invalid email',
@@ -682,9 +699,12 @@ export class I18nService {
           title: 'Create account',
           subtitle: 'Sign up to get started',
           fullName: 'Full name',
+          lastName: 'Last name',
+          username: 'Username',
           email: 'Email address',
           password: 'Password',
           confirmPassword: 'Confirm password',
+          accountType: 'Account type',
           createAccount: 'Create account',
           creating: 'Creating account...',
           haveAccount: 'Already have an account?',
@@ -693,8 +713,14 @@ export class I18nService {
           termsLink: 'Terms of Service',
           joinTitle: 'Join us',
           joinSubtitle: 'Create your account and start managing your platform today',
+          types: {
+            user: 'User',
+            client: 'Client'
+          },
           errors: {
             nameRequired: 'Name is required (at least 2 characters)',
+            lastNameRequired: 'Last name is required (at least 2 characters)',
+            usernameRequired: 'Username is required (3-20 characters)',
             invalidEmail: 'Please enter a valid email',
             minPassword: 'Password must be at least 6 characters',
             confirmRequired: 'Confirm password is required',

@@ -19,8 +19,8 @@ export class AuthEffects {
   login$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.login),
-      switchMap(({ username, password, type }) =>
-        this.authService.login({ username, password, type }).pipe(
+      switchMap(({ username, password, accountType }) =>
+        this.authService.login({ username, password, type: accountType }).pipe(
           map(({ access_token }) => {
             const claims = decodeJwt(access_token);
             if (!claims) {
@@ -103,14 +103,14 @@ export class AuthEffects {
   register$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.register),
-      switchMap(({ username, password, name, lastname, email, type }) =>
+      switchMap(({ username, password, name, lastname, email, accountType }) =>
         this.authService.register({
           username,
           password,
           name,
           lastname,
           email,
-          type
+          type: accountType
         }).pipe(
           map(({ access_token }) => {
             const claims = decodeJwt(access_token);
