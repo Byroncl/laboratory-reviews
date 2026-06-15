@@ -73,12 +73,19 @@ export class AuthService {
   /**
    * Perform login: generate JWT payload and sign it.
    * @param userObject - The validated user object (already authenticated)
-   * @returns Login response with access token
+   * @returns Login response with access token and user data
    */
-  async login(userObject: any): Promise<LoginResponse> {
+  async login(userObject: any): Promise<LoginResponse & { user?: any }> {
     const payload = await this.loginUseCase.executeFromUser(userObject);
     return {
       access_token: this.jwtService.sign(payload),
+      user: {
+        id: userObject._id,
+        username: userObject.username,
+        email: userObject.email,
+        name: userObject.name,
+        type: userObject.type,
+      },
     };
   }
 }

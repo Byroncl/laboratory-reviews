@@ -58,6 +58,11 @@ export class AuthController {
       );
     }
     const loginResponse = await this.authService.login(result.data);
-    return { ...loginResponse, userType: result.type };
+    return {
+      access_token: loginResponse.access_token,
+      user: loginResponse.user,
+      userType: result.type,
+      expiresIn: 86400, // 24 hours in seconds
+    };
   }
 }
