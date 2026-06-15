@@ -10,7 +10,7 @@ import { AUTH_CONFIG } from '../../../core/constants/auth.constants';
 
 /**
  * Validator constraint for checking if username is valid.
- * Rules: alphanumeric, 3-20 characters
+ * Rules: alphanumeric with underscores and hyphens, 3-20 characters
  */
 @ValidatorConstraint({ name: 'isValidUsername', async: false })
 export class IsValidUsernameConstraint implements ValidatorConstraintInterface {
@@ -18,14 +18,16 @@ export class IsValidUsernameConstraint implements ValidatorConstraintInterface {
     if (!value || typeof value !== 'string') {
       return false;
     }
-    if (!isAlphanumeric(value)) {
+    // Allow alphanumeric, underscores, and hyphens
+    const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+    if (!usernameRegex.test(value)) {
       return false;
     }
     return value.length >= 3 && value.length <= 20;
   }
 
   defaultMessage(): string {
-    return 'Username must be alphanumeric and between 3-20 characters';
+    return 'Username must be alphanumeric with underscores or hyphens, 3-20 characters';
   }
 }
 
