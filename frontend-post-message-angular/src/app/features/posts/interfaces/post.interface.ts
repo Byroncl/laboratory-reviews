@@ -27,9 +27,10 @@ export interface IPost {
 
 export interface ICreatePostDTO {
   title: string;
-  body: string;
+  content: string;
   status?: PostStatus;
   tags?: string[];
+  imageUrl?: string;
 }
 
 export interface IUpdatePostDTO {
