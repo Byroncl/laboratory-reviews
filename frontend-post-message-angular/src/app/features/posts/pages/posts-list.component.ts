@@ -281,37 +281,25 @@ export class PostsListComponent implements OnInit {
 
     this.postsService.uploadImage(formData).subscribe({
       next: (response: any) => {
-        console.log('Upload response full:', response);
+        console.log('Upload response:', response);
 
-        // Try multiple possible paths for the URL
-        let imageUrl =
-          response?.data?.imageUrl ||
-          response?.data?.url ||
-          response?.imageUrl ||
-          response?.url ||
-          (response?.data && typeof response.data === 'string' ? response.data : null);
-
-        // If response.data is an object, try to find the URL field
-        if (!imageUrl && response?.data && typeof response.data === 'object') {
-          imageUrl = Object.values(response.data).find((val: any) =>
-            typeof val === 'string' && (val.includes('http') || val.includes('.'))
-          ) as string;
-        }
-
-        console.log('Extracted imageUrl:', imageUrl);
+        // Backend returns { data: { url: "...", filename: "..." } }
+        const imageUrl = response?.data?.url;
+        const imageFilename = response?.data?.filename;
 
         if (imageUrl) {
           this.uploadedImageUrl.set(imageUrl);
-          this.notificationService.toast('✅ Imagen cargada: ' + imageUrl, 'success');
+          this.notificationService.toast('✅ Imagen cargada correctamente', 'success');
+          console.log('Image URL saved:', imageUrl);
         } else {
-          console.warn('No imageUrl in response:', response);
-          this.notificationService.toast('⚠️ Imagen cargada pero sin URL', 'warning');
+          console.warn('No URL in response:', response);
+          this.notificationService.toast('⚠️ Error: No URL en respuesta del servidor', 'warning');
         }
         this.uploadingImage.set(false);
       },
       error: (err) => {
-        this.notificationService.toast('❌ Error al cargar la imagen: ' + (err?.error?.message || err?.message || 'Error desconocido'), 'error');
-        console.error('Failed to upload image:', err);
+        this.notificationService.toast('❌ Error al cargar la imagen', 'error');
+        console.error('Upload failed:', err);
         this.uploadingImage.set(false);
       },
     });
