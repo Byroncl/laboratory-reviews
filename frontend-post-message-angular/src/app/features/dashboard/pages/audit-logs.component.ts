@@ -90,15 +90,16 @@ export class AuditLogsComponent implements OnInit {
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    const fromISO = firstDay.toISOString().split('T')[0];
-    const toISO = lastDay.toISOString().split('T')[0];
+    // Format for datetime-local input (YYYY-MM-DDTHH:mm)
+    const fromISO = firstDay.toISOString().slice(0, 16);
+    const toISO = lastDay.toISOString().slice(0, 16);
 
     this.fromDate$.set(fromISO);
     this.toDate$.set(toISO);
 
-    // Update filter with dates
-    const from = new Date(fromISO).toISOString();
-    const to = new Date(toISO).toISOString();
+    // Update filter with full ISO dates
+    const from = firstDay.toISOString();
+    const to = lastDay.toISOString();
     this.filter$.set({
       page: 1,
       limit: 20,
