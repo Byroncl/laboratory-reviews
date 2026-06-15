@@ -7,6 +7,7 @@ export interface Category {
   id: string;
   name: string;
   postCount?: number;
+  color?: string;
 }
 
 interface ApiResponse<T> {
@@ -29,7 +30,8 @@ export class CategoriesService {
           return items.map((cat: any) => ({
             id: cat.id,
             name: cat.name,
-            postCount: cat.postCount || 0,
+            postCount: cat.postsCount || cat.postCount || 0,
+            color: cat.color || '#3B82F6',
           }));
         }),
       );

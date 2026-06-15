@@ -14,3 +14,17 @@
     </button>
   }
 </div>
+
+@if (showAuthModal()) {
+  <div class="auth-modal-backdrop" (click)="closeAuthModal()">
+    <div class="auth-modal" (click)="$event.stopPropagation()">
+      <h3>{{ 'posts.reaction.signInTitle' | t }}</h3>
+      <p>{{ 'posts.reaction.signInBody' | t }}</p>
+      <div class="auth-modal-actions">
+        <button class="btn btn-primary" (click)="goToLogin()">{{ 'posts.reaction.signInBtn' | t }}</button>
+        <button class="btn btn-outline" (click)="goToRegister()">{{ 'posts.reaction.registerBtn' | t }}</button>
+        <button class="btn btn-ghost" (click)="closeAuthModal()">{{ 'posts.reaction.cancelBtn' | t }}</button>
+      </div>
+    </div>
+  </div>
+}

@@ -2,7 +2,7 @@ import { environment } from '../../../../environments/environment';
 import { Injectable, inject, signal, computed, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError, Subscription } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { tap, catchError, map } from 'rxjs/operators';
 
 import {
   IReactionSummary,
@@ -88,8 +88,12 @@ export class ReactionsService implements OnDestroy {
     const url = `${this.baseUrl}${COMMENTS_API_ENDPOINTS.REACTIONS.replace(':id', commentId)}`;
 
     return this.http
-      .get<IReactionSummary[]>(url)
+      .get<any>(url)
       .pipe(
+        map((response) => {
+          const data = response?.data || response;
+          return Array.isArray(data) ? data : (data?.reactions || []);
+        }),
         tap((summaries) => this.setLocalReactions(commentId, summaries)),
         catchError((err) => this._handleError(err, 'Failed to get reactions')),
       );

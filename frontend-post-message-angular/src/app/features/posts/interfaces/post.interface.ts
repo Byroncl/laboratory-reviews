@@ -19,8 +19,10 @@ export interface IPost {
   tags?: string[];
   viewCount?: number;
   commentCount?: number;
+  reactionsCount?: number;
   categoryId?: ICategory;
   categoryName?: string;
+  imageUrl?: string;
 }
 
 export interface ICreatePostDTO {

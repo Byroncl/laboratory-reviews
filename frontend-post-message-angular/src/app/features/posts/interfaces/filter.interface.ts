@@ -7,6 +7,9 @@ export interface IPostFilters {
   dateFrom?: Date;
   dateTo?: Date;
   tags?: string[];
+  categoryId?: string;
+  limit?: number;
+  skip?: number;
 }
 
 export interface ICommentFilters {

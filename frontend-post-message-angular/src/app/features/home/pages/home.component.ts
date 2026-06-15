@@ -16,19 +16,19 @@ import { PostViewModel } from '../types';
 import { filterPosts } from '../utils';
 import { HOME_ROUTES } from '../constants';
 import { CategoriesService, Category } from '../services/categories.service';
-import { FeaturedUsersService, FeaturedUser } from '../services/featured-users.service';
+import { FeaturedUser } from '../services/featured-users.service';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, PostCardComponent, HeaderComponent, TranslatePipe, DatePipe],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, PostCardComponent, HeaderComponent, TranslatePipe, DatePipe, PaginationComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  private readonly postsService = inject(PostsService);
+  public readonly postsService = inject(PostsService);
   private readonly categoriesService = inject(CategoriesService);
-  private readonly featuredUsersService = inject(FeaturedUsersService);
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -40,7 +40,31 @@ export class HomeComponent implements OnInit, OnDestroy {
   readonly postViewModels = signal<PostViewModel[]>([]);
   readonly searchQuery = signal('');
   readonly categories = signal<Category[]>([]);
-  readonly featuredUsers = signal<FeaturedUser[]>([]);
+  readonly selectedCategoryId = signal<string | null>(null);
+
+  readonly currentPage = signal<number>(1);
+  readonly postsLimit = 9;
+
+  readonly totalPages = computed(() => {
+    const total = this.postsService.pagination$().total;
+    return Math.ceil(total / this.postsLimit) || 1;
+  });
+
+  readonly featuredUsers = computed<FeaturedUser[]>(() => {
+    const posts = this.postViewModels();
+    const uniqueAuthors = new Map<string, number>();
+    for (const post of posts) {
+      const author = post.authorUsername;
+      uniqueAuthors.set(author, (uniqueAuthors.get(author) || 0) + 1);
+    }
+    return Array.from(uniqueAuthors.entries())
+      .slice(0, 3)
+      .map(([username, count], idx) => ({
+        id: `u-${idx}`,
+        name: username,
+        postCount: count,
+      }));
+  });
 
   readonly searchControl = new FormControl<string>('', { nonNullable: true });
 
@@ -69,10 +93,18 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  loadData(): void {
+  loadData(categoryId?: string | null, page: number = 1): void {
     this.loading.set(true);
     this.loadError.set(null);
-    this.postsService.loadPosts().pipe(
+    this.currentPage.set(page);
+    const skip = (page - 1) * this.postsLimit;
+    const filter = {
+      status: 'published' as any,
+      limit: this.postsLimit,
+      skip,
+      ...(categoryId && { categoryId }),
+    };
+    this.postsService.loadPosts(filter).pipe(
       catchError(err => {
         this.loading.set(false);
         this.loadError.set(err?.message ?? 'Error loading posts');
@@ -87,6 +119,16 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
+  selectCategory(categoryId: string | null): void {
+    this.selectedCategoryId.set(categoryId);
+    this.loadData(categoryId, 1);
+  }
+
+  onPageChanged(page: number): void {
+    this.loadData(this.selectedCategoryId(), page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   private loadSidebarData(): void {
     this.categoriesService.getCategories()
       .pipe(takeUntil(this.destroy$))
@@ -94,19 +136,10 @@ export class HomeComponent implements OnInit, OnDestroy {
         next: cats => this.categories.set(cats),
         error: () => this.categories.set([]),
       });
-
-    if (this.isAuthenticated()) {
-      this.featuredUsersService.getFeaturedUsers(5)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: users => this.featuredUsers.set(users),
-          error: () => this.featuredUsers.set([]),
-        });
-    }
   }
 
   retry(): void {
-    this.loadData();
+    this.loadData(this.selectedCategoryId(), this.currentPage());
   }
 
   navigateToLogin(): void {

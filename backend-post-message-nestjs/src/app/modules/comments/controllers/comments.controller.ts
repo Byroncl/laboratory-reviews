@@ -80,6 +80,7 @@ export class CommentsController {
     const comment = await this.commentsService.create({
       ...createCommentDto,
       userId: user.userId,
+      author: user.username,
     } as any);
 
     if (this.notificationsGateway) {
@@ -271,6 +272,7 @@ export class CommentsController {
       ...createCommentDto,
       userId: user.userId,
       parentCommentId: findOneDto.id,
+      author: user.username,
     } as any);
 
     const formattedReply = this.commentsService.getCommentWithMedia(reply as any);

@@ -248,6 +248,7 @@ export class CommentMongoRepository implements CommentRepository {
     return {
       id: raw._id?.toString(),
       content: raw.content,
+      author: raw.author,
       post: raw.postId,
       isActive: raw.isActive,
       parentCommentId: raw.parentCommentId ?? null,

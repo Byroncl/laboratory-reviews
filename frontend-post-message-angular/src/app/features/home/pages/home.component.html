@@ -6,19 +6,62 @@
     <div class="sidebar-content">
       <h3 class="sidebar-title">{{ 'home.categories' | t }}</h3>
       <nav class="categories-menu">
-        <a href="#" class="category-link active">
+        <button
+          class="category-link"
+          [class.active]="selectedCategoryId() === null"
+          (click)="selectCategory(null)"
+        >
           <span class="icon">🏠</span>
           <span>{{ 'home.allPosts' | t }}</span>
-        </a>
+        </button>
         @for (cat of categories(); track cat.id) {
-          <a href="#" class="category-link">
-            <span class="icon">📁</span>
-            <span>{{ cat.name }}</span>
+          <button
+            class="category-link"
+            [class.active]="selectedCategoryId() === cat.id"
+            (click)="selectCategory(cat.id)"
+            [style.border-left-color]="selectedCategoryId() === cat.id ? (cat.color || '#0076d6') : 'transparent'"
+          >
+            <span class="icon-dot" [style.background-color]="cat.color || '#818384'"></span>
+            <span class="category-name">{{ cat.name }}</span>
             @if (cat.postCount) {
-              <span class="count">{{ cat.postCount }}</span>
+              <span class="count" [style.background-color]="(cat.color || '#0076d6') + '1A'" [style.color]="cat.color || '#0076d6'">{{ cat.postCount }}</span>
             }
-          </a>
+          </button>
         }
+      </nav>
+    </div>
+
+    <!-- Quick Links Widget -->
+    <div class="sidebar-content mt-4">
+      <h3 class="sidebar-title">Enlaces Rápidos</h3>
+      <nav class="quick-links-menu">
+        <a href="#" class="quick-link" (click)="$event.preventDefault()">
+          <span class="icon">📖</span>
+          <span class="link-name">Guías del Sitio</span>
+        </a>
+        <a href="#" class="quick-link" (click)="$event.preventDefault()">
+          <span class="icon">❓</span>
+          <span class="link-name">Preguntas Frecuentes</span>
+        </a>
+        <a href="#" class="quick-link" (click)="$event.preventDefault()">
+          <span class="icon">🛡️</span>
+          <span class="link-name">Código de Conducta</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Ayuda Widget -->
+    <div class="sidebar-content mt-4">
+      <h3 class="sidebar-title">Ayuda</h3>
+      <nav class="quick-links-menu">
+        <a href="#" class="quick-link" (click)="$event.preventDefault()">
+          <span class="icon">✉️</span>
+          <span class="link-name">Soporte Técnico</span>
+        </a>
+        <a href="#" class="quick-link" (click)="$event.preventDefault()">
+          <span class="icon">💬</span>
+          <span class="link-name">Centro de Ayuda</span>
+        </a>
       </nav>
     </div>
   </aside>
@@ -72,10 +115,20 @@
     }
 
     @if (!loading() && !loadError() && filteredPosts().length > 0) {
-      <div class="posts-grid">
+      <div class="posts-grid animate-fade-in">
         @for (post of filteredPosts(); track post.id) {
           <app-post-card [post]="post" />
         }
+      </div>
+
+      <div class="pagination-container mt-6">
+        <app-pagination
+          [currentPage]="currentPage()"
+          [totalPages]="totalPages()"
+          [pageSize]="postsLimit"
+          [total]="postsService.pagination$().total"
+          (pageChanged)="onPageChanged($event)"
+        ></app-pagination>
       </div>
     }
   </main>
@@ -88,19 +141,15 @@
         <h3 class="widget-title">{{ 'home.featuredUsers' | t }}</h3>
         <div class="users-list">
           @for (user of featuredUsers(); track user.id) {
-            <a href="#" class="user-card">
+            <div class="user-card">
               <div class="user-avatar">
-                @if (user.avatar) {
-                  <img [src]="user.avatar" [alt]="user.name" />
-                } @else {
-                  <div class="avatar-placeholder">{{ user.name.charAt(0) | uppercase }}</div>
-                }
+                <div class="avatar-placeholder bg-gradient-to-tr">{{ user.name.charAt(0).toUpperCase() }}</div>
               </div>
               <div class="user-info">
-                <p class="user-name">{{ user.name }}</p>
-                <p class="user-posts">{{ user.postCount }} posts</p>
+                <p class="user-name">{{ '@' + user.name }}</p>
+                <p class="user-posts">{{ user.postCount }} {{ (user.postCount === 1 ? 'post' : 'posts') }}</p>
               </div>
-            </a>
+            </div>
           }
           @if (featuredUsers().length === 0) {
             <p class="empty-list">{{ 'home.noUsers' | t }}</p>

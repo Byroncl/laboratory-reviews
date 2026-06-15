@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, inject, signal, computed } from
 import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { CommentsService } from '../../services';
+import { AuthService } from '../../../auth/services/auth.service';
 import { IComment } from '../../interfaces';
 import { getCommentId } from '../../utils/entity-id.util';
 import { ReactionBarComponent } from '../reaction-bar/reaction-bar.component';
@@ -18,9 +19,13 @@ import { MEDIA_PREVIEW_LIMIT } from '../../../../shared/constants/media-upload.c
 export class CommentItemComponent {
   @Input() comment!: IComment;
   @Input() postId!: string;
+  @Input() postAuthor?: string;
   @Output() replyAdded = new EventEmitter<void>();
 
   private commentsService = inject(CommentsService);
+  private authService = inject(AuthService);
+
+  readonly isLoggedIn = computed(() => this.authService.isAuthenticated());
 
   readonly showReplyForm = signal(false);
   readonly replies = signal<IComment[]>([]);
