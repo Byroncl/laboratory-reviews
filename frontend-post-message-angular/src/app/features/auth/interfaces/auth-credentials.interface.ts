@@ -7,7 +7,9 @@ export interface IRegisterRequest {
   username: string;
   email: string;
   password: string;
-  fullName: string;
+  name: string;
+  lastname: string;
+  type: 'user' | 'client';
 }
 
 export interface IAuthResponse {

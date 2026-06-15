@@ -47,7 +47,7 @@ export class RegisterComponent implements OnInit {
         email: ['', [Validators.required, Validators.email]],
         password: ['', [Validators.required, Validators.minLength(6)]],
         confirmPassword: ['', [Validators.required]],
-        type: ['user', [Validators.required]]
+        userType: ['user', [Validators.required]]
       },
       { validators: this.passwordMatchValidator }
     );
@@ -76,7 +76,7 @@ export class RegisterComponent implements OnInit {
           name: rest.name,
           lastname: rest.lastname,
           email: rest.email.toLowerCase().trim(),
-          type: rest.type
+          userType: rest.userType
         })
       );
       this.isLoading = false;

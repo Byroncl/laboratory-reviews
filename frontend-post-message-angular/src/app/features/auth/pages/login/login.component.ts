@@ -73,7 +73,7 @@ export class LoginComponent {
       this.store.dispatch(AuthActions.login({
         username: username.toLowerCase().trim(),
         password,
-        type: this.loginType$()
+        userType: this.loginType$()
       }));
     }
   }

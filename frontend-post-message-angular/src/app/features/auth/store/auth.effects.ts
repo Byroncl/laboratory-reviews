@@ -103,14 +103,14 @@ export class AuthEffects {
   register$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.register),
-      switchMap(({ username, password, name, lastname, email, type }) =>
+      switchMap(({ username, password, name, lastname, email, userType }) =>
         this.authService.register({
           username,
           password,
           name,
           lastname,
           email,
-          type
+          type: userType
         }).pipe(
           map(({ access_token }) => {
             const claims = decodeJwt(access_token);

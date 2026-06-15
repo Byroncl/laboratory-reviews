@@ -136,16 +136,16 @@
           </p>
         </div>
 
-        <!-- Type -->
+        <!-- User Type -->
         <div>
-          <label for="type" class="block text-sm font-medium text-primary mb-2">
+          <label for="userType" class="block text-sm font-medium text-primary mb-2">
             {{ 'auth.register.accountType' | t }}
           </label>
           <select
-            id="type"
-            formControlName="type"
+            id="userType"
+            formControlName="userType"
             class="w-full px-4 py-3 rounded-lg border border-gray-300 text-primary focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-white transition outline-none text-sm lg:text-base bg-white"
-            [class.border-red-500]="registerForm.get('type')?.invalid && registerForm.get('type')?.touched"
+            [class.border-red-500]="registerForm.get('userType')?.invalid && registerForm.get('userType')?.touched"
           >
             <option value="user">{{ 'auth.register.types.user' | t }}</option>
             <option value="client">{{ 'auth.register.types.client' | t }}</option>
