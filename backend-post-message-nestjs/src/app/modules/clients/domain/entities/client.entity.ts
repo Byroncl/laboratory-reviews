@@ -95,7 +95,7 @@ export class ClientEntity {
     ) {
       throw new DomainException(CLIENT_VALIDATION_MESSAGES.USERNAME_MIN_LENGTH);
     }
-    if (!/^[a-zA-Z0-9]+$/.test(username)) {
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
       throw new DomainException(CLIENT_VALIDATION_MESSAGES.USERNAME_ALPHANUMERIC);
     }
   }
