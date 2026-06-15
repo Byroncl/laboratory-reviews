@@ -38,8 +38,12 @@ export const routes: Routes = [
   },
   {
     path: 'client',
-    canActivate: [authGuard],
-    children: CLIENT_ROUTES,
+    redirectTo: 'dashboard',
+    pathMatch: 'full',
+  },
+  {
+    path: 'client/*',
+    redirectTo: 'dashboard',
   },
   {
     path: 'dashboard',
