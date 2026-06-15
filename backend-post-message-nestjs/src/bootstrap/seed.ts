@@ -45,6 +45,7 @@ export async function seedDatabase(): Promise<void> {
     const permissions = await seedPermissions(app);
     const roles = await seedRoles(app, permissions);
     const users = await seedUsers(app, config.usersCount, roles);
+    const clients = await seedClients(app);
     const posts = await seedPosts(app, users, categories, config.postsPerUser);
     await seedComments(
       app,
@@ -59,6 +60,7 @@ export async function seedDatabase(): Promise<void> {
     console.log(`   - Roles: ${roles.length}`);
     console.log(`   - Categories: ${categories.length}`);
     console.log(`   - Users: ${users.length}`);
+    console.log(`   - Clients: ${clients.length}`);
     console.log(`   - Posts: ${posts.length}`);
   } catch (error) {
     console.error('Seed failed:', error);
@@ -287,6 +289,12 @@ const SEED_USERS = [
   { firstName: 'Byron', type: 'user', password: 'password123' },
 ];
 
+const SEED_CLIENTS = [
+  { name: 'Client', lastname: 'Admin', username: 'client_admin', email: 'client_admin@example.com', type: 'client', password: 'password123' },
+  { name: 'Client', lastname: 'User', username: 'client_user', email: 'client_user@example.com', type: 'client', password: 'password123' },
+  { name: 'App', lastname: 'Mobile', username: 'app_mobile', email: 'app_mobile@example.com', type: 'client', password: 'password123' },
+];
+
 const POST_TITLES = [
   'Getting Started with NestJS',
   'Angular 18 Best Practices',
@@ -384,6 +392,55 @@ async function seedUsers(
   }
 
   return users;
+}
+
+async function seedClients(
+  app: { get: (token: unknown) => unknown },
+): Promise<Array<{ _id: unknown; username: string }>> {
+  const ClientModel = app.get(getModelToken('Client')) as {
+    findOne: (filter: unknown) => { exec: () => Promise<{ _id: unknown; username: string } | null> };
+    create: (data: unknown) => Promise<{ _id: unknown; username: string }>;
+  };
+
+  const clients: Array<{ _id: unknown; username: string }> = [];
+
+  for (const clientData of SEED_CLIENTS) {
+    const username = clientData.username.toLowerCase();
+
+    const existing = await ClientModel.findOne({ username }).exec();
+    if (existing) {
+      clients.push(existing);
+      console.log(`   Skipped existing client: ${clientData.name}`);
+      continue;
+    }
+
+    try {
+      const hashedPassword = await bcrypt.hash(clientData.password, 10);
+      const client = await ClientModel.create({
+        name: clientData.name,
+        lastname: clientData.lastname,
+        username,
+        email: clientData.email,
+        password_hash: hashedPassword,
+        type: clientData.type,
+        isActive: true,
+      });
+      clients.push(client);
+      console.log(`   Created client: ${clientData.name} ${clientData.lastname} - Password: ${clientData.password}`);
+    } catch (error) {
+      if (error instanceof Error && (error.message.includes('E11000') || error.message.includes('duplicate key'))) {
+        console.log(`   Client ${clientData.name} duplicate on create, fetching...`);
+        const existingAfterError = await ClientModel.findOne({ username }).exec();
+        if (existingAfterError) {
+          clients.push(existingAfterError);
+        }
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  return clients;
 }
 
 async function seedPosts(
