@@ -7,7 +7,7 @@ import { User, UserDocument } from '../../schemas/user.schema';
 import { UserRepository } from '../../domain/repositories/user.repository';
 import { CryptoUtils } from '../../../../../app/core/utils/crypto.utils';
 import { PaginatedResponse } from 'src/app/core/dto/pagination.dto';
-import { Role } from '../../roles/schemas/role.schema';
+import { Role } from '../../../roles/schemas/role.schema';
 
 @Injectable()
 export class UserMongoRepository implements UserRepository {

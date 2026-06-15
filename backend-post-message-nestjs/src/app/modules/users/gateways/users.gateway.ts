@@ -85,60 +85,100 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Internal method called by the controller when a user is created
   notifyUserCreated(user: any, createdBy: string): void {
-    this.server.emit('user:created', {
-      id: user._id || user.id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      createdBy,
-      createdAt: user.createdAt,
-      message: this.i18n.translate('users.created'),
-    });
+    if (!this.server) {
+      this.logger.warn('WebSocket server not initialized, skipping user:created notification');
+      return;
+    }
+    try {
+      this.server.emit('user:created', {
+        id: user._id || user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        createdBy,
+        createdAt: user.createdAt,
+        message: this.i18n.translate('users.created'),
+      });
+    } catch (error: any) {
+      this.logger.error(`Failed to notify user:created: ${error.message}`);
+    }
   }
 
   // Internal method called by the controller when a user is updated
   notifyUserUpdated(user: any, updatedBy: string): void {
-    this.server.emit('user:updated', {
-      id: user._id || user.id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      updatedBy,
-      updatedAt: user.updatedAt,
-      message: this.i18n.translate('users.updated'),
-    });
+    if (!this.server) {
+      this.logger.warn('WebSocket server not initialized, skipping user:updated notification');
+      return;
+    }
+    try {
+      this.server.emit('user:updated', {
+        id: user._id || user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        updatedBy,
+        updatedAt: user.updatedAt,
+        message: this.i18n.translate('users.updated'),
+      });
+    } catch (error: any) {
+      this.logger.error(`Failed to notify user:updated: ${error.message}`);
+    }
   }
 
   // Internal method called by the controller when a user is deleted
   notifyUserDeleted(userId: string, deletedBy: string): void {
-    this.server.emit('user:deleted', {
-      id: userId,
-      deletedBy,
-      message: this.i18n.translate('users.deleted'),
-    });
+    if (!this.server) {
+      this.logger.warn('WebSocket server not initialized, skipping user:deleted notification');
+      return;
+    }
+    try {
+      this.server.emit('user:deleted', {
+        id: userId,
+        deletedBy,
+        message: this.i18n.translate('users.deleted'),
+      });
+    } catch (error: any) {
+      this.logger.error(`Failed to notify user:deleted: ${error.message}`);
+    }
   }
 
   // Internal method called by the controller when a user is activated
   notifyUserActivated(user: any, activatedBy: string): void {
-    this.server.emit('user:activated', {
-      id: user._id || user.id,
-      username: user.username,
-      status: user.status,
-      activatedBy,
-      message: this.i18n.translate('users.activated'),
-    });
+    if (!this.server) {
+      this.logger.warn('WebSocket server not initialized, skipping user:activated notification');
+      return;
+    }
+    try {
+      this.server.emit('user:activated', {
+        id: user._id || user.id,
+        username: user.username,
+        status: user.status,
+        activatedBy,
+        message: this.i18n.translate('users.activated'),
+      });
+    } catch (error: any) {
+      this.logger.error(`Failed to notify user:activated: ${error.message}`);
+    }
   }
 
   // Internal method called by the controller when a user is deactivated
   notifyUserDeactivated(user: any, deactivatedBy: string): void {
-    this.server.emit('user:deactivated', {
-      id: user._id || user.id,
-      username: user.username,
-      status: user.status,
-      deactivatedBy,
-      message: this.i18n.translate('users.deactivated'),
-    });
+    if (!this.server) {
+      this.logger.warn('WebSocket server not initialized, skipping user:deactivated notification');
+      return;
+    }
+    try {
+      this.server.emit('user:deactivated', {
+        id: user._id || user.id,
+        username: user.username,
+        status: user.status,
+        deactivatedBy,
+        message: this.i18n.translate('users.deactivated'),
+      });
+    } catch (error: any) {
+      this.logger.error(`Failed to notify user:deactivated: ${error.message}`);
+    }
   }
 }
