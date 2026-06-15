@@ -1,6 +1,7 @@
 export interface ILoginRequest {
   username: string;
   password: string;
+  type?: 'user' | 'client';
 }
 
 export interface IRegisterRequest {
