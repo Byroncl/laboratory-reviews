@@ -16,14 +16,16 @@ export const permissionGuard = (requiredPermission: string): CanActivateFn => {
   };
 };
 
-export const adminGuard: CanActivateFn = (route, state) => {
+export const dashboardGuard: CanActivateFn = (route, state) => {
   const permissionsService = inject(PermissionsService);
   const router = inject(Router);
 
-  if (permissionsService.isAdmin()) {
+  // Allow both admin and client to access dashboard
+  // They'll see different content based on their role
+  if (permissionsService.isAdmin() || permissionsService.isClient()) {
     return true;
   }
 
-  router.navigate(['/client']);
+  router.navigate(['/']);
   return false;
 };

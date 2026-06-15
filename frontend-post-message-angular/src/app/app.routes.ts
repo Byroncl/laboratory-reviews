@@ -12,10 +12,13 @@ import { FilesComponent } from './features/dashboard/pages/files.component';
 import { HomeComponent } from './features/home/pages/home.component';
 import { PostDetailComponent } from './features/posts/pages/post-detail.component';
 import { authGuard } from './core/guards/auth.guard';
-import { adminGuard } from './core/guards/permission.guard';
+import { dashboardGuard } from './core/guards/permission.guard';
 import { postsRoutes } from './features/posts/posts.routes';
 import { profileRoutes } from './features/profile/profile.routes';
 import { CLIENT_ROUTES } from './features/client/client.routes';
+import { MyPostsComponent } from './features/client/pages/my-posts/my-posts.component';
+import { MyFavoritesComponent } from './features/client/pages/my-favorites/my-favorites.component';
+import { MyCommentsComponent } from './features/client/pages/my-comments/my-comments.component';
 
 export const routes: Routes = [
   // Public routes (no authGuard)
@@ -40,7 +43,7 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: DashboardComponent,
-    canActivate: [authGuard, adminGuard],
+    canActivate: [authGuard, dashboardGuard],
     children: [
       { path: '', component: OverviewComponent },
       { path: 'posts', children: postsRoutes },
@@ -51,6 +54,10 @@ export const routes: Routes = [
       { path: 'files', component: FilesComponent },
       { path: 'profile', children: profileRoutes },
       { path: 'audit-logs', component: AuditLogsComponent },
+      // Client routes
+      { path: 'my-posts', component: MyPostsComponent },
+      { path: 'my-favorites', component: MyFavoritesComponent },
+      { path: 'my-comments', component: MyCommentsComponent },
     ],
   },
   { path: '**', redirectTo: '' },
