@@ -13,7 +13,7 @@ const initialState: AuthState = {
 function isValidAuthUser(parsed: unknown): parsed is AuthUser {
   if (!parsed || typeof parsed !== 'object') return false;
   const u = parsed as Record<string, unknown>;
-  return typeof u['username'] === 'string' && typeof u['role'] === 'string';
+  return typeof u['username'] === 'string' && typeof u['role'] === 'string' && typeof u['id'] === 'string';
 }
 
 export const authReducer = createReducer(
