@@ -22,14 +22,18 @@ export class JwtInterceptor implements HttpInterceptor {
     let token: string | null = null;
     if (typeof window !== 'undefined') {
       token = localStorage.getItem('auth_token');
+      console.log('[JwtInterceptor] Token from localStorage:', token ? 'exists' : 'null', token?.substring(0, 20) + '...');
     }
 
     if (token) {
+      console.log('[JwtInterceptor] Adding Authorization header');
       request = request.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`
         }
       });
+    } else {
+      console.log('[JwtInterceptor] No token to add');
     }
 
     return next.handle(request).pipe(
