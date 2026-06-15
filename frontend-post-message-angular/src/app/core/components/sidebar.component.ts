@@ -1,10 +1,11 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { AuthUser as User } from '../../features/auth/models/auth.model';
 import { TranslatePipe } from '../pipes/translate.pipe';
 import { I18nService } from '../services/i18n.service';
+import { PermissionsService } from '../services/permissions.service';
 
 export interface MenuItem {
   id: string;
@@ -12,6 +13,7 @@ export interface MenuItem {
   icon: string;
   route?: string;
   action?: () => void;
+  requiredPermission?: string;
 }
 
 @Component({
@@ -39,7 +41,7 @@ export interface MenuItem {
 
       <!-- Navigation -->
       <nav class="flex-1 p-6 space-y-2 overflow-y-auto">
-        @for (item of menuItems; track item.id) {
+        @for (item of visibleMenuItems(); track item.id) {
           <div class="space-y-1">
             @if (item.route) {
               <a
@@ -141,61 +143,76 @@ export class SidebarComponent {
   @Output() close = new EventEmitter<void>();
   @Output() logout = new EventEmitter<void>();
 
+  private permissionsService = inject(PermissionsService);
+
   menuItems: MenuItem[] = [
     {
       id: 'dashboard',
       label: 'sidebar.dashboard',
       icon: 'dashboard',
-      route: '/dashboard/'
+      route: '/dashboard/',
+      requiredPermission: 'view_dashboard'
     },
     {
       id: 'posts',
       label: 'sidebar.posts',
       icon: 'posts',
-      route: '/dashboard/posts'
+      route: '/dashboard/posts',
+      requiredPermission: 'manage_posts'
     },
     {
       id: 'users',
       label: 'sidebar.users',
       icon: 'users',
-      route: '/dashboard/users'
+      route: '/dashboard/users',
+      requiredPermission: 'manage_users'
     },
     {
       id: 'roles',
       label: 'sidebar.roles',
       icon: 'roles',
-      route: '/dashboard/roles'
+      route: '/dashboard/roles',
+      requiredPermission: 'manage_roles'
     },
     {
       id: 'permissions',
       label: 'sidebar.permissions',
       icon: 'permissions',
-      route: '/dashboard/permissions'
+      route: '/dashboard/permissions',
+      requiredPermission: 'manage_permissions'
     },
     {
       id: 'comments',
       label: 'sidebar.comments',
       icon: 'comments',
-      route: '/dashboard/comments'
+      route: '/dashboard/comments',
+      requiredPermission: 'manage_comments'
     },
     {
       id: 'files',
       label: 'sidebar.files',
       icon: 'files',
-      route: '/dashboard/files'
+      route: '/dashboard/files',
+      requiredPermission: 'manage_files'
     },
     {
       id: 'audit-logs',
       label: 'sidebar.auditLogs',
       icon: 'audit',
-      route: '/dashboard/audit-logs'
+      route: '/dashboard/audit-logs',
+      requiredPermission: 'view_audit_logs'
     }
   ];
 
-  constructor(
-    private router: Router,
-    private i18n: I18nService
-  ) {}
+  visibleMenuItems = computed(() => {
+    return this.menuItems.filter(item => {
+      if (!item.requiredPermission) return true;
+      return this.permissionsService.hasPermission(item.requiredPermission);
+    });
+  });
+
+  private router = inject(Router);
+  private i18n = inject(I18nService);
 
   getSvgIcon(iconName: string): string {
     const icons: Record<string, string> = {
