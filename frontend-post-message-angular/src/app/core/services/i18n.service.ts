@@ -176,6 +176,24 @@ export class I18nService {
           edit: 'Editar',
           delete: 'Eliminar'
         },
+        postForm: {
+          titleLabel: 'Título',
+          titlePlaceholder: 'Título del post...',
+          contentLabel: 'Contenido',
+          contentPlaceholder: 'Contenido del post...',
+          imageUrlLabel: 'URL de Imagen',
+          imageUrlPlaceholder: 'https://ejemplo.com/imagen.jpg',
+          imageFilenameLabel: 'Nombre del Archivo',
+          imageFilenamePlaceholder: 'imagen.jpg',
+          categoryIdLabel: 'ID de Categoría',
+          categoryIdPlaceholder: 'Ej: tech',
+          categoryNameLabel: 'Nombre de Categoría',
+          categoryNamePlaceholder: 'Ej: Tecnología',
+          createPost: 'Crear Post',
+          updatePost: 'Actualizar Post',
+          cancel: 'Cancelar',
+          characters: 'caracteres'
+        },
         users: {
           loadError: 'Error al cargar usuarios',
           createSuccess: 'Usuario creado correctamente',
@@ -868,6 +886,24 @@ export class I18nService {
           content: 'Content',
           edit: 'Edit',
           delete: 'Delete'
+        },
+        postForm: {
+          titleLabel: 'Title',
+          titlePlaceholder: 'Post title...',
+          contentLabel: 'Content',
+          contentPlaceholder: 'Post content...',
+          imageUrlLabel: 'Image URL',
+          imageUrlPlaceholder: 'https://example.com/image.jpg',
+          imageFilenameLabel: 'File Name',
+          imageFilenamePlaceholder: 'image.jpg',
+          categoryIdLabel: 'Category ID',
+          categoryIdPlaceholder: 'E.g: tech',
+          categoryNameLabel: 'Category Name',
+          categoryNamePlaceholder: 'E.g: Technology',
+          createPost: 'Create Post',
+          updatePost: 'Update Post',
+          cancel: 'Cancel',
+          characters: 'characters'
         },
         users: {
           loadError: 'Error loading users',

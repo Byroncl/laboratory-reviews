@@ -1,66 +1,79 @@
 
     <div class="space-y-6">
+      <!-- Modals Overlay -->
+      @if (showPostForm$() || showPostView$() || showDeleteConfirm$() || showBulkUpload$()) {
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-40" (click)="closeForm(); closePostView(); closeDeleteConfirm(); closeBulkUpload();"></div>
+      }
+
       <!-- Post Form Modal -->
       @if (showPostForm$()) {
-        <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-gray-900">
-              {{ editingPostId$() ? ('dashboard.posts.editTitle' | t) : ('dashboard.posts.createTitle' | t) }}
-            </h2>
-            <button
-              (click)="closeForm()"
-              class="text-gray-500 hover:text-gray-700 text-2xl"
-            >
-              ×
-            </button>
+        <div class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div class="bg-white rounded-lg shadow-xl p-6 border border-gray-200 w-full max-w-2xl max-h-[90vh] overflow-y-auto pointer-events-auto">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-bold text-gray-900">
+                {{ editingPostId$() ? ('dashboard.posts.editTitle' | t) : ('dashboard.posts.createTitle' | t) }}
+              </h2>
+              <button
+                (click)="closeForm()"
+                class="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <app-post-form
+              [editingPostId]="editingPostId$()"
+              (formSubmitted)="onFormSubmitted()"
+              (formCancelled)="closeForm()"
+            ></app-post-form>
           </div>
-          <app-post-form
-            [editingPostId]="editingPostId$()"
-            (formSubmitted)="onFormSubmitted()"
-            (formCancelled)="closeForm()"
-          ></app-post-form>
         </div>
       }
 
       <!-- Post View Modal -->
       @if (showPostView$() && viewingPost$()) {
-        <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-          <app-post-view
-            [post]="viewingPost$()!"
-            (close)="closePostView()"
-            (edit)="viewToEdit()"
-          ></app-post-view>
+        <div class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div class="bg-white rounded-lg shadow-xl p-6 border border-gray-200 w-full max-w-2xl max-h-[90vh] overflow-y-auto pointer-events-auto">
+            <app-post-view
+              [post]="viewingPost$()!"
+              (close)="closePostView()"
+              (edit)="viewToEdit()"
+            ></app-post-view>
+          </div>
         </div>
       }
 
       <!-- Post Delete Confirm Modal -->
       @if (showDeleteConfirm$() && deletingPost$()) {
-        <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-          <app-post-delete-confirm
-            [post]="deletingPost$()!"
-            [isLoading]="isDeletingPost$()"
-            (confirm)="confirmDeletePost()"
-            (cancel)="closeDeleteConfirm()"
-          ></app-post-delete-confirm>
+        <div class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div class="bg-white rounded-lg shadow-xl p-6 border border-gray-200 w-full max-w-sm pointer-events-auto">
+            <app-post-delete-confirm
+              [post]="deletingPost$()!"
+              [isLoading]="isDeletingPost$()"
+              (confirm)="confirmDeletePost()"
+              (cancel)="closeDeleteConfirm()"
+            ></app-post-delete-confirm>
+          </div>
         </div>
       }
 
       <!-- Bulk Upload Modal -->
       @if (showBulkUpload$()) {
-        <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-gray-900">{{ 'dashboard.posts.bulkUpload' | t }}</h2>
-            <button
-              (click)="closeBulkUpload()"
-              class="text-gray-500 hover:text-gray-700 text-2xl"
-            >
-              ×
-            </button>
+        <div class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div class="bg-white rounded-lg shadow-xl p-6 border border-gray-200 w-full max-w-2xl max-h-[90vh] overflow-y-auto pointer-events-auto">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-bold text-gray-900">{{ 'dashboard.posts.bulkUpload' | t }}</h2>
+              <button
+                (click)="closeBulkUpload()"
+                class="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <app-bulk-post-upload
+              (uploadComplete)="onBulkUploadComplete()"
+              (uploadCancelled)="closeBulkUpload()"
+            ></app-bulk-post-upload>
           </div>
-          <app-bulk-post-upload
-            (uploadComplete)="onBulkUploadComplete()"
-            (uploadCancelled)="closeBulkUpload()"
-          ></app-bulk-post-upload>
         </div>
       }
 
