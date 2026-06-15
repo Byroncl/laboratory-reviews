@@ -28,29 +28,37 @@ export class AuthService {
    * @returns Object with user/client data and type, or null if invalid
    */
   async validateCredentials(username: string, password: string): Promise<{ data: any; type: 'user' | 'client' } | null> {
+    this.logger.debug(`validateCredentials called for username: ${username}`);
+
     try {
+      this.logger.debug(`Attempting to validate as user...`);
       const user = await this.validateUserUseCase.execute(username, password);
+      this.logger.debug(`User validation result: ${user ? 'valid' : 'null'}`);
       if (user) {
         return { data: user, type: 'user' };
       }
     } catch (error) {
-      this.logger.debug(`User validation failed for ${username}`);
+      this.logger.debug(`User validation threw error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 
     if (this.clientRepository) {
       try {
+        this.logger.debug(`Attempting to validate as client...`);
         const client = await this.clientRepository.findByUsername(username);
+        this.logger.debug(`Client found: ${client ? 'yes' : 'no'}`);
         if (client && client.password_hash) {
           const isPasswordValid = await CryptoUtils.comparePasswords(password, client.password_hash);
+          this.logger.debug(`Client password valid: ${isPasswordValid}`);
           if (isPasswordValid) {
             return { data: client, type: 'client' };
           }
         }
       } catch (error) {
-        this.logger.debug(`Client validation failed for ${username}`);
+        this.logger.debug(`Client validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
 
+    this.logger.debug(`No valid credentials found for ${username}`);
     return null;
   }
 
@@ -64,14 +72,11 @@ export class AuthService {
 
   /**
    * Perform login: generate JWT payload and sign it.
-   * @param userObject - The user object (from LocalStrategy validation)
+   * @param userObject - The validated user object (already authenticated)
    * @returns Login response with access token
    */
   async login(userObject: any): Promise<LoginResponse> {
-    const payload = await this.loginUseCase.execute(
-      userObject.username,
-      userObject.password || '',
-    );
+    const payload = await this.loginUseCase.executeFromUser(userObject);
     return {
       access_token: this.jwtService.sign(payload),
     };
