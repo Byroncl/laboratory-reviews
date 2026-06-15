@@ -33,7 +33,7 @@ export class PostFormComponent implements OnInit {
   ngOnInit(): void {
     this.postForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(POST_VALIDATION.TITLE_MIN)]],
-      content: ['', [Validators.required, Validators.minLength(POST_VALIDATION.BODY_MIN)]],
+      body: ['', [Validators.required, Validators.minLength(POST_VALIDATION.BODY_MIN)]],
       status: [''],
       tags: [''],
     });
@@ -55,7 +55,7 @@ export class PostFormComponent implements OnInit {
         const post = response.data;
         this.postForm.patchValue({
           title: post.title,
-          content: post.content,
+          body: post.content,
           status: post.status ?? '',
           tags: post.tags?.join(', ') || '',
         });
@@ -90,7 +90,7 @@ export class PostFormComponent implements OnInit {
 
     const data: ICreatePostDTO = {
       title: formValue.title,
-      content: formValue.content,
+      body: formValue.body,
     };
 
     if (formValue.status) {

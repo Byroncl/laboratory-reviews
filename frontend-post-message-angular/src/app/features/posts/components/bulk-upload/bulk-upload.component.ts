@@ -70,11 +70,9 @@ export class BulkUploadComponent {
 
     const author = this.authService.currentUser$()?.username || 'Anonymous';
     const postsWithAuthor = this.parsedDtos.map(post => {
-      const { content, ...rest } = post;
       return {
-        ...rest,
-        author,
-        body: content
+        ...post,
+        author
       };
     });
 
@@ -213,7 +211,7 @@ export class BulkUploadComponent {
 
       const dto: ICreatePostDTO = {
         title: typeof obj['title'] === 'string' ? obj['title'].trim() : `Post ${i + 1}`,
-        content: (obj['content'] as string).trim(),
+        body: (obj['content'] || obj['body'] as string).trim(),
       };
 
       if (obj['status']) dto.status = obj['status'] as PostStatus;

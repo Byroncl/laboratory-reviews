@@ -25,16 +25,16 @@
     </div>
 
     <div class="form-group">
-      <label for="content">{{ 'posts.form.contentLabel' | t }}</label>
+      <label for="body">{{ 'posts.form.contentLabel' | t }}</label>
       <textarea
-        id="content"
-        formControlName="content"
+        id="body"
+        formControlName="body"
         [placeholder]="'posts.form.contentPlaceholder' | t"
         rows="10"
         [attr.disabled]="isLoading() ? true : null"
       ></textarea>
-      @if (getFieldError('content')) {
-        <span class="error">{{ getFieldError('content') }}</span>
+      @if (getFieldError('body')) {
+        <span class="error">{{ getFieldError('body') }}</span>
       }
     </div>
 
