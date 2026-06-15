@@ -12,6 +12,7 @@ import { FilesComponent } from './features/dashboard/pages/files.component';
 import { HomeComponent } from './features/home/pages/home.component';
 import { PostDetailComponent } from './features/posts/pages/post-detail.component';
 import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/permission.guard';
 import { postsRoutes } from './features/posts/posts.routes';
 import { profileRoutes } from './features/profile/profile.routes';
 import { CLIENT_ROUTES } from './features/client/client.routes';
@@ -39,7 +40,7 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: DashboardComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, adminGuard],
     children: [
       { path: '', component: OverviewComponent },
       { path: 'posts', children: postsRoutes },
