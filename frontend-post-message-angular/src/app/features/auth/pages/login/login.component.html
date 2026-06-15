@@ -38,6 +38,32 @@
       <h2 class="text-2xl lg:text-3xl font-bold text-primary mb-2">{{ 'auth.login.title' | t }}</h2>
       <p class="text-sm lg:text-base text-secondary mb-6 lg:mb-8">{{ 'auth.login.subtitle' | t }}</p>
 
+      <!-- Login Type Tabs -->
+      <div class="flex gap-2 mb-6 border-b border-gray-200">
+        <button
+          type="button"
+          (click)="loginType$.set('user')"
+          [class.border-b-2]="loginType$() === 'user'"
+          [class.border-primary]="loginType$() === 'user'"
+          [class.text-primary]="loginType$() === 'user'"
+          [class.text-secondary]="loginType$() !== 'user'"
+          class="pb-3 font-medium transition text-sm lg:text-base"
+        >
+          {{ 'auth.login.types.user' | t }}
+        </button>
+        <button
+          type="button"
+          (click)="loginType$.set('client')"
+          [class.border-b-2]="loginType$() === 'client'"
+          [class.border-primary]="loginType$() === 'client'"
+          [class.text-primary]="loginType$() === 'client'"
+          [class.text-secondary]="loginType$() !== 'client'"
+          class="pb-3 font-medium transition text-sm lg:text-base"
+        >
+          {{ 'auth.login.types.client' | t }}
+        </button>
+      </div>
+
       <!-- Error Message -->
       @if (error$()) {
         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">

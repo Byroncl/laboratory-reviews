@@ -44,6 +44,7 @@ export class LoginComponent {
   readonly error$ = toSignal(this.store.select(selectAuthError), { initialValue: null });
   readonly showPassword$ = signal(false);
   readonly isSubmitted$ = signal(false);
+  readonly loginType$ = signal<'user' | 'client'>('user');
 
   constructor() {
     this.store.select(selectIsAuthenticated).pipe(
@@ -71,7 +72,8 @@ export class LoginComponent {
       const { username, password } = this.loginForm.value as { username: string; password: string };
       this.store.dispatch(AuthActions.login({
         username: username.toLowerCase().trim(),
-        password
+        password,
+        type: this.loginType$()
       }));
     }
   }

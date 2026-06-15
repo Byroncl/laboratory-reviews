@@ -55,6 +55,7 @@ export class AuthController {
     const result = await this.authService.validateCredentials(
       credentials.username,
       credentials.password,
+      credentials.type,
     );
     if (!result) {
       throw new BadRequestException(

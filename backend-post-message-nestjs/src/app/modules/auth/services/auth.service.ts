@@ -25,11 +25,52 @@ export class AuthService {
    * Validate user or client credentials.
    * @param username - The username
    * @param password - The password
+   * @param type - Optional: force validation for specific type ('user' or 'client')
    * @returns Object with user/client data and type, or null if invalid
    */
-  async validateCredentials(username: string, password: string): Promise<{ data: any; type: 'user' | 'client' } | null> {
-    this.logger.debug(`validateCredentials called for username: ${username}`);
+  async validateCredentials(
+    username: string,
+    password: string,
+    type?: 'user' | 'client',
+  ): Promise<{ data: any; type: 'user' | 'client' } | null> {
+    this.logger.debug(`validateCredentials called for username: ${username}, type: ${type || 'auto'}`);
 
+    // If type is specified, validate only that type
+    if (type === 'user') {
+      try {
+        this.logger.debug(`Validating as user (forced)...`);
+        const user = await this.validateUserUseCase.execute(username, password);
+        this.logger.debug(`User validation result: ${user ? 'valid' : 'null'}`);
+        if (user) {
+          return { data: user, type: 'user' };
+        }
+      } catch (error) {
+        this.logger.debug(`User validation threw error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+      return null;
+    }
+
+    if (type === 'client') {
+      if (this.clientRepository) {
+        try {
+          this.logger.debug(`Validating as client (forced)...`);
+          const client = await this.clientRepository.findByUsername(username);
+          this.logger.debug(`Client found: ${client ? 'yes' : 'no'}`);
+          if (client && client.password_hash) {
+            const isPasswordValid = await CryptoUtils.comparePasswords(password, client.password_hash);
+            this.logger.debug(`Client password valid: ${isPasswordValid}`);
+            if (isPasswordValid) {
+              return { data: client, type: 'client' };
+            }
+          }
+        } catch (error) {
+          this.logger.debug(`Client validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+      return null;
+    }
+
+    // Auto-detect: try user first, then client
     try {
       this.logger.debug(`Attempting to validate as user...`);
       const user = await this.validateUserUseCase.execute(username, password);
