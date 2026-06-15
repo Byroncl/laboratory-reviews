@@ -39,10 +39,14 @@ export class LoginUseCase {
       await this.authRepository.recordLoginAttempt(user._id.toString());
 
       // Create JWT payload
+      // Include role identifier if available, otherwise fall back to type
+      const roleIdentifier = user.role?.identifier || (user.type as AuthRole) || 'user';
+
       const payload: JwtPayload = {
         username: user.username,
         sub: user._id.toString(),
         type: (user.type as AuthRole) || 'user',
+        role: roleIdentifier,
       };
 
       return payload;
@@ -83,10 +87,14 @@ export class LoginUseCase {
       await this.authRepository.recordLoginAttempt(user._id.toString());
 
       // Create JWT payload
+      // Include role identifier if available, otherwise fall back to type
+      const roleIdentifier = user.role?.identifier || (user.type as AuthRole) || 'user';
+
       const payload: JwtPayload = {
         username: user.username,
         sub: user._id.toString(),
         type: (user.type as AuthRole) || 'user',
+        role: roleIdentifier,
       };
 
       return payload;

@@ -39,10 +39,8 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Redirect clients to my-posts if on overview
-    if (!this.permissionsService.isAdmin() && (this.router.url === '/dashboard' || this.router.url === '/dashboard/')) {
-      this.router.navigate(['/dashboard/my-posts']);
-    }
+    // All users here are admins (guard ensures this)
+    // No need to redirect
   }
 
   toggleSidebar(): void {

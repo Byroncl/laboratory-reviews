@@ -28,6 +28,10 @@ export const routes: Routes = [
     component: HomeComponent,
   },
   {
+    path: 'home',
+    component: HomeComponent,
+  },
+  {
     path: 'posts/:id',
     component: PostDetailComponent,
   },
@@ -38,12 +42,12 @@ export const routes: Routes = [
   },
   {
     path: 'client',
-    redirectTo: 'dashboard',
+    redirectTo: 'home',
     pathMatch: 'full',
   },
   {
     path: 'client/*',
-    redirectTo: 'dashboard',
+    redirectTo: 'home',
   },
   {
     path: 'dashboard',
@@ -59,11 +63,6 @@ export const routes: Routes = [
       { path: 'files', component: FilesComponent },
       { path: 'profile', children: profileRoutes },
       { path: 'audit-logs', component: AuditLogsComponent },
-      // Client routes
-      { path: 'feed', component: FeedComponent },
-      { path: 'my-posts', component: MyPostsComponent },
-      { path: 'my-favorites', component: MyFavoritesComponent },
-      { path: 'my-comments', component: MyCommentsComponent },
     ],
   },
   { path: '**', redirectTo: '' },

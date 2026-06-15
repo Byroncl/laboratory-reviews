@@ -21,10 +21,16 @@ describe('UserMongoRepository', () => {
     save: mockSave,
   })) as any;
 
-  MockUserModel.findOne = jest.fn().mockReturnValue({ exec: mockExec });
+  MockUserModel.findOne = jest.fn().mockReturnValue({
+    populate: jest.fn().mockReturnValue({ exec: mockExec }),
+    exec: mockExec
+  });
   MockUserModel.findById = jest.fn().mockReturnValue({ exec: mockExec });
   MockUserModel.find = jest.fn().mockReturnValue({ exec: mockExec });
-  MockUserModel.findByIdAndUpdate = jest.fn().mockReturnValue({ exec: mockExec });
+  MockUserModel.findByIdAndUpdate = jest.fn().mockReturnValue({
+    populate: jest.fn().mockReturnValue({ exec: mockExec }),
+    exec: mockExec
+  });
   MockUserModel.findByIdAndDelete = jest.fn().mockReturnValue({ exec: mockExec });
 
   const mockUser = {

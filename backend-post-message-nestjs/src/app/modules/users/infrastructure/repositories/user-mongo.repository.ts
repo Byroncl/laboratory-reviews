@@ -24,7 +24,7 @@ export class UserMongoRepository implements UserRepository {
   }
 
   async findOneByUsername(username: string): Promise<User | null> {
-    return this.userModel.findOne({ username }).exec();
+    return this.userModel.findOne({ username }).populate('role').exec();
   }
 
   async findOneById(id: string): Promise<User | null> {

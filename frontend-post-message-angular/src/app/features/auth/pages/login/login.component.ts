@@ -47,13 +47,8 @@ export class LoginComponent {
   readonly loginType$ = signal<'user' | 'client'>('user');
 
   constructor() {
-    this.store.select(selectIsAuthenticated).pipe(
-      filter(auth => auth === true),
-      takeUntilDestroyed()
-    ).subscribe(() => {
-      const returnUrl = this.route.snapshot.queryParams['returnUrl'] ?? '/dashboard';
-      this.router.navigate([returnUrl]);
-    });
+    // Navigation is handled by loginSuccess$ effect in auth.effects.ts
+    // No need to navigate here again
   }
 
   hasError(field: string): boolean {

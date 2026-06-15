@@ -38,7 +38,6 @@ export class AppComponent implements OnInit, OnDestroy {
         filter((token): token is string => !!token)
       ).subscribe(token => {
         this.wsService.connect(token);
-        this.notificationsService.getNotifications().subscribe();
       })
     );
 

@@ -20,12 +20,11 @@ export const dashboardGuard: CanActivateFn = (route, state) => {
   const permissionsService = inject(PermissionsService);
   const router = inject(Router);
 
-  // Allow both admin and client to access dashboard
-  // They'll see different content based on their role
-  if (permissionsService.isAdmin() || permissionsService.isClient()) {
+  // Dashboard is for admins/users only. Clients go to /home
+  if (permissionsService.isAdmin()) {
     return true;
   }
 
-  router.navigate(['/']);
+  router.navigate(['/home']);
   return false;
 };
