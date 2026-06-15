@@ -40,7 +40,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     // Redirect clients to my-posts if on overview
-    if (!this.permissionsService.isAdmin() && this.router.url === '/dashboard' || this.router.url === '/dashboard/') {
+    if (!this.permissionsService.isAdmin() && (this.router.url === '/dashboard' || this.router.url === '/dashboard/')) {
       this.router.navigate(['/dashboard/my-posts']);
     }
   }
@@ -59,5 +59,9 @@ export class DashboardComponent implements OnInit {
 
   isOverviewRoute(): boolean {
     return this.router.url === '/dashboard';
+  }
+
+  isAdmin(): boolean {
+    return this.permissionsService.isAdmin();
   }
 }
