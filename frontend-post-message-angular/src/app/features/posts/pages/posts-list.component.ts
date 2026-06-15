@@ -281,11 +281,28 @@ export class PostsListComponent implements OnInit {
 
     this.postsService.uploadImage(formData).subscribe({
       next: (response: any) => {
-        console.log('Upload response:', response);
-        const imageUrl = response?.data?.imageUrl || response?.imageUrl || response?.url;
+        console.log('Upload response full:', response);
+
+        // Try multiple possible paths for the URL
+        let imageUrl =
+          response?.data?.imageUrl ||
+          response?.data?.url ||
+          response?.imageUrl ||
+          response?.url ||
+          (response?.data && typeof response.data === 'string' ? response.data : null);
+
+        // If response.data is an object, try to find the URL field
+        if (!imageUrl && response?.data && typeof response.data === 'object') {
+          imageUrl = Object.values(response.data).find((val: any) =>
+            typeof val === 'string' && (val.includes('http') || val.includes('.'))
+          ) as string;
+        }
+
+        console.log('Extracted imageUrl:', imageUrl);
+
         if (imageUrl) {
           this.uploadedImageUrl.set(imageUrl);
-          this.notificationService.toast('✅ Imagen cargada correctamente', 'success');
+          this.notificationService.toast('✅ Imagen cargada: ' + imageUrl, 'success');
         } else {
           console.warn('No imageUrl in response:', response);
           this.notificationService.toast('⚠️ Imagen cargada pero sin URL', 'warning');
