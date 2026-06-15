@@ -19,6 +19,7 @@ import { CLIENT_ROUTES } from './features/client/client.routes';
 import { MyPostsComponent } from './features/client/pages/my-posts/my-posts.component';
 import { MyFavoritesComponent } from './features/client/pages/my-favorites/my-favorites.component';
 import { MyCommentsComponent } from './features/client/pages/my-comments/my-comments.component';
+import { FeedComponent } from './features/client/pages/feed/feed.component';
 
 export const routes: Routes = [
   // Public routes (no authGuard)
@@ -55,6 +56,7 @@ export const routes: Routes = [
       { path: 'profile', children: profileRoutes },
       { path: 'audit-logs', component: AuditLogsComponent },
       // Client routes
+      { path: 'feed', component: FeedComponent },
       { path: 'my-posts', component: MyPostsComponent },
       { path: 'my-favorites', component: MyFavoritesComponent },
       { path: 'my-comments', component: MyCommentsComponent },

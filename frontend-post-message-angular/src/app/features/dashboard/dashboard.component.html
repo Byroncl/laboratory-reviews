@@ -1,196 +1,179 @@
-<div class="flex h-screen bg-gray-100 overflow-hidden">
-  <!-- Sidebar (admin only) -->
-  @if (isAdmin()) {
+@if (isAdmin()) {
+  <!-- ADMIN LAYOUT -->
+  <div class="flex h-screen bg-gray-100 overflow-hidden">
     <app-sidebar
       [isOpen]="isSidebarOpen"
       [user$]="user$"
       (close)="closeSidebar()"
       (logout)="logout()"
     ></app-sidebar>
-  }
 
-  <!-- Main Content -->
-  <div class="flex-1 flex flex-col overflow-hidden">
-    <!-- Top Navigation Bar -->
-    <nav class="bg-white shadow-sm border-b border-gray-200 flex-shrink-0">
-      <div class="px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
-        <!-- Left: Menu Toggle + Dashboard Title -->
-        <div class="flex items-center gap-3 min-w-0">
-          @if (isAdmin()) {
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <nav class="bg-white shadow-sm border-b border-gray-200 flex-shrink-0">
+        <div class="px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3 min-w-0">
             <button
               (click)="toggleSidebar()"
               class="lg:hidden p-2 text-primary hover:bg-gray-100 rounded-lg transition-colors duration-150 flex-shrink-0"
-              [attr.aria-label]="'Toggle sidebar'"
             >
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
               </svg>
             </button>
-          }
-          <h2 class="text-lg sm:text-xl font-bold text-primary truncate">
-            {{ 'sidebar.dashboard' | t }}
-          </h2>
-        </div>
+            <h2 class="text-lg sm:text-xl font-bold text-primary truncate">
+              {{ 'sidebar.dashboard' | t }}
+            </h2>
+          </div>
 
-        <!-- Right: Actions (Notifications, Language, User) -->
-        @if (user$ | async; as user) {
-          <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-            <!-- Notifications Button -->
-            <button
-              class="p-2 text-secondary hover:bg-gray-100 rounded-lg relative transition-colors duration-150"
-              [attr.aria-label]="'Notifications'"
-            >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-              </svg>
-              <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-
-            <!-- Separator -->
-            <div class="hidden sm:block w-px h-6 bg-gray-200"></div>
-
-            <!-- Language Selector -->
-            <app-language-selector></app-language-selector>
-
-            <!-- Separator -->
-            <div class="hidden sm:block w-px h-6 bg-gray-200"></div>
-
-            <!-- User Profile -->
-            <div class="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4">
-              <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
-                <span class="text-white font-bold text-xs">
-                  {{ user.username.charAt(0).toUpperCase() }}
+          @if (user$ | async; as user) {
+            <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+              <button
+                class="p-2 text-secondary hover:bg-gray-100 rounded-lg relative transition-colors duration-150"
+              >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                </svg>
+                <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              </button>
+              <div class="hidden sm:block w-px h-6 bg-gray-200"></div>
+              <app-language-selector></app-language-selector>
+              <div class="hidden sm:block w-px h-6 bg-gray-200"></div>
+              <div class="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4">
+                <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span class="text-white font-bold text-xs">
+                    {{ user.username.charAt(0).toUpperCase() }}
+                  </span>
+                </div>
+                <span class="text-sm font-medium text-primary hidden sm:inline truncate max-w-[120px]">
+                  {{ user.username }}
                 </span>
               </div>
-              <span class="text-sm font-medium text-primary hidden sm:inline truncate max-w-[120px]">
-                {{ user.username }}
-              </span>
+            </div>
+          }
+        </div>
+      </nav>
+
+      <main class="flex-1 overflow-auto p-6 lg:p-8">
+        <router-outlet></router-outlet>
+        @if (isOverviewRoute()) {
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-gray-500 text-sm mb-1">{{ 'dashboard.overview.postsTotal' | t }}</p>
+                  <p class="text-3xl font-bold text-gray-900">1,234</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
         }
-      </div>
-
-      <!-- Client Navigation Tabs -->
-      @if (!isAdmin()) {
-        <div class="border-b border-gray-200 bg-white px-4 sm:px-6">
-          <div class="flex gap-1 overflow-x-auto">
-            <a
-              routerLink="/dashboard/my-posts"
-              routerLinkActive="border-b-2 border-primary text-primary"
-              class="px-4 py-3 text-sm font-medium text-secondary hover:text-primary transition-colors whitespace-nowrap"
-            >
-              📝 {{ 'navigation.myPosts' | t }}
-            </a>
-            <a
-              routerLink="/dashboard/my-favorites"
-              routerLinkActive="border-b-2 border-primary text-primary"
-              class="px-4 py-3 text-sm font-medium text-secondary hover:text-primary transition-colors whitespace-nowrap"
-            >
-              ❤️ {{ 'navigation.myFavorites' | t }}
-            </a>
-            <a
-              routerLink="/dashboard/my-comments"
-              routerLinkActive="border-b-2 border-primary text-primary"
-              class="px-4 py-3 text-sm font-medium text-secondary hover:text-primary transition-colors whitespace-nowrap"
-            >
-              💬 {{ 'navigation.myComments' | t }}
-            </a>
-            <a
-              routerLink="/dashboard/profile"
-              routerLinkActive="border-b-2 border-primary text-primary"
-              class="px-4 py-3 text-sm font-medium text-secondary hover:text-primary transition-colors whitespace-nowrap"
-            >
-              👤 {{ 'navigation.myProfile' | t }}
-            </a>
-          </div>
-        </div>
-      }
-    </nav>
-
-    <!-- Page Content -->
-    <main class="flex-1 overflow-auto p-6 lg:p-8">
-      <!-- Dynamic Content -->
-      <router-outlet></router-outlet>
-
-      <!-- Dashboard Overview (shown when on /dashboard) -->
-      @if (isOverviewRoute()) {
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- Posts Card -->
-        <div class="bg-white rounded-xl shadow p-6">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-gray-500 text-sm mb-1">{{ 'dashboard.overview.postsTotal' | t }}</p>
-              <p class="text-3xl font-bold text-gray-900">1,234</p>
-            </div>
-            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
-            </div>
-          </div>
-          <p class="text-green-600 text-sm mt-2">+5.2% vs último mes</p>
-        </div>
-
-        <!-- Comments Card -->
-        <div class="bg-white rounded-xl shadow p-6">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-gray-500 text-sm mb-1">{{ 'dashboard.overview.comments' | t }}</p>
-              <p class="text-3xl font-bold text-gray-900">3,456</p>
-            </div>
-            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2h-2.586a1 1 0 00-.707.293l-4.414 4.414z"></path>
-              </svg>
-            </div>
-          </div>
-          <p class="text-green-600 text-sm mt-2">+12.5% vs último mes</p>
-        </div>
-
-        <!-- Users Card -->
-        <div class="bg-white rounded-xl shadow p-6">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-gray-500 text-sm mb-1">{{ 'dashboard.overview.activeUsers' | t }}</p>
-              <p class="text-3xl font-bold text-gray-900">892</p>
-            </div>
-            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292m15 2.646a9 9 0 11-18 0m0 0a9 9 0 1018 0"></path>
-              </svg>
-            </div>
-          </div>
-          <p class="text-green-600 text-sm mt-2">+8.1% vs último mes</p>
-        </div>
-
-        <!-- Growth Card -->
-        <div class="bg-white rounded-xl shadow p-6">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-gray-500 text-sm mb-1">{{ 'dashboard.overview.growth' | t }}</p>
-              <p class="text-3xl font-bold text-gray-900">+24.8%</p>
-            </div>
-            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-              <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
-              </svg>
-            </div>
-          </div>
-          <p class="text-green-600 text-sm mt-2">{{ 'dashboard.overview.growthTrend' | t }}</p>
-        </div>
-      </div>
-
-        <!-- Welcome Message -->
-        <div class="bg-gradient-to-r from-primary to-gray-900 rounded-xl shadow p-8 text-white">
-          @if (user$ | async; as user) {
-            <h3 class="text-2xl font-bold mb-2">{{ 'dashboard.overview.welcomeTitle' | t }} {{ user.username }}!</h3>
-            <p class="text-gray-200">
-              {{ 'dashboard.overview.welcomeBody' | t }}
-            </p>
-          }
-        </div>
-      }
-    </main>
+      </main>
+    </div>
   </div>
-</div>
+} @else {
+  <!-- CLIENT LAYOUT - Reddit Style with Sidebar -->
+  <div class="dashboard-layout">
+    <!-- Left Sidebar -->
+    <aside class="client-sidebar">
+      <div class="sidebar-header">
+        <button routerLink="/" class="logo-btn">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3-8c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3z"/>
+          </svg>
+        </button>
+        <h2 class="sidebar-title">Albatros</h2>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a
+          routerLink="/dashboard/feed"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="icon">🏠</span>
+          <span>{{ 'navigation.feed' | t }}</span>
+        </a>
+        <a
+          routerLink="/dashboard/my-posts"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="icon">📝</span>
+          <span>{{ 'navigation.myPosts' | t }}</span>
+        </a>
+        <a
+          routerLink="/dashboard/my-favorites"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="icon">❤️</span>
+          <span>{{ 'navigation.myFavorites' | t }}</span>
+        </a>
+        <a
+          routerLink="/dashboard/my-comments"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="icon">💬</span>
+          <span>{{ 'navigation.myComments' | t }}</span>
+        </a>
+        <a
+          routerLink="/dashboard/profile"
+          routerLinkActive="active"
+          class="nav-item"
+        >
+          <span class="icon">👤</span>
+          <span>{{ 'navigation.myProfile' | t }}</span>
+        </a>
+        <hr class="my-4" />
+        <a
+          routerLink="/"
+          class="nav-item"
+        >
+          <span class="icon">🏠</span>
+          <span>{{ 'navigation.backHome' | t }}</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        @if (user$ | async; as user) {
+          <div class="user-card">
+            <div class="user-avatar">
+              {{ user.username.charAt(0).toUpperCase() }}
+            </div>
+            <div class="user-info">
+              <p class="user-name">{{ user.username }}</p>
+              <p class="user-email">{{ user.email }}</p>
+            </div>
+          </div>
+          <button (click)="logout()" class="logout-btn">
+            {{ 'sidebar.logout' | t }}
+          </button>
+        }
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+      <!-- Top Navigation -->
+      <nav class="top-nav">
+        <div class="nav-content">
+          <h1 class="nav-title">{{ 'sidebar.dashboard' | t }}</h1>
+          <div class="nav-actions">
+            <app-language-selector></app-language-selector>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Content Area -->
+      <main class="content-area">
+        <router-outlet></router-outlet>
+      </main>
+    </div>
+  </div>
+}

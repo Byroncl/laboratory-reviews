@@ -635,10 +635,16 @@ export class I18nService {
       },
       navigation: {
         menu: 'Menú',
+        feed: 'Feed',
         myPosts: 'Mis Posts',
         myFavorites: 'Mis Favoritos',
         myComments: 'Mis Comentarios',
-        myProfile: 'Mi Perfil'
+        myProfile: 'Mi Perfil',
+        backHome: 'Volver al Inicio'
+      },
+      feed: {
+        description: 'Explora las publicaciones de la comunidad y participa',
+        empty: 'No hay publicaciones disponibles en este momento'
       },
       activity: {
         recentActivity: 'Actividad Reciente',
@@ -1277,10 +1283,16 @@ export class I18nService {
       },
       navigation: {
         menu: 'Menu',
+        feed: 'Feed',
         myPosts: 'My Posts',
         myFavorites: 'My Favorites',
         myComments: 'My Comments',
-        myProfile: 'My Profile'
+        myProfile: 'My Profile',
+        backHome: 'Back to Home'
+      },
+      feed: {
+        description: 'Explore community posts and participate',
+        empty: 'No posts available at this moment'
       },
       activity: {
         recentActivity: 'Recent Activity',
