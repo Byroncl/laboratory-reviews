@@ -72,7 +72,11 @@ export class JwtAuthGuard implements CanActivate {
 
           this.logger.debug('AuthGuard: auth check passed');
           return true;
-        } catch (error) {
+        } catch (error: any) {
+          // Re-throw business logic exceptions (ForbiddenException, etc)
+          if (error instanceof ForbiddenException) {
+            throw error;
+          }
           // Token exists but invalid — fail for @Auth(), allow for @OptionalAuth()
           if (authOptions) {
             this.logger.error(`AuthGuard: token verification failed: ${error}`);

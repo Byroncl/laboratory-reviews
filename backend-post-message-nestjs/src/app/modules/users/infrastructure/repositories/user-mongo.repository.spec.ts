@@ -4,6 +4,7 @@ import { UserMongoRepository } from './user-mongo.repository';
 import { User } from '../../schemas/user.schema';
 import { Post } from '../../../posts/schemas/post.schema';
 import { Comment } from '../../../comments/schemas/comment.schema';
+import { Role } from '../../../roles/schemas/role.schema';
 import { CreateUserDto } from '../../dto/create-user.dto';
 import { UpdateUserDto } from '../../dto/update-user.dto';
 
@@ -44,6 +45,10 @@ describe('UserMongoRepository', () => {
     countDocuments: jest.fn().mockReturnValue({ exec: mockExec }),
   } as any;
 
+  const MockRoleModel = {
+    findOne: jest.fn().mockReturnValue({ exec: mockExec }),
+  } as any;
+
   const mockUser = {
     _id: '507f1f77bcf86cd799439011',
     name: 'John',
@@ -64,6 +69,7 @@ describe('UserMongoRepository', () => {
         { provide: getModelToken(User.name), useValue: MockUserModel },
         { provide: getModelToken(Post.name), useValue: MockPostModel },
         { provide: getModelToken(Comment.name), useValue: MockCommentModel },
+        { provide: getModelToken(Role.name), useValue: MockRoleModel },
       ],
     }).compile();
 

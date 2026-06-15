@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schemas/user.schema';
 import { Post, PostSchema } from '../posts/schemas/post.schema';
 import { Comment, CommentSchema } from '../comments/schemas/comment.schema';
+import { Role, RoleSchema } from '../roles/schemas/role.schema';
 import { UserRepository } from './domain/repositories/user.repository';
 import { UserMongoRepository } from './infrastructure/repositories/user-mongo.repository';
 import { CreateUserUseCase } from './domain/use-cases/create-user.use-case';
@@ -29,6 +30,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
       { name: User.name, schema: UserSchema },
       { name: Post.name, schema: PostSchema },
       { name: Comment.name, schema: CommentSchema },
+      { name: Role.name, schema: RoleSchema },
     ]),
   ],
   controllers: [UsersController],
