@@ -86,10 +86,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.favoritesService.loadFavorites().pipe(
-      takeUntil(this.destroy$),
-      catchError(() => of(null))
-    ).subscribe();
+    // Load favorites only if authenticated
+    if (this.isAuthenticated()) {
+      this.favoritesService.loadFavorites().pipe(
+        takeUntil(this.destroy$),
+        catchError(() => of(null))
+      ).subscribe();
+    }
     this.loadData();
     this.loadSidebarData();
   }
