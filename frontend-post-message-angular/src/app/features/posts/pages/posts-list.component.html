@@ -1,0 +1,57 @@
+<div class="posts-container">
+  <div class="posts-header">
+    <h1>{{ 'posts.list.title' | t }}</h1>
+    <a routerLink="/posts/new" class="btn btn-primary">{{ 'posts.list.newPost' | t }}</a>
+  </div>
+
+  <app-bulk-upload></app-bulk-upload>
+
+  <app-post-filter
+    [isLoading]="loading$()"
+    (filterChange)="onFilterChange($event)"
+    (reset)="onFilterReset()"
+  ></app-post-filter>
+
+  @if (loading$()) {
+    <div class="posts-loading">
+      <p>{{ 'posts.list.loading' | t }}</p>
+    </div>
+  }
+
+  @if (error$()) {
+    <div class="posts-error">
+      <p>{{ 'posts.list.error' | t }}: {{ error$() }}</p>
+    </div>
+  }
+
+  @if (!loading$() && filteredPosts$().length > 0) {
+    <div class="posts-list">
+      @for (post of filteredPosts$(); track post.id) {
+        <app-post-card
+          [post]="post"
+          [isLoading]="loading$()"
+          (view)="onPostView($event)"
+          (edit)="onPostEdit($event)"
+          (delete)="onPostDelete($event)"
+          (publish)="onPostPublish($event)"
+          (archive)="onPostArchive($event)"
+        ></app-post-card>
+      }
+    </div>
+  }
+
+  @if (!loading$() && filteredPosts$().length === 0) {
+    <div class="posts-empty">
+      <p>{{ 'posts.list.empty' | t }}</p>
+    </div>
+  }
+
+  @if (pagination$()) {
+    <app-pagination
+      [pagination]="pagination$()"
+      [isLoading]="loading$()"
+      (nextPage)="onNextPage()"
+      (prevPage)="onPrevPage()"
+    ></app-pagination>
+  }
+</div>

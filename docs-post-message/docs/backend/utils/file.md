@@ -1,12 +1,12 @@
 ---
 sidebar_position: 2
-title: File Utilities
-description: File handling and naming
+title: Utilidades de Archivos
+description: Manejo de archivos y nomenclatura
 ---
 
-# File Utilities 📄
+# Utilidades de Archivos 📄
 
-Utilities for file operations and MinIO integration.
+Utilidades para operaciones con archivos e integración con MinIO.
 
 ## FileUtils
 
@@ -33,15 +33,15 @@ export class FileUtils {
 }
 ```
 
-**Location**: `src/app/core/utils/file.utils.ts`
+**Ubicación**: `src/app/core/utils/file.utils.ts`
 
-## Usage
+## Uso
 
-### File Upload
+### Subida de Archivos
 
 ```typescript
 const fileName = FileUtils.generateFileName(file.originalname);
-// Result: '1718281696123-a7k9x2.jpg'
+// Resultado: '1718281696123-a7k9x2.jpg'
 
 const isValid = FileUtils.validateFileSize(file.size);
 const isImage = FileUtils.isImageFile(file.mimetype);
@@ -49,4 +49,4 @@ const isImage = FileUtils.isImageFile(file.mimetype);
 
 ---
 
-**Next**: [String Utilities →](./string.md)
+**Siguiente**: [Utilidades de Strings →](./string.md)

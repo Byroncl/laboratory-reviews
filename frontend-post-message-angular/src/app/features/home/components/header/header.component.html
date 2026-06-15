@@ -6,78 +6,79 @@
       (click)="router.navigate(['/'])"
       (keydown.enter)="router.navigate(['/'])"
       tabindex="0"
-      aria-label="Albatros home"
+      [attr.aria-label]="'home.header.logoAlt' | t"
     >
       <img src="/images/logos/header-logo-2.png" alt="Albatros" class="h-8 w-auto" />
     </a>
 
+    <!-- Language Switcher -->
+    <div class="flex items-center gap-2">
+      <button
+        class="text-sm text-gray-700 hover:text-primary transition"
+        (click)="setLanguage('es')"
+        [class.font-bold]="currentLanguage() === 'es'"
+      >
+        ES
+      </button>
+      <span class="text-gray-300">|</span>
+      <button
+        class="text-sm text-gray-700 hover:text-primary transition"
+        (click)="setLanguage('en')"
+        [class.font-bold]="currentLanguage() === 'en'"
+      >
+        EN
+      </button>
+    </div>
+
     <!-- Nav actions -->
     <nav class="flex items-center gap-3">
-      @if (isAuthenticated$ | async; as isAuth) {
-        @if (isAuth) {
-          <!-- Authenticated: user menu -->
-          <div class="relative">
-            <button
-              data-cy="user-menu-trigger"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-primary transition"
-              (click)="toggleMenu()"
-              aria-haspopup="true"
-              [attr.aria-expanded]="menuOpen()"
-            >
-              <span data-cy="username">{{ (user$ | async)?.username }}</span>
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+      @if (isAuthenticated()) {
+        <!-- Authenticated: user menu -->
+        <div class="relative" appClickOutside (clickOutside)="menuOpen.set(false)">
+          <button
+            data-cy="user-menu-trigger"
+            class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-primary transition"
+            (click)="toggleMenu()"
+            aria-haspopup="true"
+            [attr.aria-expanded]="menuOpen()"
+          >
+            <span data-cy="username">{{ user()?.username }}</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-            @if (menuOpen()) {
-              <div
-                class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50"
-                role="menu"
+          @if (menuOpen()) {
+            <div
+              class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50"
+              role="menu"
+            >
+              <button
+                data-cy="logout-btn"
+                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition"
+                role="menuitem"
+                (click)="onLogout()"
               >
-                <button
-                  data-cy="logout-btn"
-                  class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition"
-                  role="menuitem"
-                  (click)="onLogout()"
-                >
-                  Logout
-                </button>
-              </div>
-            }
-          </div>
-        } @else {
-          <!-- Guest: sign in + register -->
-          <button
-            data-cy="sign-in-btn"
-            class="text-sm font-medium text-gray-700 hover:text-primary transition"
-            (click)="navigateToLogin()"
-          >
-            Sign in
-          </button>
-          <button
-            data-cy="register-btn"
-            class="text-sm font-medium bg-primary text-white px-4 py-1.5 rounded-lg hover:bg-black transition"
-            (click)="navigateToRegister()"
-          >
-            Register
-          </button>
-        }
+                {{ 'home.header.logout' | t }}
+              </button>
+            </div>
+          }
+        </div>
       } @else {
-        <!-- Before stream emits — render guest buttons -->
+        <!-- Guest: sign in + register -->
         <button
           data-cy="sign-in-btn"
           class="text-sm font-medium text-gray-700 hover:text-primary transition"
           (click)="navigateToLogin()"
         >
-          Sign in
+          {{ 'home.header.signIn' | t }}
         </button>
         <button
           data-cy="register-btn"
           class="text-sm font-medium bg-primary text-white px-4 py-1.5 rounded-lg hover:bg-black transition"
           (click)="navigateToRegister()"
         >
-          Register
+          {{ 'home.header.register' | t }}
         </button>
       }
     </nav>

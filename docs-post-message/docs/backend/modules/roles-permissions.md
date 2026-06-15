@@ -1,26 +1,26 @@
 ---
 sidebar_position: 7
-title: Roles & Permissions
-description: RBAC - Role-Based Access Control
+title: Roles y Permisos
+description: RBAC - Control de Acceso Basado en Roles
 ---
 
-# Roles & Permissions 🎭🔑
+# Roles y Permisos 🎭🔑
 
-Role-Based Access Control system for fine-grained permissions.
+Sistema de Control de Acceso Basado en Roles para permisos granulares.
 
-## Overview
+## Descripción General
 
 ```mermaid
 graph TB
-    User["User"]
-    Role["Role<br/>admin, user, viewer"]
-    Permission["Permission<br/>posts:read, posts:write, ..."]
+    User["Usuario"]
+    Role["Rol<br/>admin, user, viewer"]
+    Permission["Permiso<br/>posts:read, posts:write, ..."]
     
-    User -->|has| Role
-    Role -->|grants| Permission
+    User -->|tiene| Role
+    Role -->|otorga| Permission
 ```
 
-## Role Schema
+## Schema de Rol
 
 ```typescript
 @Schema({ timestamps: true })
@@ -45,7 +45,7 @@ export class Role {
 }
 ```
 
-## Permission Schema
+## Schema de Permiso
 
 ```typescript
 @Schema({ timestamps: true })
@@ -59,7 +59,7 @@ export class Permission {
   @Prop({
     enum: ['user', 'roles', 'permissions', 'comments', 'clients', 'statistics', 'audits'],
   })
-  type: string;  // Resource type
+  type: string;  // Tipo de recurso
 
   @Prop({ default: true })
   isActive: boolean;
@@ -72,70 +72,70 @@ export class Permission {
 }
 ```
 
-## Modules Status
+## Estado de los Módulos
 
-⚠️ **Both modules are currently ORPHANED** (not imported in AppModule)
+⚠️ **Ambos módulos están actualmente HUÉRFANOS** (no importados en AppModule)
 
-See [Orphaned Modules Issue](../issues/orphaned-modules.md)
+Ver [Problema de Módulos Huérfanos](../issues/orphaned-modules.md)
 
-## Endpoints (When Fixed)
+## Endpoints (Cuando Se Corrija)
 
 ### Roles
 
-| Endpoint | Method | Purpose |
+| Endpoint | Método | Propósito |
 |----------|--------|---------|
-| `/roles` | POST | Create role |
-| `/roles` | GET | Get all roles |
-| `/roles/:id` | GET | Get role details |
-| `/roles/:id` | PATCH | Update role |
-| `/roles/:id` | DELETE | Delete role |
+| `/roles` | POST | Crear rol |
+| `/roles` | GET | Obtener todos los roles |
+| `/roles/:id` | GET | Ver detalles del rol |
+| `/roles/:id` | PATCH | Actualizar rol |
+| `/roles/:id` | DELETE | Eliminar rol |
 
-### Permissions
+### Permisos
 
-| Endpoint | Method | Purpose |
+| Endpoint | Método | Propósito |
 |----------|--------|---------|
-| `/permissions` | POST | Create permission |
-| `/permissions` | GET | Get all permissions |
-| `/permissions/:id` | GET | Get permission details |
-| `/permissions/:id` | PATCH | Update permission |
-| `/permissions/:id` | DELETE | Delete permission |
+| `/permissions` | POST | Crear permiso |
+| `/permissions` | GET | Obtener todos los permisos |
+| `/permissions/:id` | GET | Ver detalles del permiso |
+| `/permissions/:id` | PATCH | Actualizar permiso |
+| `/permissions/:id` | DELETE | Eliminar permiso |
 
-## Usage in Application
+## Uso en la Aplicación
 
-### Assigning Role to User
+### Asignar Rol a Usuario
 
 ```typescript
 const user = await usersService.createUser({
   username: 'john',
   email: 'john@example.com',
-  role: 'admin',  // Reference to Role
+  role: 'admin',  // Referencia al Rol
 });
 ```
 
-### Checking Permissions
+### Comprobar Permisos
 
 ```typescript
 @Controller('posts')
 export class PostsController {
   @Delete(':id')
   @Auth()
-  @HasPermission('posts:delete')  // Check permission
+  @HasPermission('posts:delete')  // Comprobar permiso
   deletePost(@Param('id') id: string) {
     return this.postsService.deletePost(id);
   }
 }
 ```
 
-## Default Roles & Permissions
+## Roles y Permisos por Defecto
 
-Seed data should create:
+Los datos semilla deben crear:
 
 ```typescript
 // Roles
 {
   name: 'Administrator',
   identifier: 'admin',
-  permissions: [/* all permissions */]
+  permissions: [/* todos los permisos */]
 }
 
 {
@@ -159,7 +159,7 @@ Seed data should create:
   ]
 }
 
-// Permissions
+// Permisos
 {
   name: 'Read Posts',
   identifier: 'posts:read',
@@ -185,10 +185,10 @@ Seed data should create:
 }
 ```
 
-## Architecture Note
+## Nota Arquitectónica
 
-Flat architecture (Service → Model). Consider refactoring to Clean Architecture for consistency.
+Arquitectura plana (Servicio → Modelo). Considerar refactorizar a Arquitectura Limpia para consistencia.
 
 ---
 
-**Next**: [I18n Module →](./i18n.md)
+**Siguiente**: [Módulo I18n →](./i18n.md)

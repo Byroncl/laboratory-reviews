@@ -71,6 +71,8 @@ export class AuditLog extends Document {
   createdAt: Date;
 }
 
+export type AuditLogDocument = AuditLog & Document;
+
 export const AuditLogSchema = SchemaFactory.createForClass(AuditLog);
 
 // Compound index for entity-scoped queries

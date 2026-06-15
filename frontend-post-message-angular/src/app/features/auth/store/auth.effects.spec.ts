@@ -44,7 +44,8 @@ describe('AuthEffects', () => {
   describe('login$', () => {
     it('dispatches loginSuccess with decoded AuthUser when token is valid', fakeAsync(() => {
       const token = buildJwt({ sub: 'u1', username: 'alice', type: 'admin' });
-      authService.login.and.returnValue(of({ access_token: token }));
+      const mockUser = { id: 'u1', username: 'alice', email: 'alice@test.com', role: 'admin' };
+      authService.login.and.returnValue(of({ access_token: token, user: mockUser }));
 
       const results: Action[] = [];
       effects.login$.subscribe(action => results.push(action));
@@ -62,7 +63,8 @@ describe('AuthEffects', () => {
     }));
 
     it('dispatches loginFailure when token is malformed', fakeAsync(() => {
-      authService.login.and.returnValue(of({ access_token: 'bad.token' }));
+      const mockUser = { id: '', username: '', email: '', role: '' };
+      authService.login.and.returnValue(of({ access_token: 'bad.token', user: mockUser }));
 
       const results: Action[] = [];
       effects.login$.subscribe(action => results.push(action));

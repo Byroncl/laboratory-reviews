@@ -1,79 +1,215 @@
-import { Injectable, signal } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
-import { ApiService } from './api.service';
-import { Notification } from '../../shared/models/notification.model';
+import { Injectable, signal, computed, effect, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { io, Socket } from 'socket.io-client';
+import { retry, catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 
-@Injectable({ providedIn: 'root' })
+import { NOTIFICATIONS_ENDPOINTS, NOTIFICATIONS_WEBSOCKET } from '../../features/notifications/constants';
+import { NotificationDto, NotificationsResponse, PaginatedNotificationsResponse, NotificationApiResponse } from '../../features/notifications/types';
+import { createWebSocketConfig, isWebSocketConnected, getNotificationEmoji, sortNotificationsByDate, countUnreadNotifications } from '../../features/notifications/utils';
+
+@Injectable({
+  providedIn: 'root',
+})
 export class NotificationsService {
-  readonly notifications = signal<Notification[]>([]);
-  readonly unreadCount = signal<number>(0);
+  private readonly http = inject(HttpClient);
 
-  constructor(private api: ApiService) {}
+  private socket: Socket | null = null;
+  private userId: string | null = null;
 
-  private notifId(n: Notification): string {
-    return (n._id ?? n.id) as string;
+  // State signals
+  readonly notifications$ = signal<NotificationDto[]>([]);
+  readonly isLoading$ = signal(false);
+  readonly error$ = signal<string | null>(null);
+  readonly isSocketConnected$ = signal(false);
+
+  // Computed properties
+  readonly unreadCount = computed(() => countUnreadNotifications(this.notifications$()));
+  readonly unreadNotifications = computed(() => this.notifications$().filter(n => !n.read));
+  readonly sortedNotifications = computed(() => sortNotificationsByDate(this.notifications$()));
+
+  constructor() {
+    effect(() => {
+      if (this.isSocketConnected$()) {
+        console.log('WebSocket connected');
+      }
+    });
   }
 
-  getNotifications(skip = 0, limit = 20): Observable<{ data: { items: Notification[]; unread: number }; message: string }> {
-    return this.api
-      .get<{ data: { items: Notification[]; unread: number }; message: string }>('/notifications', { skip, limit })
-      .pipe(
-        tap(response => {
-          this.notifications.set(response.data?.items ?? []);
-          this.unreadCount.set(response.data?.unread ?? 0);
-        }),
-        catchError(err => throwError(() => err))
-      );
-  }
+  getNotifications(page: number = 1, limit: number = 10) {
+    this.isLoading$.set(true);
+    this.error$.set(null);
 
-  getUnreadCount(): Observable<{ data: { count: number }; message: string }> {
-    return this.api
-      .get<{ data: { count: number }; message: string }>('/notifications/unread-count')
+    return this.http
+      .get<PaginatedNotificationsResponse>(NOTIFICATIONS_ENDPOINTS.GET_ALL, {
+        params: { page, limit },
+      })
       .pipe(
-        tap(response => {
-          this.unreadCount.set(response.data?.count ?? 0);
+        retry(2),
+        catchError(error => {
+          console.error('Error fetching notifications:', error);
+          this.error$.set('Error loading notifications');
+          return throwError(() => error);
         })
       );
   }
 
-  markAsRead(notificationId: string): Observable<{ message: string }> {
-    return this.api.put<{ message: string }>(`/notifications/${notificationId}/read`, {}).pipe(
-      tap(() => {
-        const idx = this.notifications().findIndex(n => this.notifId(n) === notificationId);
-        if (idx !== -1) {
-          const updated = [...this.notifications()];
-          updated[idx] = { ...updated[idx], read: true };
-          this.notifications.set(updated);
-          this.unreadCount.update(count => Math.max(0, count - 1));
+  getUnreadCount() {
+    return this.http
+      .get<NotificationApiResponse<{ count: number }>>(NOTIFICATIONS_ENDPOINTS.GET_UNREAD_COUNT)
+      .pipe(
+        retry(2),
+        catchError(error => {
+          console.error('Error fetching unread count:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  markAsRead(notificationId: string) {
+    return this.http
+      .put<NotificationApiResponse<NotificationDto>>(
+        NOTIFICATIONS_ENDPOINTS.MARK_AS_READ(notificationId),
+        {}
+      )
+      .pipe(
+        catchError(error => {
+          console.error('Error marking notification as read:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  markAllAsRead() {
+    return this.http
+      .put<NotificationApiResponse<{ count: number }>>(
+        NOTIFICATIONS_ENDPOINTS.MARK_ALL_AS_READ,
+        {}
+      )
+      .pipe(
+        catchError(error => {
+          console.error('Error marking all notifications as read:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  deleteNotification(notificationId: string) {
+    return this.http
+      .delete<NotificationApiResponse<void>>(NOTIFICATIONS_ENDPOINTS.DELETE(notificationId))
+      .pipe(
+        catchError(error => {
+          console.error('Error deleting notification:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  // Signal-based notification management
+  addNotification(notification: NotificationDto): void {
+    this.notifications$.update(current => [notification, ...current]);
+  }
+
+  removeNotification(notificationId: string): void {
+    this.notifications$.update(current =>
+      current.filter(n => (n._id || n.id) !== notificationId)
+    );
+  }
+
+  updateNotification(notificationId: string, updates: Partial<NotificationDto>): void {
+    this.notifications$.update(current =>
+      current.map(n => {
+        if ((n._id || n.id) === notificationId) {
+          return { ...n, ...updates };
         }
+        return n;
       })
     );
   }
 
-  markAllAsRead(): Observable<{ message: string }> {
-    return this.api.put<{ message: string }>('/notifications/read/all', {}).pipe(
-      tap(() => {
-        this.notifications.set(this.notifications().map(n => ({ ...n, read: true })));
-        this.unreadCount.set(0);
-      })
-    );
+  clearAll(): void {
+    this.notifications$.set([]);
   }
 
-  deleteNotification(notificationId: string): Observable<{ message: string }> {
-    return this.api.delete<{ message: string }>(`/notifications/${notificationId}`).pipe(
-      tap(() => {
-        this.notifications.set(
-          this.notifications().filter(n => this.notifId(n) !== notificationId)
-        );
-      })
-    );
-  }
-
-  addNotification(notification: Notification): void {
-    this.notifications.update(list => [notification, ...list]);
-    if (!notification.read) {
-      this.unreadCount.update(count => count + 1);
+  // WebSocket management
+  connectWebSocket(userId: string): void {
+    if (this.socket && isWebSocketConnected(this.socket)) {
+      return;
     }
+
+    this.userId = userId;
+    const config = createWebSocketConfig();
+
+    this.socket = io(NOTIFICATIONS_WEBSOCKET.URL, config);
+
+    this.socket.on(NOTIFICATIONS_WEBSOCKET.EVENTS.CONNECT, () => {
+      console.log('WebSocket connected');
+      this.isSocketConnected$.set(true);
+      this.socket?.emit(NOTIFICATIONS_WEBSOCKET.EVENTS.USER_REGISTER, { userId });
+    });
+
+    this.socket.on(NOTIFICATIONS_WEBSOCKET.EVENTS.DISCONNECT, () => {
+      console.log('WebSocket disconnected');
+      this.isSocketConnected$.set(false);
+    });
+
+    this.socket.on(NOTIFICATIONS_WEBSOCKET.EVENTS.NOTIFICATION_POST_CREATED, (data: any) => {
+      this.addNotification({
+        _id: data.id,
+        userId,
+        type: 'comment_created',
+        actorId: data.actorId,
+        actorName: data.actorName,
+        postId: data.postId,
+        message: data.message,
+        read: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    });
+
+    this.socket.on(NOTIFICATIONS_WEBSOCKET.EVENTS.NOTIFICATION_POST_FAVORITED, (data: any) => {
+      this.addNotification({
+        _id: data.id,
+        userId,
+        type: 'reaction_added',
+        actorId: data.actorId,
+        actorName: data.actorName,
+        postId: data.postId,
+        emoji: '❤️',
+        message: data.message,
+        read: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    });
+
+    this.socket.on(NOTIFICATIONS_WEBSOCKET.EVENTS.NOTIFICATION_COMMENT_ADDED, (data: any) => {
+      this.addNotification({
+        _id: data.id,
+        userId,
+        type: 'comment_created',
+        actorId: data.actorId,
+        actorName: data.actorName,
+        postId: data.postId,
+        commentId: data.commentId,
+        message: data.message,
+        read: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    });
+  }
+
+  disconnectWebSocket(): void {
+    if (this.socket) {
+      this.socket.disconnect();
+      this.isSocketConnected$.set(false);
+      this.socket = null;
+    }
+  }
+
+  isConnected(): boolean {
+    return isWebSocketConnected(this.socket);
   }
 }

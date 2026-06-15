@@ -1,18 +1,22 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ProfileService } from '../services/profile.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { SpinnerComponent } from '../../../shared/components/spinner/spinner.component';
+import { UserBadgePipe } from '../pipes';
+import { buildProfileForm, buildPasswordForm } from '../utils';
+import { PROFILE_MESSAGES } from '../constants';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent],
+  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent, UserBadgePipe, TranslatePipe],
   templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.scss']
+  styleUrls: ['./profile.component.scss'],
 })
 export class ProfileComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
@@ -35,24 +39,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   constructor() {
-    this.profileForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2)]],
-      lastname: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-    });
-
-    this.passwordForm = this.fb.group(
-      {
-        currentPassword: ['', Validators.required],
-        newPassword: ['', [Validators.required, Validators.minLength(8)]],
-        confirmPassword: ['', Validators.required],
-      },
-      { validators: this.passwordMatchValidator }
-    );
+    this.profileForm = buildProfileForm(this.fb);
+    this.passwordForm = buildPasswordForm(this.fb);
   }
 
   ngOnInit(): void {
-    this.profileService.loadUserProfile()
+    this.profileService
+      .loadUserProfile()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -82,14 +75,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
       email: this.profileForm.value.email,
     };
 
-    this.profileService.updateProfile(dto)
+    this.profileService
+      .updateProfile(dto)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.notificationService.toast('Perfil actualizado exitosamente', 'success');
+          this.notificationService.toast(PROFILE_MESSAGES.UPDATED, 'success');
         },
         error: () => {
-          this.notificationService.toast('Error al actualizar el perfil', 'error');
+          this.notificationService.toast(PROFILE_MESSAGES.ERROR_UPDATING, 'error');
         },
       });
   }
@@ -103,22 +97,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
       confirmPassword: this.passwordForm.value.confirmPassword,
     };
 
-    this.profileService.changePassword(dto)
+    this.profileService
+      .changePassword(dto)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
           this.passwordForm.reset();
-          this.notificationService.toast('Contraseña cambiada exitosamente', 'success');
+          this.notificationService.toast(PROFILE_MESSAGES.PASSWORD_CHANGED, 'success');
         },
         error: () => {
-          this.notificationService.toast('Error al cambiar la contraseña', 'error');
+          this.notificationService.toast(PROFILE_MESSAGES.ERROR_CHANGING_PASSWORD, 'error');
         },
       });
-  }
-
-  private passwordMatchValidator(group: FormGroup): { passwordMismatch: boolean } | null {
-    const newPassword = group.get('newPassword')?.value;
-    const confirmPassword = group.get('confirmPassword')?.value;
-    return newPassword === confirmPassword ? null : { passwordMismatch: true };
   }
 }

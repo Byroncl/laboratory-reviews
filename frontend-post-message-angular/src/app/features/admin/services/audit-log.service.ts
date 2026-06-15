@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { tap, catchError, retry } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
 import {
   AuditLog,
@@ -8,6 +8,7 @@ import {
   AuditLogPage,
   EntityType
 } from '../../../shared/models/audit-log.model';
+import { ADMIN_ENDPOINTS } from '../constants';
 
 @Injectable({ providedIn: 'root' })
 export class AuditLogService {
@@ -25,46 +26,27 @@ export class AuditLogService {
   readonly totalPages = computed(() => this.pagination().totalPages);
   readonly currentPage = computed(() => this.pagination().page);
 
-  constructor(private api: ApiService) {
-    console.log('[AuditLogService] initialized');
-  }
+  private retryAttempts = 2;
+
+  constructor(private api: ApiService) {}
 
   getAuditLogs(filter: AuditLogFilter): Observable<AuditLogPage> {
-    console.log('[AuditLogService] getAuditLogs', filter);
     this.loading$.set(true);
     this.error$.set(null);
 
-    const params = this.buildParams(filter);
+    const params = this._buildParams(filter);
 
-    return this.api.get<AuditLogPage>('/audit-logs', params).pipe(
-      tap(response => {
-        this.auditLogs$.set(response.data ?? []);
-        this.pagination.set({
-          page: response.page,
-          limit: response.limit,
-          total: response.total,
-          totalPages: response.totalPages
-        });
-        this.loading$.set(false);
-        console.log('[AuditLogService] getAuditLogs success', { total: response.total });
-      }),
-      catchError(err => {
-        const errorMsg = err?.message || 'Failed to load audit logs';
-        this.error$.set(errorMsg);
-        this.loading$.set(false);
-        console.error('[AuditLogService] getAuditLogs error', err);
-        return throwError(() => err);
-      })
+    return this.api.get<AuditLogPage>(ADMIN_ENDPOINTS.AUDIT_LOGS, params).pipe(
+      retry(this.retryAttempts),
+      tap(response => this._handleLoadSuccess(response)),
+      catchError(err => this._handleError(err, 'Failed to load audit logs'))
     );
   }
 
   getAuditLogById(id: string): Observable<AuditLog> {
-    console.log('[AuditLogService] getAuditLogById', id);
-    return this.api.get<AuditLog>(`/audit-logs/${id}`).pipe(
-      catchError(err => {
-        console.error('[AuditLogService] getAuditLogById error', err);
-        return throwError(() => err);
-      })
+    return this.api.get<AuditLog>(`${ADMIN_ENDPOINTS.AUDIT_LOGS}/${id}`).pipe(
+      retry(this.retryAttempts),
+      catchError(err => this._handleError(err, 'Failed to load audit log'))
     );
   }
 
@@ -73,38 +55,44 @@ export class AuditLogService {
     entityId: string,
     filter?: Partial<AuditLogFilter>
   ): Observable<AuditLogPage> {
-    console.log('[AuditLogService] getAuditLogsByEntity', { entityType, entityId, filter });
     this.loading$.set(true);
     this.error$.set(null);
 
-    const params = this.buildParams({
+    const params = this._buildParams({
       page: 1,
       limit: 20,
       ...filter
     });
 
-    return this.api.get<AuditLogPage>(`/audit-logs/entity/${entityType}/${entityId}`, params).pipe(
-      tap(response => {
-        this.auditLogs$.set(response.data ?? []);
-        this.pagination.set({
-          page: response.page,
-          limit: response.limit,
-          total: response.total,
-          totalPages: response.totalPages
-        });
-        this.loading$.set(false);
-      }),
-      catchError(err => {
-        const errorMsg = err?.message || 'Failed to load entity audit logs';
-        this.error$.set(errorMsg);
-        this.loading$.set(false);
-        console.error('[AuditLogService] getAuditLogsByEntity error', err);
-        return throwError(() => err);
-      })
+    return this.api.get<AuditLogPage>(
+      `${ADMIN_ENDPOINTS.AUDIT_LOGS}/entity/${entityType}/${entityId}`,
+      params
+    ).pipe(
+      retry(this.retryAttempts),
+      tap(response => this._handleLoadSuccess(response)),
+      catchError(err => this._handleError(err, 'Failed to load entity audit logs'))
     );
   }
 
-  private buildParams(filter: Partial<AuditLogFilter>): Record<string, unknown> {
+  private _handleLoadSuccess(response: AuditLogPage): void {
+    this.auditLogs$.set(response.data ?? []);
+    this.pagination.set({
+      page: response.page,
+      limit: response.limit,
+      total: response.total,
+      totalPages: response.totalPages
+    });
+    this.loading$.set(false);
+  }
+
+  private _handleError(err: any, defaultMessage: string): Observable<never> {
+    const errorMsg = err?.message || defaultMessage;
+    this.error$.set(errorMsg);
+    this.loading$.set(false);
+    return throwError(() => err);
+  }
+
+  private _buildParams(filter: Partial<AuditLogFilter>): Record<string, unknown> {
     const params: Record<string, unknown> = {};
     if (filter.page !== undefined) params['page'] = filter.page;
     if (filter.limit !== undefined) params['limit'] = filter.limit;

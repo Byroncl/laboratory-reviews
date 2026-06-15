@@ -138,14 +138,14 @@ describe('ReactionsService', () => {
 
       const thumbsUp = result.find((r: any) => r.emoji === '👍');
       expect(thumbsUp).toBeDefined();
-      expect(thumbsUp.count).toBe(2);
-      expect(thumbsUp.users).toContain('u1');
-      expect(thumbsUp.users).toContain('u2');
+      expect(thumbsUp!.count).toBe(2);
+      expect(thumbsUp!.users).toContain('u1');
+      expect(thumbsUp!.users).toContain('u2');
 
       const heart = result.find((r: any) => r.emoji === '❤️');
       expect(heart).toBeDefined();
-      expect(heart.count).toBe(1);
-      expect(heart.users).toContain('u3');
+      expect(heart!.count).toBe(1);
+      expect(heart!.users).toContain('u3');
     });
 
     it('should return empty array when comment has no reactions', async () => {
@@ -177,8 +177,8 @@ describe('ReactionsService', () => {
       const thumbsUp = result.find((r: any) => r.emoji === '👍');
 
       // Set-based dedup: users list should have unique entries
-      const uniqueUsers = [...new Set(thumbsUp.users)];
-      expect(thumbsUp.users).toEqual(uniqueUsers);
+      const uniqueUsers = [...new Set(thumbsUp!.users)];
+      expect(thumbsUp!.users).toEqual(uniqueUsers);
     });
   });
 
@@ -219,6 +219,85 @@ describe('ReactionsService', () => {
       expect(MockReactionModel.deleteMany).toHaveBeenCalledWith({
         commentId: 'c1',
         userId: 'u1',
+      });
+    });
+  });
+
+  // ─── getReactionsByComments ─────────────────────────────────────────────────
+
+  describe('getReactionsByComments', () => {
+    it('should return map of reactions grouped by commentId and emoji', async () => {
+      const rawReactions = [
+        { commentId: 'c1', emoji: '👍', userId: 'u1' },
+        { commentId: 'c1', emoji: '👍', userId: 'u2' },
+        { commentId: 'c1', emoji: '❤️', userId: 'u3' },
+        { commentId: 'c2', emoji: '👍', userId: 'u1' },
+        { commentId: 'c2', emoji: '😂', userId: 'u4' },
+      ];
+
+      MockReactionModel.find.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue(rawReactions),
+        }),
+      });
+
+      const result = await service.getReactionsByComments(['c1', 'c2']);
+
+      expect(result.size).toBe(2);
+
+      const c1Reactions = result.get('c1');
+      expect(c1Reactions).toHaveLength(2);
+      expect(c1Reactions!.find((r: any) => r.emoji === '👍')).toEqual({
+        emoji: '👍',
+        count: 2,
+        users: expect.arrayContaining(['u1', 'u2']),
+      });
+
+      const c2Reactions = result.get('c2');
+      expect(c2Reactions).toHaveLength(2);
+      expect(c2Reactions!.find((r: any) => r.emoji === '👍')).toEqual({
+        emoji: '👍',
+        count: 1,
+        users: ['u1'],
+      });
+    });
+
+    it('should return empty map when no commentIds provided', async () => {
+      const result = await service.getReactionsByComments([]);
+
+      expect(result.size).toBe(0);
+      expect(MockReactionModel.find).not.toHaveBeenCalled();
+    });
+
+    it('should handle comments with no reactions', async () => {
+      const rawReactions = [
+        { commentId: 'c1', emoji: '👍', userId: 'u1' },
+      ];
+
+      MockReactionModel.find.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue(rawReactions),
+        }),
+      });
+
+      const result = await service.getReactionsByComments(['c1', 'c2', 'c3']);
+
+      expect(result.size).toBe(1);
+      expect(result.get('c2')).toBeUndefined();
+      expect(result.get('c3')).toBeUndefined();
+    });
+
+    it('should call find with $in operator for multiple commentIds', async () => {
+      MockReactionModel.find.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue([]),
+        }),
+      });
+
+      await service.getReactionsByComments(['c1', 'c2', 'c3']);
+
+      expect(MockReactionModel.find).toHaveBeenCalledWith({
+        commentId: { $in: ['c1', 'c2', 'c3'] },
       });
     });
   });

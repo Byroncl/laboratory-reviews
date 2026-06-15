@@ -106,9 +106,7 @@ export class AuditService {
     limit: number;
     totalPages: number;
   }> {
-    return this.queryAudits({ ...q, entityType, userId: undefined } as AuditLogQueryDto & {
-      entityId?: string;
-    });
+    return this.queryAudits({ ...q, entityType, userId: undefined } as unknown as AuditLogQueryDto);
   }
 
   /**

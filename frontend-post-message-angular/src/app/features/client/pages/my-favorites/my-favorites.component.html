@@ -1,0 +1,49 @@
+<div class="my-favorites">
+  <div class="header">
+    <h2>{{ messages.TITLE }}</h2>
+    <span class="count">{{ favorites$().length }}</span>
+  </div>
+
+  @if (error$()) {
+    <div class="error-message">{{ error$() }}</div>
+  }
+
+  @if (isLoading$()) {
+    <div class="loading">{{ messages.LOADING }}</div>
+  } @else if (favorites$().length === 0) {
+    <div class="empty-state">
+      <p>{{ messages.EMPTY }}</p>
+    </div>
+  } @else {
+    <div class="favorites-list">
+      @for (fav of favorites$(); track fav._id) {
+        <app-post-card
+          [post]="fav"
+          [showFavorite]="true"
+          [isFavorite]="true"
+          (toggleFavorite)="onRemoveFavorite($event)"
+        ></app-post-card>
+      }
+    </div>
+  }
+
+  @if (totalPages() > 1) {
+    <div class="pagination">
+      <button
+        class="btn btn-small"
+        [disabled]="!canGoPrevious()"
+        (click)="previousPage()"
+      >
+        {{ messages.PREVIOUS }}
+      </button>
+      <span class="page-info">{{ currentPage$() }} / {{ totalPages() }}</span>
+      <button
+        class="btn btn-small"
+        [disabled]="!canGoNext()"
+        (click)="nextPage()"
+      >
+        {{ messages.NEXT }}
+      </button>
+    </div>
+  }
+</div>

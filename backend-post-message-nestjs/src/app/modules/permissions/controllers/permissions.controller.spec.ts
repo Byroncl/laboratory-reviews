@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PermissionsController } from './permissions.controller';
 import { PermissionsService } from '../services/permissions.service';
+import { PermissionsGateway } from '../gateways/permissions.gateway';
 import { CreatePermissionDto } from '../dto/create-permission.dto';
 import { UpdatePermissionDto } from '../dto/update-permission.dto';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
@@ -30,6 +31,14 @@ describe('PermissionsController', () => {
       providers: [
         { provide: PermissionsService, useValue: mockPermissionsService },
         {
+          provide: PermissionsGateway,
+          useValue: {
+            notifyPermissionCreated: jest.fn(),
+            notifyPermissionUpdated: jest.fn(),
+            notifyPermissionDeleted: jest.fn(),
+          },
+        },
+        {
           provide: TranslationService,
           useValue: { translate: jest.fn((key: string) => key) },
         },
@@ -48,7 +57,8 @@ describe('PermissionsController', () => {
       const dto: CreatePermissionDto = { name: 'Read Posts' } as any;
       mockPermissionsService.create.mockResolvedValue(mockPermission);
 
-      const response = await controller.create(dto);
+      const currentUser = { userId: 'u1', username: 'testuser', type: 'user' } as any;
+      const response = await controller.create(dto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockPermission);
@@ -106,7 +116,8 @@ describe('PermissionsController', () => {
       const updated = { ...mockPermission, name: 'Updated Permission' };
       mockPermissionsService.update.mockResolvedValue(updated);
 
-      const response = await controller.update(findOneDto, dto);
+      const currentUser = { userId: 'u1', username: 'testuser', type: 'user' } as any;
+      const response = await controller.update(findOneDto, dto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(updated);
@@ -122,7 +133,8 @@ describe('PermissionsController', () => {
       const findOneDto: FindOneDto = { id: '507f1f77bcf86cd799439011' };
       mockPermissionsService.remove.mockResolvedValue(mockPermission);
 
-      const response = await controller.remove(findOneDto);
+      const currentUser = { userId: 'u1', username: 'testuser', type: 'user' } as any;
+      const response = await controller.remove(findOneDto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toBeNull();

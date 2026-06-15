@@ -4,7 +4,7 @@ const {themes} = require('prism-react-renderer');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Post-Message',
-  tagline: 'Backend & Frontend Architecture Documentation',
+  tagline: 'Documentación de Arquitectura Backend & Frontend',
   favicon: 'img/favicon.ico',
 
   url: 'https://example.com',
@@ -14,12 +14,13 @@ const config = {
   projectName: 'post-message-docs',
 
   onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
 
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['en', 'es'],
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
   },
+
 
   presets: [
     [
@@ -40,7 +41,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'Post-Message Docs',
+        title: 'Documentación Post-Message',
         items: [
           {
             type: 'docSidebar',
@@ -48,20 +49,16 @@ const config = {
             label: 'Backend',
             position: 'left',
           },
-          {
-            type: 'localeDropdown',
-            position: 'right',
-          },
         ],
       },
       footer: {
         style: 'dark',
         links: [
           {
-            title: 'Documentation',
+            title: 'Documentación',
             items: [
               {
-                label: 'Backend Guide',
+                label: 'Guía Backend',
                 to: '/docs/backend/intro',
               },
             ],

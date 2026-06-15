@@ -1,33 +1,33 @@
 ---
 sidebar_position: 2
-title: Setup Guide
-description: Getting started with the backend
+title: Guía de Configuración
+description: Primeros pasos con el backend
 ---
 
-# Setup Guide 🚀
+# Guía de Configuración 🚀
 
-## Prerequisites
+## Prerrequisitos
 
 - Node.js 18+
 - MongoDB 4.4+
-- MinIO (optional for local file storage)
-- npm or yarn
+- MinIO (opcional para almacenamiento local de archivos)
+- npm o yarn
 
-## Installation
+## Instalación
 
 ```bash
 cd backend-post-message-nestjs
 
-# Install dependencies
+# Instalar dependencias
 npm install
 
-# Copy environment file
+# Copiar archivo de entorno
 cp .env.example .env
 ```
 
-## Configuration
+## Configuración
 
-Edit `.env` with your settings:
+Editar `.env` con tu configuración:
 
 ```bash
 HOST=localhost
@@ -36,75 +36,75 @@ MONGODB_URI=mongodb://localhost:27017/post-message
 MINIO_ENDPOINT=localhost:9000
 ```
 
-## Running the Server
+## Ejecutar el Servidor
 
-### Development Mode
+### Modo Desarrollo
 
 ```bash
 npm run start:dev
 ```
 
-Runs with hot-reload on http://localhost:3000
+Ejecuta con hot-reload en http://localhost:3000
 
-### Production Mode
+### Modo Producción
 
 ```bash
 npm run build
 npm run start:prod
 ```
 
-## Docker Setup
+## Configuración con Docker
 
 ```bash
-# Start MongoDB and MinIO
+# Iniciar MongoDB y MinIO
 docker-compose up -d
 
-# Run the backend
+# Ejecutar el backend
 npm run start:dev
 ```
 
-## Database Setup
+## Configuración de Base de Datos
 
-MongoDB will auto-create collections on first write.
+MongoDB creará las colecciones automáticamente al primer guardado.
 
-To seed initial data (roles, permissions):
+Para sembrar datos iniciales (roles, permisos):
 
 ```bash
 npm run seed
 ```
 
-## Testing
+## Pruebas
 
 ```bash
-# Run all tests
+# Ejecutar todas las pruebas
 npm test
 
-# Watch mode
+# Modo watch
 npm run test:watch
 
-# Coverage
+# Cobertura
 npm run test:cov
 ```
 
-## Troubleshooting
+## Solución de Problemas
 
-### MongoDB Connection Error
-- Check `MONGODB_URI` in `.env`
-- Ensure MongoDB is running
-- Verify authentication if needed
+### Error de Conexión a MongoDB
+- Verificar `MONGODB_URI` en `.env`
+- Asegurarse de que MongoDB está en ejecución
+- Verificar autenticación si es necesario
 
-### MinIO Connection Error
-- Check `MINIO_ENDPOINT` format
-- Ensure MinIO container is running
-- Verify credentials
+### Error de Conexión a MinIO
+- Verificar el formato de `MINIO_ENDPOINT`
+- Asegurarse de que el contenedor MinIO está en ejecución
+- Verificar credenciales
 
-### Port Already in Use
+### Puerto Ya en Uso
 ```bash
-# Change PORT in .env or
-lsof -i :3000  # Find process
-kill -9 <PID>  # Kill process
+# Cambiar PORT en .env o
+lsof -i :3000  # Encontrar proceso
+kill -9 <PID>  # Matar proceso
 ```
 
 ---
 
-**Next**: [WebSocket Security →](../websocket/security.md)
+**Siguiente**: [Seguridad WebSocket →](../websocket/security.md)

@@ -27,6 +27,17 @@
 
   <!-- Register Form Section - Right -->
   <div class="w-full lg:w-1/2 flex flex-col items-center justify-center px-4 sm:px-8 lg:px-12 py-8 lg:py-12 bg-gradient-to-b from-white to-gray-50 relative z-10">
+    <!-- Top Navigation -->
+    <div class="absolute top-4 left-4 sm:top-6 sm:left-6 sm:right-auto sm:left-6">
+      <button
+        (click)="goBack()"
+        class="text-secondary hover:text-primary transition font-medium text-sm lg:text-base"
+        title="Go back"
+      >
+        {{ 'auth.common.back' | t }}
+      </button>
+    </div>
+
     <!-- Language Switcher -->
     <div class="absolute top-4 right-4 sm:top-6 sm:right-6">
       <app-language-switcher></app-language-switcher>

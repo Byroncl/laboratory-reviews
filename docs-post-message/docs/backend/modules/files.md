@@ -1,31 +1,31 @@
 ---
 sidebar_position: 5
-title: Files Module
-description: File upload and storage with MinIO
+title: Módulo Files
+description: Subida y almacenamiento de archivos con MinIO
 ---
 
-# Files Module 📁
+# Módulo Files 📁
 
-Handles file uploads and storage using MinIO object storage.
+Maneja la subida y el almacenamiento de archivos usando MinIO object storage.
 
-## Overview
+## Descripción General
 
 ```mermaid
 graph TB
-    Client["Client<br/>Upload File"]
+    Client["Cliente<br/>Subir Archivo"]
     Controller["FilesController<br/>@Post('/upload')"]
     Service["FilesService"]
     MinIO["MinIO<br/>Object Storage"]
-    Response["Public URL"]
+    Response["URL Pública"]
     
     Client -->|multipart/form-data| Controller
-    Controller -->|Validate| Service
+    Controller -->|Validar| Service
     Service -->|Put object| MinIO
-    Service -->|Generate URL| Response
-    Response -->|Return to| Client
+    Service -->|Generar URL| Response
+    Response -->|Devolver al| Client
 ```
 
-## Controller
+## Controlador
 
 ```typescript
 @Controller('files')
@@ -53,7 +53,7 @@ export class FilesController {
 }
 ```
 
-## Service
+## Servicio
 
 ```typescript
 @Injectable()
@@ -109,7 +109,7 @@ export class FilesService {
 }
 ```
 
-## Upload Configuration
+## Configuración de Subida
 
 ```typescript
 // multer-options.ts
@@ -129,7 +129,7 @@ export const filesMulterOptions = {
 };
 ```
 
-## File Utils
+## Utilidades de Archivos
 
 ```typescript
 export class FileUtils {
@@ -150,27 +150,27 @@ export class FileUtils {
 }
 ```
 
-## Environment Variables
+## Variables de Entorno
 
-| Variable | Default | Purpose |
+| Variable | Por Defecto | Propósito |
 |----------|---------|---------|
-| `MINIO_ENDPOINT` | `minio` | MinIO server address |
-| `MINIO_ACCESS_KEY` | `minioadmin` | MinIO access key |
-| `MINIO_SECRET_KEY` | `minioadmin` | MinIO secret key |
-| `MINIO_BUCKET_NAME` | `posts` | Default bucket |
-| `MINIO_PUBLIC_URL` | `http://minio:9000` | Public URL for files |
+| `MINIO_ENDPOINT` | `minio` | Dirección del servidor MinIO |
+| `MINIO_ACCESS_KEY` | `minioadmin` | Clave de acceso MinIO |
+| `MINIO_SECRET_KEY` | `minioadmin` | Clave secreta MinIO |
+| `MINIO_BUCKET_NAME` | `posts` | Bucket por defecto |
+| `MINIO_PUBLIC_URL` | `http://minio:9000` | URL pública para archivos |
 
 ## Endpoints
 
-| Endpoint | Method | Auth | Purpose |
+| Endpoint | Método | Auth | Propósito |
 |----------|--------|------|---------|
-| `/files/upload` | POST | ✅ | Upload file |
-| `/files/:filename` | DELETE | ✅ | Delete file |
+| `/files/upload` | POST | ✅ | Subir archivo |
+| `/files/:filename` | DELETE | ✅ | Eliminar archivo |
 
-## Client Example
+## Ejemplo de Cliente
 
 ```typescript
-// Angular FormData upload
+// Subida con FormData desde Angular
 uploadFile(file: File) {
   const formData = new FormData();
   formData.append('file', file);
@@ -181,7 +181,7 @@ uploadFile(file: File) {
 }
 ```
 
-## MinIO Setup
+## Configuración de MinIO
 
 ```bash
 # Docker Compose
@@ -204,4 +204,4 @@ volumes:
 
 ---
 
-**Next**: [Clients Module →](./clients.md)
+**Siguiente**: [Módulo Clients →](./clients.md)

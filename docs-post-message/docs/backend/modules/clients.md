@@ -1,16 +1,16 @@
 ---
 sidebar_position: 6
-title: Clients Module
-description: Client user management
+title: Módulo Clients
+description: Gestión de usuarios cliente
 ---
 
-# Clients Module 👤
+# Módulo Clients 👤
 
-Manages client accounts (different from regular users).
+Gestiona las cuentas de clientes (diferente de los usuarios regulares).
 
-## Overview
+## Descripción General
 
-Similar to Users but for client authentication and management.
+Similar a Users pero para autenticación y gestión de clientes.
 
 ## Schema
 
@@ -23,7 +23,7 @@ export class Client {
   @Prop({ required: true, unique: true })
   email: string;
 
-  @Prop()  // Note: plain text, not hashed
+  @Prop()  // Nota: texto plano, no hasheado
   password?: string;
 
   @Prop({ required: true })
@@ -49,24 +49,24 @@ export class Client {
 }
 ```
 
-⚠️ **Note**: Client has `password` (plain text), not `password_hash` like User
+⚠️ **Nota**: Client tiene `password` (texto plano), no `password_hash` como User
 
 ## Endpoints
 
-| Endpoint | Method | Auth | Purpose |
+| Endpoint | Método | Auth | Propósito |
 |----------|--------|------|---------|
-| `/clients` | POST | ✅ | Create client |
-| `/clients` | GET | ✅ | Get all clients |
-| `/clients/:id` | GET | ✅ | Get client |
-| `/clients/:id` | PATCH | ✅ | Update client |
-| `/clients/:id` | DELETE | ✅ | Delete client |
+| `/clients` | POST | ✅ | Crear cliente |
+| `/clients` | GET | ✅ | Obtener todos los clientes |
+| `/clients/:id` | GET | ✅ | Obtener cliente |
+| `/clients/:id` | PATCH | ✅ | Actualizar cliente |
+| `/clients/:id` | DELETE | ✅ | Eliminar cliente |
 
-## Notes
+## Notas
 
-- Flat architecture (Service → Model)
-- No specific authentication method (may use basic auth)
-- Consider migrating to Clean Architecture pattern
+- Arquitectura plana (Servicio → Modelo)
+- Sin método de autenticación específico (puede usar autenticación básica)
+- Considerar migrar al patrón de Arquitectura Limpia
 
 ---
 
-**Next**: [Roles & Permissions →](./roles-permissions.md)
+**Siguiente**: [Roles y Permisos →](./roles-permissions.md)

@@ -77,4 +77,40 @@ export class ReactionsService {
   ): Promise<void> {
     await this.reactionModel.deleteMany({ commentId, userId });
   }
+
+  async getReactionsByComments(commentIds: string[]): Promise<Map<string, ReactionCountDto[]>> {
+    if (commentIds.length === 0) return new Map();
+
+    const reactions = await this.reactionModel
+      .find({ commentId: { $in: commentIds } })
+      .select('commentId emoji userId')
+      .exec();
+
+    const result = new Map<string, ReactionCountDto[]>();
+    const grouped = new Map<string, Map<string, Set<string>>>();
+
+    for (const reaction of reactions) {
+      if (!grouped.has(reaction.commentId)) {
+        grouped.set(reaction.commentId, new Map());
+      }
+      const emojiMap = grouped.get(reaction.commentId)!;
+      if (!emojiMap.has(reaction.emoji)) {
+        emojiMap.set(reaction.emoji, new Set());
+      }
+      emojiMap.get(reaction.emoji)!.add(reaction.userId);
+    }
+
+    for (const [commentId, emojiMap] of grouped.entries()) {
+      result.set(
+        commentId,
+        Array.from(emojiMap.entries()).map(([emoji, users]) => ({
+          emoji,
+          count: users.size,
+          users: Array.from(users),
+        })),
+      );
+    }
+
+    return result;
+  }
 }

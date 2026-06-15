@@ -1,12 +1,12 @@
 ---
 sidebar_position: 3
-title: String Utilities
-description: String manipulation helpers
+title: Utilidades de Strings
+description: Helpers de manipulación de cadenas
 ---
 
-# String Utilities 📝
+# Utilidades de Strings 📝
 
-String manipulation and formatting utilities.
+Utilidades de manipulación y formateo de cadenas.
 
 ## StringUtils
 
@@ -35,4 +35,4 @@ export class StringUtils {
 
 ---
 
-**Next**: [Validation Utilities →](./validation.md)
+**Siguiente**: [Utilidades de Validación →](./validation.md)

@@ -4,6 +4,7 @@ import { FilesController } from './files.controller';
 import { FilesService } from '../services/files.service';
 import { FileValidationPipe } from '../../../core/pipes/file-validation.pipe';
 import { TranslationService } from '../../../core/utils/translation.service';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 describe('FilesController', () => {
   let controller: FilesController;
@@ -36,6 +37,10 @@ describe('FilesController', () => {
       controllers: [FilesController],
       providers: [
         { provide: FilesService, useValue: mockFilesService },
+        {
+          provide: I18nService,
+          useValue: { translate: jest.fn((key: string) => key) },
+        },
         {
           provide: TranslationService,
           useValue: { translate: jest.fn((key: string) => key) },

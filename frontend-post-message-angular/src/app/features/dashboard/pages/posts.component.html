@@ -1,0 +1,115 @@
+
+    <div class="space-y-6">
+      <!-- Form Modal -->
+      @if (showPostForm$()) {
+        <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-900">
+              {{ editingPostId$() ? ('dashboard.posts.editTitle' | t) : ('dashboard.posts.createTitle' | t) }}
+            </h2>
+            <button
+              (click)="closeForm()"
+              class="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+          <app-post-form
+            [editingPostId]="editingPostId$()"
+            (formSubmitted)="onFormSubmitted()"
+            (formCancelled)="closeForm()"
+          ></app-post-form>
+        </div>
+      }
+
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h1 class="text-3xl font-bold text-primary">{{ 'sidebar.posts' | t }}</h1>
+        <button
+          (click)="onCreatePost()"
+          [disabled]="showPostForm$()"
+          class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
+        >
+          {{ 'dashboard.posts.newPost' | t }}
+        </button>
+      </div>
+
+      <!-- Global Search and Filter -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-white rounded-lg shadow p-4">
+        <input
+          type="text"
+          [placeholder]="'dashboard.posts.searchPlaceholder' | t"
+          [ngModel]="globalSearch$()"
+          (ngModelChange)="globalSearch$.set($event)"
+          (input)="onGlobalSearch()"
+          class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+        />
+        <select
+          [ngModel]="statusFilter$()"
+          (ngModelChange)="statusFilter$.set($event)"
+          (change)="onStatusFilterChange()"
+          class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
+        >
+          <option value="">{{ 'dashboard.posts.allStatuses' | t }}</option>
+          <option value="published">{{ 'dashboard.posts.published' | t }}</option>
+          <option value="draft">{{ 'dashboard.posts.draft' | t }}</option>
+          <option value="archived">{{ 'dashboard.posts.archived' | t }}</option>
+        </select>
+
+        @if (hasActiveFilters$()) {
+          <button
+            (click)="clearAllFilters()"
+            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium text-sm"
+          >
+            {{ 'dashboard.posts.clearFilters' | t }}
+          </button>
+        }
+      </div>
+
+      <!-- Loading State -->
+      @if (postsService.isLoadingPosts()) {
+        <app-skeleton type="table"></app-skeleton>
+      } @else {
+        @if (filteredPosts().length > 0) {
+          <!-- Table with Column Filters -->
+          <app-table
+            [columns]="columns"
+            [data]="filteredPosts()"
+            [actions]="actions"
+            [primaryColumnKey]="'title'"
+            (actionTriggered)="onTableAction($event)"
+            (sorted)="onSort($event)"
+            (filtered)="onColumnFilter($event)"
+          ></app-table>
+
+          <!-- Pagination -->
+          <app-pagination
+            [currentPage]="currentPage$()"
+            [totalPages]="totalPages()"
+            [total]="filteredPosts().length"
+            [pageSize]="pageSize"
+            (pageChanged)="onPageChange($event)"
+          ></app-pagination>
+        } @else {
+          <div class="bg-white rounded-lg shadow p-8 text-center">
+            <p class="text-gray-500 font-medium">{{ 'dashboard.posts.noResults' | t }}</p>
+          </div>
+        }
+      }
+
+      <!-- Post Stats (Desktop) -->
+      <div class="hidden md:grid grid-cols-3 gap-4">
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+          <p class="text-secondary text-sm font-medium">{{ 'dashboard.posts.totalPosts' | t }}</p>
+          <p class="text-2xl font-bold text-primary mt-2">{{ totalPostsCount$() }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+          <p class="text-secondary text-sm font-medium">{{ 'dashboard.posts.publishedCount' | t }}</p>
+          <p class="text-2xl font-bold text-green-600 mt-2">{{ publishedCount$() }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
+          <p class="text-secondary text-sm font-medium">{{ 'dashboard.posts.draftCount' | t }}</p>
+          <p class="text-2xl font-bold text-yellow-600 mt-2">{{ draftCount$() }}</p>
+        </div>
+      </div>
+    </div>

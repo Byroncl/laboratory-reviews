@@ -1,16 +1,5 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-} from '@nestjs/swagger';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { AuditService } from '../services/audit.service';
 import { AuditLogQueryDto } from '../dto/audit-log-query.dto';
 import { AuditLogPageResponseDto } from '../dto/audit-log-response.dto';
@@ -19,6 +8,11 @@ import { Auth } from '../../../core/decorators/auth.decorator';
 import { PermissionsGuard } from '../../../core/guards/permissions.guard';
 import { HasPermission } from '../../../core/decorators/has-permission.decorator';
 import { EntityType } from '../schemas/audit-log.schema';
+import {
+  AUDIT_SWAGGER,
+  AUDIT_RESPONSE_DESCRIPTIONS,
+  AUDIT_PARAM_DESCRIPTIONS,
+} from '../constants/audit.constants';
 
 @ApiTags('audit-logs')
 @Controller('audit-logs')
@@ -28,10 +22,20 @@ export class AuditController {
   @Auth()
   @UseGuards(PermissionsGuard)
   @HasPermission('audits:read')
-  @ApiOperation({ summary: 'Get paginated audit logs with optional filters' })
-  @ApiResponse({ status: 200, description: 'Paginated audit log list', type: AuditLogPageResponseDto })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden — requires audits:read permission' })
+  @ApiOperation({ summary: AUDIT_SWAGGER.LOGS_ENDPOINT.SUMMARY })
+  @ApiResponse({
+    status: 200,
+    description: AUDIT_RESPONSE_DESCRIPTIONS.SUCCESS_200,
+    type: AuditLogPageResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: AUDIT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
+  @ApiResponse({
+    status: 403,
+    description: AUDIT_RESPONSE_DESCRIPTIONS.FORBIDDEN,
+  })
   @Get()
   async findAll(@Query() query: AuditLogQueryDto) {
     const result = await this.auditService.queryAudits(query);
@@ -41,11 +45,24 @@ export class AuditController {
   @Auth()
   @UseGuards(PermissionsGuard)
   @HasPermission('audits:read')
-  @ApiOperation({ summary: 'Get a single audit log entry by ID' })
-  @ApiParam({ name: 'id', type: 'string', description: 'AuditLog MongoDB ObjectId' })
-  @ApiResponse({ status: 200, description: 'Audit log entry with before/after snapshots' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden — requires audits:read permission' })
+  @ApiOperation({ summary: AUDIT_SWAGGER.LOG_BY_ID_ENDPOINT.SUMMARY })
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: AUDIT_PARAM_DESCRIPTIONS.ID,
+  })
+  @ApiResponse({
+    status: 200,
+    description: AUDIT_RESPONSE_DESCRIPTIONS.SUCCESS_SINGLE,
+  })
+  @ApiResponse({
+    status: 401,
+    description: AUDIT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
+  @ApiResponse({
+    status: 403,
+    description: AUDIT_RESPONSE_DESCRIPTIONS.FORBIDDEN,
+  })
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const entry = await this.auditService.findOne(id);
@@ -55,12 +72,30 @@ export class AuditController {
   @Auth()
   @UseGuards(PermissionsGuard)
   @HasPermission('audits:read')
-  @ApiOperation({ summary: 'Get all audit logs for a specific entity' })
-  @ApiParam({ name: 'entityType', enum: EntityType, description: 'Entity type' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Entity ID' })
-  @ApiResponse({ status: 200, description: 'Paginated entity-scoped audit logs', type: AuditLogPageResponseDto })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden — requires audits:read permission' })
+  @ApiOperation({ summary: AUDIT_SWAGGER.LOGS_BY_ENTITY_ENDPOINT.SUMMARY })
+  @ApiParam({
+    name: 'entityType',
+    enum: EntityType,
+    description: AUDIT_PARAM_DESCRIPTIONS.ENTITY_TYPE,
+  })
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: AUDIT_PARAM_DESCRIPTIONS.ENTITY_ID,
+  })
+  @ApiResponse({
+    status: 200,
+    description: AUDIT_RESPONSE_DESCRIPTIONS.SUCCESS_ENTITY,
+    type: AuditLogPageResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: AUDIT_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
+  @ApiResponse({
+    status: 403,
+    description: AUDIT_RESPONSE_DESCRIPTIONS.FORBIDDEN,
+  })
   @Get('entity/:entityType/:id')
   async findByEntity(
     @Param('entityType') entityType: EntityType,

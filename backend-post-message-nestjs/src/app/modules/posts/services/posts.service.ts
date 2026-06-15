@@ -16,8 +16,12 @@ export class PostsService {
     @Optional() private readonly categoriesService?: CategoriesService,
   ) {}
 
-  async create(createPostDto: CreatePostDto): Promise<Post> {
-    const createdPost = new this.postModel(createPostDto);
+  async create(createPostDto: CreatePostDto, authorId?: string): Promise<Post> {
+    const postData = {
+      ...createPostDto,
+      ...(authorId && { authorId }),
+    };
+    const createdPost = new this.postModel(postData);
     const saved = await createdPost.save();
 
     if (createPostDto.categoryId && this.categoriesService) {
@@ -35,9 +39,20 @@ export class PostsService {
   async findAllPaginated(
     skip: number,
     limit: number,
-    filters?: { categoryId?: string; status?: string; author?: string }
+    filters?: {
+      categoryId?: string;
+      status?: string;
+      tags?: string;
+      author?: string;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+    },
   ): Promise<PaginatedResponse<Post>> {
-    const filter: Record<string, unknown> = {};
+    const filter: Record<string, unknown> = {
+      isDeleted: false,
+      isActive: true,
+    };
 
     if (filters?.categoryId) {
       filter.categoryId = filters.categoryId;
@@ -45,12 +60,32 @@ export class PostsService {
     if (filters?.status) {
       filter.status = filters.status;
     }
+    if (filters?.tags) {
+      filter.tags = { $in: filters.tags.split(',').map((t) => t.trim()) };
+    }
     if (filters?.author) {
       filter.author = { $regex: filters.author, $options: 'i' };
     }
+    if (filters?.search) {
+      filter.$or = [
+        { title: { $regex: filters.search, $options: 'i' } },
+        { body: { $regex: filters.search, $options: 'i' } },
+        { author: { $regex: filters.search, $options: 'i' } },
+      ];
+    }
+
+    const sortBy = filters?.sortBy || 'createdAt';
+    const sortOrder = (filters?.sortOrder === 'asc' ? 1 : -1) as 1 | -1;
+    const sort: Record<string, 1 | -1> = { [sortBy]: sortOrder };
 
     const [items, total] = await Promise.all([
-      this.postModel.find(filter).skip(skip).limit(limit).exec(),
+      this.postModel
+        .find(filter)
+        .populate('categoryId', 'name slug color')
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .exec(),
       this.postModel.countDocuments(filter).exec(),
     ]);
 
@@ -63,7 +98,30 @@ export class PostsService {
   }
 
   async findOne(id: string): Promise<Post | null> {
-    return this.postModel.findById(id).exec();
+    return this.postModel.findById(id).populate('categoryId', 'name slug color').exec();
+  }
+
+  async findByAuthorId(
+    authorId: string,
+    skip: number,
+    limit: number,
+  ): Promise<PaginatedResponse<Post>> {
+    const [items, total] = await Promise.all([
+      this.postModel
+        .find({ authorId, isActive: true, isDeleted: false })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.postModel.countDocuments({ authorId, isActive: true, isDeleted: false }).exec(),
+    ]);
+
+    return {
+      items,
+      total,
+      skip,
+      limit,
+    };
   }
 
   async update(id: string, updatePostDto: UpdatePostDto): Promise<Post | null> {
@@ -90,10 +148,16 @@ export class PostsService {
     }
 
     if (post?.categoryId && this.categoriesService) {
-      await this.categoriesService.decrementPostsCount(post.categoryId);
+      await this.categoriesService.decrementPostsCount(post.categoryId.toString());
     }
 
     return post;
+  }
+
+  async updateStatus(id: string, status: string): Promise<Post | null> {
+    return this.postModel
+      .findByIdAndUpdate(id, { status }, { new: true })
+      .exec();
   }
 
   async bulkCreate(createPostDtos: CreatePostDto[]): Promise<any> {

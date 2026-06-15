@@ -1,0 +1,108 @@
+<div class="post-card" [class.loading]="isLoading">
+  <!-- Header -->
+  <div class="card-header">
+    <div class="header-info">
+      <span class="author">u/{{ post.author }}</span>
+      @if (post.categoryId) {
+        <span class="category-badge" [ngStyle]="{ backgroundColor: post.categoryId.color }">
+          {{ post.categoryId.name }}
+        </span>
+      }
+    </div>
+    <div class="header-meta">
+      @if (post.createdAt) {
+        <span class="post-date">{{ post.createdAt | date: 'short' }}</span>
+      }
+      <span class="post-status" [ngClass]="'status-' + post.status">
+        {{ post.status | postStatus }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Title -->
+  <div class="card-content">
+    <h2 class="post-title">{{ post.title }}</h2>
+
+    <!-- Body -->
+    <p class="post-excerpt">{{ post.content | slice: 0:200 }}</p>
+
+    <!-- Tags -->
+    @if (post.tags && post.tags.length > 0) {
+      <div class="post-tags">
+        @for (tag of post.tags; track tag) {
+          <span class="tag">{{ tag }}</span>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Footer - Stats & Actions -->
+  <div class="card-footer">
+    <div class="stats-group">
+      <div class="stat">
+        <span class="stat-icon">💬</span>
+        <span class="stat-value">{{ post.commentCount || 0 }}</span>
+      </div>
+      <div class="stat" [class.active]="isFavorited()">
+        <span class="stat-icon">{{ isFavorited() ? '❤️' : '🤍' }}</span>
+        <span class="stat-value">{{ isFavorited() ? 'Saved' : 'Save' }}</span>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button
+        class="action-btn primary"
+        (click)="onView()"
+        [disabled]="isLoading"
+        title="View full post"
+      >
+        View
+      </button>
+      <button
+        class="action-btn"
+        [class.active]="isFavorited()"
+        (click)="onToggleFavorite()"
+        [disabled]="isLoadingFavorite()"
+        [title]="isFavorited() ? 'Remove from saved' : 'Save post'"
+      >
+        {{ isFavorited() ? 'Saved' : 'Save' }}
+      </button>
+      @if (post.status === 'draft') {
+        <button
+          class="action-btn success"
+          (click)="onPublish()"
+          [disabled]="isLoading"
+          title="Publish this post"
+        >
+          Publish
+        </button>
+      }
+      @if (post.status === 'published') {
+        <button
+          class="action-btn warning"
+          (click)="onArchive()"
+          [disabled]="isLoading"
+          title="Archive this post"
+        >
+          Archive
+        </button>
+      }
+      <button
+        class="action-btn edit"
+        (click)="onEdit()"
+        [disabled]="isLoading"
+        title="Edit this post"
+      >
+        Edit
+      </button>
+      <button
+        class="action-btn danger"
+        (click)="onDelete()"
+        [disabled]="isLoading"
+        title="Delete this post"
+      >
+        Delete
+      </button>
+    </div>
+  </div>
+</div>

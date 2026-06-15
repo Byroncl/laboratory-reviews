@@ -1,122 +1,120 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, computed, inject } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { ApiService } from '../../../core/services/api.service';
-import { User, UpdateUserDto, ChangePasswordDto } from '../../../shared/models/user.model';
-import { selectAuthUser } from '../../auth/store/auth.selectors';
 import { Observable, throwError } from 'rxjs';
-import { tap, catchError, switchMap, filter } from 'rxjs/operators';
+import { tap, catchError, switchMap, filter, finalize } from 'rxjs/operators';
+
+import { ApiService } from '../../../core/services/api.service';
+import { selectAuthUser } from '../../auth/store/auth.selectors';
+import { ProfileBaseService } from './profile-base.service';
+import { IUserProfile, IProfileUpdate, IProfileResponse } from '../interfaces';
+import { IChangePasswordDto } from '../interfaces';
+import { PROFILE_API_ENDPOINTS, PROFILE_MESSAGES } from '../constants';
+import { isOwnProfile, getUserId } from '../utils';
 
 @Injectable({ providedIn: 'root' })
-export class ProfileService {
+export class ProfileService extends ProfileBaseService<IUserProfile> {
   private store = inject(Store);
-  private api = inject(ApiService);
 
-  readonly currentUser = signal<User | null>(null);
-  readonly loading = signal<boolean>(false);
-  readonly saving = signal<boolean>(false);
-  readonly error = signal<string | null>(null);
+  // Semantic public computed aliases (matching PostsService pattern)
+  public readonly currentUser = computed(() => this.currentUser$());
+  public readonly loading = computed(() => this.loading$());
+  public readonly saving = computed(() => this.saving$());
+  public readonly error = computed(() => this.error$());
 
-  readonly isOwnProfile = computed(() => {
-    const currentUser = this.currentUser();
-    const authUser = this.getAuthUser();
-    if (!currentUser || !authUser) return false;
-    return (currentUser._id ?? currentUser.id) === (authUser.id);
+  // Computed: is the loaded profile the authenticated user's own profile?
+  public readonly isOwnProfile = computed(() => {
+    const current = this.currentUser$();
+    const auth = this._getAuthUser();
+    return isOwnProfile(current, auth?.id);
   });
 
   constructor() {
-    this.initializeCurrentUser();
+    super(inject(ApiService));
+    this._initializeCurrentUser();
   }
 
-  private initializeCurrentUser(): void {
-    this.store.select(selectAuthUser)
+  private _initializeCurrentUser(): void {
+    this.store
+      .select(selectAuthUser)
       .pipe(
         filter((user): user is any => !!user),
-        switchMap(authUser => this.loadUserProfile((authUser.id)))
+        switchMap((authUser) => this.loadUserProfile(authUser.id)),
       )
       .subscribe();
   }
 
-  private getAuthUser(): any {
+  private _getAuthUser(): any {
     let authUser: any = null;
-    this.store.select(selectAuthUser).subscribe(user => {
-      authUser = user;
-    }).unsubscribe();
+    this.store
+      .select(selectAuthUser)
+      .subscribe((user) => {
+        authUser = user;
+      })
+      .unsubscribe();
     return authUser;
   }
 
-  loadUserProfile(userId?: string): Observable<{ data: User; message: string }> {
-    this.loading.set(true);
-    this.error.set(null);
+  loadUserProfile(userId?: string): Observable<IProfileResponse> {
+    this._setLoading(true);
+    this._setError(null);
 
-    return this.api.get<{ data: User; message: string }>('/users/profile', {})
-      .pipe(
-        tap(response => {
-          const user = response.data;
-          const authUser = this.getAuthUser();
+    return this.api.get<IProfileResponse>(PROFILE_API_ENDPOINTS.LOAD, {}).pipe(
+      tap((response) => {
+        const user = response.data;
+        const authUser = this._getAuthUser();
 
-          // Validar que solo pueda acceder a su propio perfil
-          if (userId && authUser && (user._id ?? user.id) !== authUser.id) {
-            throw new Error('No autorizado para acceder a este perfil');
-          }
+        if (userId && authUser && getUserId(user) !== authUser.id) {
+          throw new Error(PROFILE_MESSAGES.UNAUTHORIZED);
+        }
 
-          this.currentUser.set(user);
-          this.loading.set(false);
-        }),
-        catchError(err => {
-          const message = err?.error?.message || 'Error al cargar el perfil';
-          this.error.set(message);
-          this.loading.set(false);
-          return throwError(() => err);
-        })
-      );
+        this._setCurrentUser(user);
+      }),
+      catchError((err) => this._handleError(err, PROFILE_MESSAGES.ERROR_LOADING)),
+      finalize(() => this._setLoading(false)),
+    );
   }
 
-  updateProfile(dto: UpdateUserDto): Observable<{ data: User; message: string }> {
-    const currentUser = this.currentUser();
-    if (!currentUser || !this.isOwnProfile()) {
-      return throwError(() => new Error('No autorizado para actualizar este perfil'));
+  updateProfile(dto: IProfileUpdate): Observable<IProfileResponse> {
+    const current = this.currentUser$();
+    if (!current || !this.isOwnProfile()) {
+      return throwError(() => new Error(PROFILE_MESSAGES.UNAUTHORIZED));
     }
 
-    const userId = (currentUser._id ?? currentUser.id) as string;
-    this.saving.set(true);
-    this.error.set(null);
+    const userId = this._getId(current) as string;
+    this._setSaving(true);
+    this._setError(null);
 
-    return this.api.put<{ data: User; message: string }>(`/users/${userId}`, dto)
-      .pipe(
-        tap(response => {
-          this.currentUser.set(response.data);
-          this.saving.set(false);
-        }),
-        catchError(err => {
-          const message = err?.error?.message || 'Error al actualizar el perfil';
-          this.error.set(message);
-          this.saving.set(false);
-          return throwError(() => err);
-        })
-      );
+    const url = PROFILE_API_ENDPOINTS.UPDATE.replace(':id', userId);
+
+    return this.api.put<IProfileResponse>(url, dto).pipe(
+      tap((response) => {
+        this._setCurrentUser(response.data);
+      }),
+      catchError((err) => this._handleError(err, PROFILE_MESSAGES.ERROR_UPDATING)),
+      finalize(() => this._setSaving(false)),
+    );
   }
 
-  changePassword(dto: ChangePasswordDto): Observable<{ message: string }> {
-    const currentUser = this.currentUser();
-    if (!currentUser || !this.isOwnProfile()) {
-      return throwError(() => new Error('No autorizado para cambiar la contraseña'));
+  changePassword(dto: IChangePasswordDto): Observable<{ message: string }> {
+    const current = this.currentUser$();
+    if (!current || !this.isOwnProfile()) {
+      return throwError(() => new Error(PROFILE_MESSAGES.UNAUTHORIZED));
     }
 
-    const userId = (currentUser._id ?? currentUser.id) as string;
-    this.saving.set(true);
-    this.error.set(null);
+    const userId = this._getId(current) as string;
+    this._setSaving(true);
+    this._setError(null);
 
-    return this.api.post<{ message: string }>(`/users/${userId}/change-password`, dto)
-      .pipe(
-        tap(() => {
-          this.saving.set(false);
-        }),
-        catchError(err => {
-          const message = err?.error?.message || 'Error al cambiar la contraseña';
-          this.error.set(message);
-          this.saving.set(false);
-          return throwError(() => err);
-        })
-      );
+    const url = PROFILE_API_ENDPOINTS.CHANGE_PASSWORD.replace(':id', userId);
+
+    return this.api.post<{ message: string }>(url, dto).pipe(
+      tap(() => {
+        // No user data update needed on password change
+      }),
+      catchError((err) =>
+        this._handleError(err, PROFILE_MESSAGES.ERROR_CHANGING_PASSWORD),
+      ),
+      finalize(() => this._setSaving(false)),
+    );
   }
 }

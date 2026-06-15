@@ -1,41 +1,41 @@
 ---
 sidebar_position: 3
-title: Module Structure
-description: How modules are organized in NestJS
+title: Estructura de Módulos
+description: Cómo se organizan los módulos en NestJS
 ---
 
-# Module Structure
+# Estructura de Módulos
 
-## Module Architecture Pattern
+## Patrón de Arquitectura de Módulos
 
-Each NestJS module encapsulates a feature and declares its dependencies explicitly.
+Cada módulo NestJS encapsula una funcionalidad y declara sus dependencias explícitamente.
 
 ```mermaid
 graph TB
-    subgraph "Module<br/>Feature"
-        Controllers["Controllers"]
-        Services["Services"]
+    subgraph "Módulo<br/>Funcionalidad"
+        Controllers["Controladores"]
+        Services["Servicios"]
         Models["Schemas"]
-        Exports["Exported Services"]
+        Exports["Servicios Exportados"]
     end
     
-    subgraph "Dependencies"
-        Imports["Imported Modules"]
+    subgraph "Dependencias"
+        Imports["Módulos Importados"]
     end
     
-    Controllers -->|uses| Services
-    Services -->|uses| Models
-    Models -->|database| MongoDB["MongoDB"]
+    Controllers -->|usa| Services
+    Services -->|usa| Models
+    Models -->|base de datos| MongoDB["MongoDB"]
     
-    Imports -->|imported by| Services
-    Exports -->|exported for| OtherModules["Other Modules"]
+    Imports -->|importado por| Services
+    Exports -->|exportado para| OtherModules["Otros Módulos"]
 ```
 
-## Module Dependency Graph
+## Grafo de Dependencias de Módulos
 
 ```mermaid
 graph TB
-    AppModule["📦 AppModule<br/>(Root)"]
+    AppModule["📦 AppModule<br/>(Raíz)"]
     
     ConfigModule["⚙️ ConfigModule<br/>Global"]
     MongooseModule["🗄️ MongooseModule<br/>Global"]
@@ -46,8 +46,8 @@ graph TB
     CommentsModule["💬 CommentsModule"]
     ClientsModule["👤 ClientsModule"]
     FilesModule["📁 FilesModule"]
-    RolesModule["🎭 RolesModule<br/>ORPHANED"]
-    PermissionsModule["🔑 PermissionsModule<br/>ORPHANED"]
+    RolesModule["🎭 RolesModule<br/>HUÉRFANO"]
+    PermissionsModule["🔑 PermissionsModule<br/>HUÉRFANO"]
     I18nModule["🌍 I18nModule"]
     
     PassportModule["🔑 PassportModule"]
@@ -65,13 +65,13 @@ graph TB
     
     AuthModule --> PassportModule
     AuthModule --> JwtModule
-    AuthModule -->|imports| UsersModule
-    AuthModule -->|exports| JwtModule
+    AuthModule -->|importa| UsersModule
+    AuthModule -->|exporta| JwtModule
     
-    CommentsModule -->|imports| PostsModule
+    CommentsModule -->|importa| PostsModule
     
-    RolesModule -.->|NOT imported| AppModule
-    PermissionsModule -.->|NOT imported| AppModule
+    RolesModule -.->|NO importado| AppModule
+    PermissionsModule -.->|NO importado| AppModule
     
     style AppModule fill:#ff6b6b
     style AuthModule fill:#4ecdc4
@@ -85,41 +85,41 @@ graph TB
     style PermissionsModule fill:#fab1a0
 ```
 
-## Core Module Structure
+## Estructura del Módulo Central
 
 ```
 src/app/
-├── core/                          # Infrastructure & cross-cutting
+├── core/                          # Infraestructura y aspectos transversales
 │   ├── decorators/
-│   │   ├── auth.decorator.ts     # @Auth() — marks protected routes
-│   │   ├── current-user.decorator.ts  # @CurrentUser() — extracts user
-│   │   ├── has-permission.decorator.ts # @HasPermission() — permission metadata
+│   │   ├── auth.decorator.ts     # @Auth() — marca rutas protegidas
+│   │   ├── current-user.decorator.ts  # @CurrentUser() — extrae usuario
+│   │   ├── has-permission.decorator.ts # @HasPermission() — metadatos de permiso
 │   │   └── is-strong-password.decorator.ts
 │   │
 │   ├── filters/
-│   │   └── global-exception.filter.ts # Exception handler
+│   │   └── global-exception.filter.ts # Manejador de excepciones
 │   │
 │   ├── guards/
-│   │   ├── auth.guard.ts         # JWT verification + @Auth() reflection
-│   │   ├── permissions.guard.ts  # RBAC enforcement
-│   │   ├── jwt-auth.guard.ts     # Legacy Passport-based (coexists)
-│   │   └── ws-auth.guard.ts      # WebSocket JWT (unused)
+│   │   ├── auth.guard.ts         # Verificación JWT + reflexión @Auth()
+│   │   ├── permissions.guard.ts  # Aplicación de RBAC
+│   │   ├── jwt-auth.guard.ts     # Legado basado en Passport (coexiste)
+│   │   └── ws-auth.guard.ts      # JWT WebSocket (sin uso)
 │   │
 │   ├── interceptors/
-│   │   └── transform.interceptor.ts # Response envelope wrapping
+│   │   └── transform.interceptor.ts # Envoltura de respuesta en envelope
 │   │
 │   ├── middleware/
-│   │   └── i18n.middleware.ts    # Language detection
+│   │   └── i18n.middleware.ts    # Detección de idioma
 │   │
 │   ├── i18n/
-│   │   ├── i18n.service.ts       # Request-scoped i18n
+│   │   ├── i18n.service.ts       # i18n con scope por petición
 │   │   └── locales/
-│   │       ├── en.json           # English translations
-│   │       └── es.json           # Spanish translations
+│   │       ├── en.json           # Traducciones en inglés
+│   │       └── es.json           # Traducciones en español
 │   │
 │   ├── services/
-│   │   ├── pagination.service.ts # Generic pagination (unused)
-│   │   └── query.service.ts      # Query builder (unused)
+│   │   ├── pagination.service.ts # Paginación genérica (sin uso)
+│   │   └── query.service.ts      # Constructor de consultas (sin uso)
 │   │
 │   ├── utils/
 │   │   ├── crypto.utils.ts
@@ -128,21 +128,21 @@ src/app/
 │   │   ├── array.utils.ts
 │   │   ├── date.utils.ts
 │   │   ├── validation.utils.ts
-│   │   └── translation.service.ts # Stateful singleton i18n
+│   │   └── translation.service.ts # i18n singleton con estado
 │   │
 │   ├── constants/
 │   │   └── constants.ts
 │   │
 │   ├── plugins/
-│   │   └── mongoose-audit.plugin.ts # Audit timestamps (unused)
+│   │   └── mongoose-audit.plugin.ts # Timestamps de auditoría (sin uso)
 │   │
 │   └── types/
 │       └── current-user.payload.ts
 ```
 
-## Feature Module Structure
+## Estructura de Módulos de Funcionalidades
 
-### Standard Module Layout
+### Layout Estándar de Módulo
 
 ```
 src/app/modules/[feature]/
@@ -156,18 +156,18 @@ src/app/modules/[feature]/
 │   ├── create-[feature].dto.ts
 │   └── update-[feature].dto.ts
 ├── [feature].module.ts
-└── types/ (optional)
+└── types/ (opcional)
     └── [feature]-types.ts
 ```
 
-### Users Module (Clean Architecture)
+### Módulo Users (Arquitectura Limpia)
 
 ```
 src/app/modules/users/
 ├── controllers/
 │   └── users.controller.ts
 ├── services/
-│   └── users.service.ts          # Orchestrator service
+│   └── users.service.ts          # Servicio orquestador
 ├── use-cases/
 │   ├── create-user.use-case.ts
 │   ├── find-all-users.use-case.ts
@@ -177,8 +177,8 @@ src/app/modules/users/
 │   ├── remove-user.use-case.ts
 │   └── update-language-preference.use-case.ts
 ├── repositories/
-│   ├── user.repository.ts        # Abstract interface
-│   └── user.mongo.repository.ts  # Mongoose implementation
+│   ├── user.repository.ts        # Interfaz abstracta
+│   └── user.mongo.repository.ts  # Implementación con Mongoose
 ├── schemas/
 │   └── user.schema.ts
 ├── dtos/
@@ -189,7 +189,7 @@ src/app/modules/users/
 └── users.module.ts
 ```
 
-### Posts Module (Flat)
+### Módulo Posts (Plano)
 
 ```
 src/app/modules/posts/
@@ -205,14 +205,14 @@ src/app/modules/posts/
 └── posts.module.ts
 ```
 
-### Comments Module (Flat + WebSocket)
+### Módulo Comments (Plano + WebSocket)
 
 ```
 src/app/modules/comments/
 ├── controllers/
 │   └── comments.controller.ts
 ├── gateways/
-│   └── comments.gateway.ts       # Socket.IO gateway
+│   └── comments.gateway.ts       # Gateway Socket.IO
 ├── services/
 │   └── comments.service.ts
 ├── schemas/
@@ -225,12 +225,12 @@ src/app/modules/comments/
 └── comments.module.ts
 ```
 
-## Module Declaration
+## Declaración de Módulo
 
 ```typescript
 @Module({
   imports: [
-    // External modules this module depends on
+    // Módulos externos de los que depende este módulo
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
     JwtModule,
   ],
@@ -243,65 +243,65 @@ src/app/modules/comments/
       useClass: UserMongoRepository,
     },
   ],
-  exports: [UsersService],  // Exported for other modules
+  exports: [UsersService],  // Exportado para otros módulos
 })
 export class UsersModule {}
 ```
 
-## Dependency Injection Container
+## Contenedor de Inyección de Dependencias
 
 ```mermaid
 graph TB
-    Provider1["Provider<br/>UseClass: UserMongoRepository<br/>Token: IUserRepository"]
-    Provider2["Provider<br/>UseClass: UsersService<br/>Token: UsersService"]
-    Provider3["Provider<br/>UseClass: CreateUserUseCase<br/>Token: CreateUserUseCase"]
+    Provider1["Proveedor<br/>UseClass: UserMongoRepository<br/>Token: IUserRepository"]
+    Provider2["Proveedor<br/>UseClass: UsersService<br/>Token: UsersService"]
+    Provider3["Proveedor<br/>UseClass: CreateUserUseCase<br/>Token: CreateUserUseCase"]
     
-    Service["UsersService<br/>Needs: IUserRepository"]
-    UseCase["CreateUserUseCase<br/>Needs: IUserRepository"]
+    Service["UsersService<br/>Necesita: IUserRepository"]
+    UseCase["CreateUserUseCase<br/>Necesita: IUserRepository"]
     
-    DIContainer["Dependency Injection<br/>Container"]
+    DIContainer["Contenedor de<br/>Inyección de Dependencias"]
     
-    Provider1 -->|registered in| DIContainer
-    Provider2 -->|registered in| DIContainer
-    Provider3 -->|registered in| DIContainer
+    Provider1 -->|registrado en| DIContainer
+    Provider2 -->|registrado en| DIContainer
+    Provider3 -->|registrado en| DIContainer
     
-    DIContainer -->|injects| Service
-    DIContainer -->|injects| UseCase
+    DIContainer -->|inyecta en| Service
+    DIContainer -->|inyecta en| UseCase
     
-    Service -->|depends on| Provider1
-    UseCase -->|depends on| Provider1
+    Service -->|depende de| Provider1
+    UseCase -->|depende de| Provider1
 ```
 
-## Module Exports & Imports
+## Exportaciones e Importaciones de Módulos
 
 ```typescript
-// Module A: Exports a service
+// Módulo A: Exporta un servicio
 @Module({
   providers: [ServiceA],
-  exports: [ServiceA],  // <-- exported
+  exports: [ServiceA],  // <-- exportado
 })
 export class ModuleA {}
 
-// Module B: Imports and uses ServiceA
+// Módulo B: Importa y usa ServiceA
 @Module({
-  imports: [ModuleA],  // <-- imports ModuleA
-  providers: [ServiceB],  // ServiceB can now depend on ServiceA
+  imports: [ModuleA],  // <-- importa ModuleA
+  providers: [ServiceB],  // ServiceB ahora puede depender de ServiceA
 })
 export class ModuleB {}
 
-// In ServiceB:
+// En ServiceB:
 export class ServiceB {
   constructor(
-    private serviceA: ServiceA,  // <-- available because ModuleA exported it
+    private serviceA: ServiceA,  // <-- disponible porque ModuleA lo exportó
   ) {}
 }
 ```
 
-## Common Module Files
+## Archivos Comunes de Módulos
 
 ### DTO (Data Transfer Object)
 
-Validates incoming request data:
+Valida los datos de la petición entrante:
 
 ```typescript
 export class CreateUserDto {
@@ -320,11 +320,11 @@ export class CreateUserDto {
 }
 ```
 
-**Files**: `src/app/modules/*/dtos/`
+**Archivos**: `src/app/modules/*/dtos/`
 
 ### Schema (MongoDB)
 
-Defines the structure of documents:
+Define la estructura de los documentos:
 
 ```typescript
 @Schema({ timestamps: true })
@@ -348,11 +348,11 @@ export class User {
 export const UserSchema = SchemaFactory.createForClass(User);
 ```
 
-**Files**: `src/app/modules/*/schemas/`
+**Archivos**: `src/app/modules/*/schemas/`
 
-### Types
+### Tipos
 
-TypeScript interfaces and types:
+Interfaces y tipos de TypeScript:
 
 ```typescript
 export type CurrentUserPayload = {
@@ -371,32 +371,32 @@ export enum UserType {
 }
 ```
 
-**Files**: `src/app/modules/*/types/`
+**Archivos**: `src/app/modules/*/types/`
 
-## Module Initialization
+## Inicialización del Módulo
 
-When the application starts:
+Cuando la aplicación arranca:
 
 ```mermaid
 sequenceDiagram
     participant Main as main.ts
     participant AppModule as AppModule
-    participant DI as Dependency Injector
-    participant Modules as Feature Modules
-    participant Services as Services
+    participant DI as Inyector de Dependencias
+    participant Modules as Módulos de Funcionalidades
+    participant Services as Servicios
     
     Main->>AppModule: bootstrap()
-    AppModule->>AppModule: Declare imports, providers
-    AppModule->>DI: Register providers
-    DI->>Modules: Instantiate modules
-    Modules->>DI: Register module providers
-    DI->>Services: Instantiate services
-    Services->>DI: Resolve dependencies
-    DI->>Services: Inject dependencies
-    Services->>Main: Services ready
-    Main->>Main: Start HTTP listener
+    AppModule->>AppModule: Declarar imports, providers
+    AppModule->>DI: Registrar proveedores
+    DI->>Modules: Instanciar módulos
+    Modules->>DI: Registrar proveedores del módulo
+    DI->>Services: Instanciar servicios
+    Services->>DI: Resolver dependencias
+    DI->>Services: Inyectar dependencias
+    Services->>Main: Servicios listos
+    Main->>Main: Iniciar listener HTTP
 ```
 
 ---
 
-**Next**: [Auth Module →](../modules/auth.md)
+**Siguiente**: [Módulo Auth →](../modules/auth.md)

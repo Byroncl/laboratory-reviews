@@ -1,0 +1,160 @@
+╔════════════════════════════════════════════════════════════════════╗
+║                    CAMBIOS DE DOCKER REALIZADOS                   ║
+╚════════════════════════════════════════════════════════════════════╝
+
+✨ ARCHIVOS CREADOS:
+═══════════════════════════════════════════════════════════════════
+
+📄 backend-post-message-nestjs/Dockerfile
+   └─ Dockerfile optimizado con multi-stage build
+   └─ Incluye: dumb-init, non-root user, health checks
+   └─ Reduce tamaño de imagen significativamente
+
+📄 backend-post-message-nestjs/.dockerignore
+   └─ Optimiza contexto de build
+   └─ Excluye archivos innecesarios
+
+📄 DOCKER-DEPLOY.md
+   └─ Documentación completa de Docker
+   └─ Instrucciones de troubleshooting
+
+📄 DOCKER-QUICK-START.md
+   └─ Guía rápida para inicio
+   └─ Checklist y comandos útiles
+
+📄 docker-start.sh (Linux/Mac)
+   └─ Script automatizado para despliegue
+   └─ Verifica salud de servicios
+   └─ Muestra información de acceso
+
+📄 docker-start.bat (Windows)
+   └─ Script equivalente para Windows
+   └─ Misma funcionalidad que .sh
+
+📄 DOCKER-CHANGES.txt
+   └─ Este archivo (resumen de cambios)
+
+
+🔧 ARCHIVOS MODIFICADOS:
+═══════════════════════════════════════════════════════════════════
+
+📝 docker-compose.yml
+   • Cambios realizados:
+     - NestJS: Ahora usa Dockerfile en lugar de imagen bare node
+     - Agregados health checks a todos los servicios
+     - Creada red personalizada (app-network)
+     - MongoDB: Health check con mongosh
+     - MinIO: Health check con curl
+     - NestJS: Health check en endpoint /health
+     - NODE_ENV=production en variables
+
+📝 src/main.ts (Backend NestJS)
+   • Cambios realizados:
+     - HOST ahora es '0.0.0.0' en producción (NODE_ENV=production)
+     - Permite escuchar desde cualquier interfaz en Docker
+     - Mantiene 'localhost' en desarrollo
+
+═════════════════════════════════════════════════════════════════════
+
+📊 COMPARATIVA ANTES vs DESPUÉS:
+
+ANTES:
+  └─ NestJS usaba imagen node:20-alpine bare
+  └─ Sin health checks
+  └─ Sin red personalizada
+  └─ Sin optimizaciones de seguridad
+
+DESPUÉS:
+  ✅ Multi-stage build (más pequeño, más rápido)
+  ✅ Health checks en todos los servicios
+  ✅ Red interna aislada (app-network)
+  ✅ Usuario non-root (seguridad)
+  ✅ dumb-init para señales (graceful shutdown)
+  ✅ Optimizado para producción
+  ✅ Scripts de inicio automático
+
+═════════════════════════════════════════════════════════════════════
+
+🚀 CÓMO USAR:
+
+Linux/Mac:
+  $ chmod +x docker-start.sh
+  $ ./docker-start.sh
+
+Windows:
+  > docker-start.bat
+
+Manual:
+  $ docker-compose build --no-cache
+  $ docker-compose up -d
+  $ docker-compose logs -f
+
+═════════════════════════════════════════════════════════════════════
+
+📋 VERIFICACIÓN:
+
+Después de ejecutar, verifica:
+
+1. Estado de servicios:
+   $ docker-compose ps
+
+2. Salud de backend:
+   $ curl http://localhost:3000/health
+
+3. Logs en tiempo real:
+   $ docker-compose logs -f
+
+4. Accesos disponibles:
+   - Backend API: http://localhost:3000
+   - API Docs:    http://localhost:3000/api
+   - MinIO:       http://localhost:9001
+   - Docs:        http://localhost:3001
+
+═════════════════════════════════════════════════════════════════════
+
+⚙️ VARIABLES DE ENTORNO NECESARIAS (.env):
+
+MONGO_ROOT_USER=admin
+MONGO_ROOT_PASSWORD=password123
+MONGO_DB_NAME=post_message_db
+
+MINIO_ROOT_USER=minioadmin
+MINIO_ROOT_PASSWORD=minioadmin
+MINIO_ENDPOINT=minio:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET_NAME=uploads
+
+═════════════════════════════════════════════════════════════════════
+
+🔍 TROUBLESHOOTING:
+
+Si el backend no responde:
+  1. Ver logs: docker-compose logs nestjs-app
+  2. Verificar compilación: docker-compose build --no-cache
+  3. Verificar puerto: docker exec mi_nestjs netstat -tln
+  4. Reiniciar: docker-compose restart nestjs-app
+
+Si MongoDB no conecta:
+  1. Ver logs: docker-compose logs mongodb
+  2. Ping desde backend: docker exec mi_nestjs ping mongodb
+  3. Verificar .env: echo $MONGODB_URI
+
+Si MinIO no funciona:
+  1. Ver logs: docker-compose logs minio
+  2. Health check: docker exec mi_minio curl http://localhost:9000/minio/health/live
+
+═════════════════════════════════════════════════════════════════════
+
+✨ VENTAJAS DE ESTA CONFIGURACIÓN:
+
+✅ Despliegue reproducible
+✅ Optimizado para CI/CD
+✅ Seguridad mejorada
+✅ Health checks automáticos
+✅ Fácil troubleshooting
+✅ Documentación completa
+✅ Scripts de inicio automatizado
+✅ Compatible con orchestradores (Kubernetes, Docker Swarm)
+
+═════════════════════════════════════════════════════════════════════

@@ -1,0 +1,16 @@
+<div class="reaction-bar">
+  @for (emoji of availableEmojis; track emoji) {
+    <button
+      type="button"
+      class="reaction-btn"
+      [class.reacted]="hasReacted(emoji)"
+      (click)="toggleReaction(emoji)"
+      [attr.aria-label]="emoji + ' ' + getCount(emoji)"
+    >
+      <span class="reaction-emoji">{{ emoji }}</span>
+      @if (getCount(emoji) > 0) {
+        <span class="reaction-count">{{ getCount(emoji) }}</span>
+      }
+    </button>
+  }
+</div>

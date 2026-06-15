@@ -1,0 +1,77 @@
+<div class="filter-container">
+  <form [formGroup]="filterForm" class="filter-form">
+    <div class="filter-group">
+      <label for="search">{{ 'posts.filter.searchLabel' | t }}</label>
+      <input
+        id="search"
+        type="text"
+        formControlName="searchTerm"
+        [placeholder]="'posts.filter.searchPlaceholder' | t"
+        [attr.disabled]="isLoading ? true : null"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label for="author">{{ 'posts.filter.authorLabel' | t }}</label>
+      <input
+        id="author"
+        type="text"
+        formControlName="author"
+        [placeholder]="'posts.filter.authorPlaceholder' | t"
+        [attr.disabled]="isLoading ? true : null"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label for="status">{{ 'posts.filter.statusLabel' | t }}</label>
+      <select id="status" formControlName="status" [attr.disabled]="isLoading ? true : null">
+        <option value="">{{ 'posts.filter.allStatuses' | t }}</option>
+        @for (option of statusOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="tags">{{ 'posts.filter.tagsLabel' | t }}</label>
+      <input
+        id="tags"
+        type="text"
+        formControlName="tags"
+        [placeholder]="'posts.filter.tagsPlaceholder' | t"
+        [attr.disabled]="isLoading ? true : null"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label for="dateFrom">{{ 'posts.filter.fromDate' | t }}</label>
+      <input
+        id="dateFrom"
+        type="date"
+        formControlName="dateFrom"
+        [attr.disabled]="isLoading ? true : null"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label for="dateTo">{{ 'posts.filter.toDate' | t }}</label>
+      <input
+        id="dateTo"
+        type="date"
+        formControlName="dateTo"
+        [attr.disabled]="isLoading ? true : null"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="onReset()"
+        [disabled]="isLoading"
+      >
+        {{ 'posts.filter.resetFilters' | t }}
+      </button>
+    </div>
+  </form>
+</div>

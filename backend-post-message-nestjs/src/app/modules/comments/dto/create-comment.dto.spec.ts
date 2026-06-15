@@ -31,11 +31,11 @@ describe('CreateCommentDto', () => {
     expect(dto.content).toBe('Great post!');
   });
 
-  // New — media fields
+  // New — media fields (optional fields, no validation errors expected)
   it('should accept valid mediaUrls array with http URLs', async () => {
     const dto = plainToInstance(CreateCommentDto, {
       ...validPayload,
-      mediaUrls: ['http://localhost:9000/posts/image1.jpg'],
+      mediaUrls: ['https://example.com/image1.jpg'],
       mediaTypes: ['image/jpeg'],
       mediaFilenames: ['image1.jpg'],
     });
@@ -64,8 +64,8 @@ describe('CreateCommentDto', () => {
     const dto = plainToInstance(CreateCommentDto, {
       ...validPayload,
       mediaUrls: [
-        'http://localhost:9000/posts/img.jpg',
-        'http://localhost:9000/posts/audio.mp3',
+        'https://example.com/posts/img.jpg',
+        'https://example.com/posts/audio.mp3',
       ],
       mediaTypes: ['image/jpeg', 'audio/mpeg'],
       mediaFilenames: ['img.jpg', 'audio.mp3'],

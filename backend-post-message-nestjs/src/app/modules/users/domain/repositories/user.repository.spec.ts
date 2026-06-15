@@ -41,6 +41,64 @@ class InMemoryUserRepository extends UserRepository {
     const [removed] = this.users.splice(index, 1);
     return removed;
   }
+
+  async findAllPaginated(): Promise<any> {
+    return { items: [...this.users], total: this.users.length, skip: 0, limit: 10 };
+  }
+
+  async updateLanguagePreference(id: string, language: 'en' | 'es'): Promise<any | null> {
+    const user = this.users.find((u) => u._id === id);
+    if (!user) return null;
+    user.preferredLanguage = language;
+    return user;
+  }
+
+  async assignRole(id: string, roleId: string): Promise<any | null> {
+    const user = this.users.find((u) => u._id === id);
+    if (!user) return null;
+    user.role = roleId;
+    return user;
+  }
+
+  async changePassword(id: string, newPasswordHash: string): Promise<any | null> {
+    const user = this.users.find((u) => u._id === id);
+    if (!user) return null;
+    user.password_hash = newPasswordHash;
+    return user;
+  }
+
+  async findOneByEmail(email: string): Promise<any | null> {
+    return this.users.find((u) => u.email === email) ?? null;
+  }
+
+  async activate(id: string): Promise<any | null> {
+    const user = this.users.find((u) => u._id === id);
+    if (!user) return null;
+    user.isActive = true;
+    return user;
+  }
+
+  async deactivate(id: string): Promise<any | null> {
+    const user = this.users.find((u) => u._id === id);
+    if (!user) return null;
+    user.isActive = false;
+    return user;
+  }
+
+  async getStats(): Promise<{ total: number; active: number; verified: number }> {
+    return {
+      total: this.users.length,
+      active: this.users.filter((u) => u.isActive).length,
+      verified: this.users.filter((u) => u.isVerified).length,
+    };
+  }
+
+  async updateLastLogin(id: string): Promise<void> {
+    const user = this.users.find((u) => u._id === id);
+    if (user) {
+      user.lastLoginAt = new Date();
+    }
+  }
 }
 
 describe('UserRepository (abstract contract)', () => {

@@ -2,12 +2,27 @@
   "auth": {
     "login_success": "Login successful",
     "login_failed": "Invalid credentials",
+    "login_invalidCredentials": "Invalid username or password",
+    "login_required": "Login is required",
     "logout_success": "Logout successful",
     "unauthorized": "Unauthorized",
     "token_expired": "Token expired",
     "invalid_token": "Invalid token",
     "missing_token": "Missing authentication token",
-    "access_denied": "Access denied"
+    "access_denied": "Access denied",
+    "token_generated": "Token generated successfully",
+    "token_invalid": "Invalid token",
+    "errors_invalidCredentials": "Invalid username or password",
+    "errors_unauthorized": "Unauthorized access",
+    "validation_username_required": "Username is required",
+    "validation_username_mustBeString": "Username must be a string",
+    "validation_username_minLength": "Username must be at least {0} characters",
+    "validation_username_maxLength": "Username must not exceed {0} characters",
+    "validation_username_alphanumeric": "Username must contain only letters and numbers",
+    "validation_password_required": "Password is required",
+    "validation_password_mustBeString": "Password must be a string",
+    "validation_password_minLength": "Password must be at least {0} characters",
+    "validation_password_maxLength": "Password must not exceed {0} characters"
   },
   "users": {
     "created": "User created successfully",
@@ -23,13 +38,63 @@
     "activated": "User activated successfully",
     "deactivated": "User deactivated successfully",
     "invalid_password": "Invalid password",
-    "passwords_do_not_match": "Passwords do not match"
+    "passwords_do_not_match": "Passwords do not match",
+    "validation_name_required": "First name is required",
+    "validation_name_minLength": "First name must be at least 2 characters",
+    "validation_name_maxLength": "First name must not exceed 50 characters",
+    "validation_name_string": "First name must be a string",
+    "validation_name_pattern": "First name can only contain letters, spaces, hyphens, and apostrophes",
+    "validation_lastname_required": "Last name is required",
+    "validation_lastname_minLength": "Last name must be at least 2 characters",
+    "validation_lastname_maxLength": "Last name must not exceed 50 characters",
+    "validation_lastname_string": "Last name must be a string",
+    "validation_lastname_pattern": "Last name can only contain letters, spaces, hyphens, and apostrophes",
+    "validation_username_required": "Username is required",
+    "validation_username_minLength": "Username must be at least 3 characters",
+    "validation_username_maxLength": "Username must not exceed 20 characters",
+    "validation_username_string": "Username must be a string",
+    "validation_username_alphanumeric": "Username must contain only letters and numbers",
+    "validation_username_unique": "Username already exists",
+    "validation_email_required": "Email is required",
+    "validation_email_invalid": "Must be a valid email address",
+    "validation_email_maxLength": "Email must not exceed 255 characters",
+    "validation_email_unique": "Email already exists",
+    "validation_password_required": "Password is required",
+    "validation_password_minLength": "Password must be at least 6 characters",
+    "validation_password_maxLength": "Password must not exceed 200 characters",
+    "validation_password_string": "Password must be a string",
+    "validation_type_required": "User type is required",
+    "validation_type_minLength": "User type must be at least 2 characters",
+    "validation_type_maxLength": "User type must not exceed 50 characters",
+    "validation_type_string": "User type must be a string",
+    "validation_bio_maxLength": "Bio must not exceed 500 characters",
+    "validation_isActive_invalid": "isActive must be a boolean",
+    "validation_isVerified_invalid": "isVerified must be a boolean"
   },
   "posts": {
     "created": "Post created successfully",
     "updated": "Post updated successfully",
     "deleted": "Post deleted successfully",
-    "not_found": "Post not found"
+    "not_found": "Post not found",
+    "invalid_category": "Invalid category",
+    "unauthorized_delete": "Unauthorized to delete this post",
+    "validation_title_required": "Title is required",
+    "validation_title_minLength": "Title must be at least 3 characters",
+    "validation_title_maxLength": "Title must not exceed 200 characters",
+    "validation_title_string": "Title must be a string",
+    "validation_content_required": "Content is required",
+    "validation_content_minLength": "Content must be at least 1 character",
+    "validation_content_maxLength": "Content must not exceed 5000 characters",
+    "validation_content_string": "Content must be a string",
+    "validation_image_invalid": "Image URL must be a valid URL with protocol",
+    "validation_image_filename_invalid": "Image filename must be a string",
+    "validation_image_filename_maxLength": "Image filename must not exceed 500 characters",
+    "validation_category_invalid": "Category ID must be a valid MongoDB ObjectId",
+    "validation_category_name_invalid": "Category name must be a string",
+    "validation_category_name_minLength": "Category name must be at least 1 character",
+    "validation_category_name_maxLength": "Category name must not exceed 100 characters",
+    "validation_author_required": "Author ID is required",
+    "validation_author_invalid": "Author ID must be a valid MongoDB ObjectId"
   },
   "comments": {
     "created": "Comment created successfully",
@@ -43,7 +108,30 @@
     "reply_created": "Reply created successfully",
     "parent_not_found": "Parent comment not found",
     "max_nesting_level": "Cannot reply to a reply. Maximum nesting level is 2",
-    "thread_retrieved": "Thread retrieved successfully"
+    "thread_retrieved": "Thread retrieved successfully",
+    "validation_content_required": "Comment content is required",
+    "validation_content_minLength": "Comment content must be at least 1 character",
+    "validation_content_maxLength": "Comment content must not exceed 5000 characters",
+    "validation_post_required": "Post ID is required",
+    "validation_post_invalid": "Invalid post ID format",
+    "validation_parentComment_invalid": "Invalid parent comment ID format",
+    "validation_parentComment_notFound": "Parent comment not found",
+    "validation_nesting_level_exceeded": "Cannot reply to a reply. Maximum nesting level is 2",
+    "validation_user_required": "User ID is required",
+    "validation_user_invalid": "Invalid user ID format",
+    "validation_media_invalid": "Invalid media URLs",
+    "validation_emoji_invalid": "Invalid emoji. Allowed: 👍, ❤️, 😂, 😮, 😢, 😡"
+  },
+  "favorites": {
+    "created": "Post added to favorites successfully",
+    "deleted": "Post removed from favorites successfully",
+    "not_found": "Favorite not found",
+    "post_not_found": "Post not found",
+    "already_favorited": "This post is already in your favorites",
+    "invalid_client_id": "Invalid client ID",
+    "invalid_post_id": "Invalid post ID",
+    "validation_post_id_required": "Post ID is required",
+    "validation_post_id_invalid": "Invalid post ID format"
   },
   "socket": {
     "connected": "Socket connected",
@@ -54,20 +142,62 @@
     "created": "Client created successfully",
     "updated": "Client updated successfully",
     "deleted": "Client deleted successfully",
-    "not_found": "Client not found"
+    "not_found": "Client not found",
+    "access_denied": "Access denied",
+    "validation_name_string": "First name must be a string",
+    "validation_name_required": "First name is required",
+    "validation_name_minLength": "First name must be at least 2 characters",
+    "validation_name_maxLength": "First name must not exceed 50 characters",
+    "validation_name_pattern": "First name can only contain letters, spaces, hyphens, and apostrophes",
+    "validation_lastname_string": "Last name must be a string",
+    "validation_lastname_required": "Last name is required",
+    "validation_lastname_minLength": "Last name must be at least 2 characters",
+    "validation_lastname_maxLength": "Last name must not exceed 50 characters",
+    "validation_lastname_pattern": "Last name can only contain letters, spaces, hyphens, and apostrophes",
+    "validation_username_string": "Username must be a string",
+    "validation_username_required": "Username is required",
+    "validation_username_minLength": "Username must be at least 3 characters",
+    "validation_username_maxLength": "Username must not exceed 20 characters",
+    "validation_username_alphanumeric": "Username must contain only letters and numbers",
+    "validation_email_invalid": "Must be a valid email address",
+    "validation_email_required": "Email is required",
+    "validation_email_maxLength": "Email must not exceed 255 characters",
+    "validation_password_string": "Password hash must be a string",
+    "validation_password_required": "Password hash is required",
+    "validation_password_minLength": "Password hash must be at least 6 characters",
+    "validation_password_maxLength": "Password hash must not exceed 200 characters",
+    "validation_type_string": "Client type must be a string",
+    "validation_type_required": "Client type is required",
+    "validation_type_minLength": "Client type must be at least 2 characters",
+    "validation_type_maxLength": "Client type must not exceed 50 characters"
   },
   "roles": {
     "created": "Role created successfully",
     "updated": "Role updated successfully",
     "deleted": "Role deleted successfully",
     "not_found": "Role not found",
-    "permissions_assigned": "Permissions assigned to role successfully"
+    "permissions_assigned": "Permissions assigned to role successfully",
+    "validation_name_required": "Role name is required",
+    "validation_name_invalid": "Role name must be between 2 and 100 characters",
+    "validation_permission_id_required": "Permission IDs are required",
+    "validation_permission_id_invalid": "Invalid permission ID format"
   },
   "permissions": {
     "created": "Permission created successfully",
     "updated": "Permission updated successfully",
     "deleted": "Permission deleted successfully",
-    "not_found": "Permission not found"
+    "not_found": "Permission not found",
+    "already_exists": "Permission already exists",
+    "validation_name_required": "Permission name is required",
+    "validation_name_minLength": "Permission name must be at least 2 characters",
+    "validation_name_maxLength": "Permission name must not exceed 100 characters",
+    "validation_name_string": "Permission name must be a string",
+    "validation_identifier_required": "Permission identifier is required",
+    "validation_identifier_string": "Permission identifier must be a string",
+    "validation_identifier_unique": "Permission identifier already exists",
+    "validation_type_required": "Permission type is required",
+    "validation_type_invalid": "Invalid permission type",
+    "validation_isActive_invalid": "isActive must be a boolean"
   },
   "files": {
     "uploaded": "File uploaded successfully",
@@ -85,7 +215,10 @@
     "weak_password": "Password is too weak",
     "not_found": "Resource not found",
     "already_exists": "This resource already exists",
-    "invalid_type": "Invalid file type"
+    "invalid_type": "Invalid file type",
+    "comment_content_invalid": "Comment content must be between 1 and 5000 characters",
+    "comment_content_required": "Comment content is required",
+    "post_id_invalid": "Invalid post ID format"
   },
   "notifications": {
     "comment_created": "{0} commented on your post",
@@ -94,13 +227,71 @@
     "user_joined": "{0} joined the comments",
     "marked_read": "Notification marked as read",
     "all_marked_read": "All notifications marked as read",
-    "deleted": "Notification deleted successfully"
+    "deleted": "Notification deleted successfully",
+    "not_found": "Notification not found",
+    "validation_user_required": "User ID is required",
+    "validation_user_invalid": "Invalid user ID format",
+    "validation_type_required": "Notification type is required",
+    "validation_type_invalid": "Invalid notification type",
+    "validation_actor_required": "Actor ID is required",
+    "validation_actor_invalid": "Invalid actor ID format",
+    "validation_actorName_required": "Actor name is required",
+    "validation_actorName_invalid": "Actor name must be a string",
+    "validation_post_required": "Post ID is required",
+    "validation_post_invalid": "Invalid post ID format",
+    "validation_comment_invalid": "Invalid comment ID format",
+    "validation_parentComment_invalid": "Invalid parent comment ID format",
+    "validation_emoji_invalid": "Invalid emoji format",
+    "validation_message_required": "Message is required",
+    "validation_message_maxLength": "Message must not exceed 500 characters",
+    "toast": {
+      "now": "Now",
+      "close": "✕"
+    },
+    "types": {
+      "comment_created": "New comment",
+      "reply_created": "New reply",
+      "reaction_added": "New reaction",
+      "user_joined": "User joined"
+    },
+    "actions": {
+      "marked_read": "Notification marked as read",
+      "all_marked_read": "All notifications marked as read",
+      "deleted": "Notification deleted"
+    },
+    "alerts": {
+      "success": "Success",
+      "error": "Error",
+      "ok": "OK",
+      "accept": "Accept",
+      "understood": "Understood"
+    },
+    "ui_validation": {
+      "user_id_required": "User ID is required",
+      "type_required": "Notification type is required",
+      "actor_required": "Actor is required",
+      "post_required": "Post is required",
+      "message_required": "Message is required",
+      "message_max_length": "Message must not exceed 500 characters"
+    }
   },
   "categories": {
     "created": "Category created successfully",
     "updated": "Category updated successfully",
     "deleted": "Category deleted successfully",
-    "not_found": "Category not found"
+    "not_found": "Category not found",
+    "validation_name_required": "Name is required",
+    "validation_name_minLength": "Name must be at least 2 characters",
+    "validation_name_maxLength": "Name must not exceed 100 characters",
+    "validation_name_exists": "A category with this name already exists",
+    "validation_slug_required": "Slug is required",
+    "validation_slug_minLength": "Slug must be at least 2 characters",
+    "validation_slug_maxLength": "Slug must not exceed 100 characters",
+    "validation_slug_pattern": "Slug can only contain lowercase letters, numbers, and hyphens",
+    "validation_slug_exists": "A category with this slug already exists",
+    "validation_color_invalid": "Color must be a valid hex code (#RRGGBB or #RGB)",
+    "validation_description_maxLength": "Description must not exceed 500 characters",
+    "validation_cannot_delete_with_posts": "Cannot delete a category that has posts associated"
   },
   "audit": {
     "logged": "Audit entry recorded",
@@ -113,7 +304,13 @@
     "action_assign": "Assignment performed",
     "action_activate": "Resource activated",
     "action_deactivate": "Resource deactivated",
-    "permission_name": "Read Audits"
+    "permission_name": "Read Audits",
+    "validation_userIdRequired": "userId is required",
+    "validation_actionRequired": "action is required",
+    "validation_entityTypeRequired": "entityType is required",
+    "validation_entityIdRequired": "entityId is required",
+    "validation_ipAddressRequired": "ipAddress is required",
+    "validation_userAgentRequired": "userAgent is required"
   },
   "common": {
     "success": "Success",
@@ -127,5 +324,192 @@
     "created": "Created successfully",
     "updated": "Updated successfully",
     "deleted": "Deleted successfully"
+  },
+  "dashboard": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "posts": "Posts",
+      "roles": "Roles",
+      "permissions": "Permissions",
+      "comments": "Comments",
+      "files": "Files",
+      "profile": "Profile",
+      "audit_logs": "Audit Logs",
+      "logout": "Logout"
+    },
+    "navbar": {
+      "notifications": "Notifications",
+      "profile": "Profile"
+    },
+    "overview": {
+      "title": "Dashboard Overview",
+      "posts_total": "Posts Total",
+      "comments_total": "Comments",
+      "active_users": "Active Users",
+      "growth": "Growth",
+      "vs_last_month": "vs last month",
+      "trending_up": "Trending up"
+    },
+    "users": {
+      "title": "User Management",
+      "total_users": "Total Users",
+      "active": "Active",
+      "admins": "Administrators",
+      "suspended": "Suspended",
+      "create_button": "+ New User",
+      "edit_button": "Edit",
+      "create_title": "Create New User",
+      "edit_title": "Edit User",
+      "search_placeholder": "Search by name or email...",
+      "filter_all_roles": "All roles",
+      "filter_all_statuses": "All statuses",
+      "empty_state": "No users found matching the filters",
+      "status_updated": "User status updated successfully",
+      "status_error": "Error updating user status",
+      "delete_confirm": "Are you sure you want to delete this user?",
+      "deleted": "User deleted successfully",
+      "delete_error": "Error deleting user",
+      "edited": "User updated successfully"
+    },
+    "posts": {
+      "title": "Post Management",
+      "create_button": "+ New Post",
+      "search_placeholder": "Search by title or author...",
+      "total_posts": "Total Posts",
+      "published": "Published",
+      "drafts": "Drafts",
+      "empty_state": "No posts found matching the filters"
+    },
+    "roles": {
+      "title": "Role Management",
+      "create_button": "+ New Role",
+      "create_title": "Create New Role",
+      "edit_title": "Edit Role",
+      "search_placeholder": "Search roles...",
+      "total_roles": "Total Roles",
+      "empty_state": "No roles found",
+      "delete_confirm": "Are you sure you want to delete this role?",
+      "deleted": "Role deleted successfully"
+    },
+    "permissions": {
+      "title": "Permission Management",
+      "create_button": "+ New Permission",
+      "empty_state": "No permissions found"
+    },
+    "audit_logs": {
+      "title": "Audit Logs",
+      "search_placeholder": "Search user or path...",
+      "filter_all_actions": "All actions",
+      "filter_all_entities": "All entity types",
+      "clear_filters": "Clear filters",
+      "empty_state": "No audit log entries match the current filters",
+      "detail_modal": "Audit Log Detail",
+      "before": "Before",
+      "after": "After"
+    },
+    "forms": {
+      "name": "Name",
+      "lastname": "Last Name",
+      "username": "Username",
+      "email": "Email",
+      "password": "Password",
+      "type": "Type",
+      "role": "Role",
+      "title": "Title",
+      "body": "Body",
+      "category": "Category",
+      "permissions": "Permissions",
+      "action": "Action",
+      "cancel": "Cancel",
+      "save": "Save",
+      "update": "Update",
+      "create": "Create"
+    },
+    "validation": {
+      "required": "This field is required",
+      "email_invalid": "Invalid email format",
+      "min_length": "Minimum length is {count} characters",
+      "max_length": "Maximum length is {count} characters",
+      "password_min": "Password must be at least 8 characters"
+    },
+    "user_types": {
+      "admin": "Administrator",
+      "editor": "Editor",
+      "viewer": "Viewer"
+    },
+    "user_statuses": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "suspended": "Suspended"
+    },
+    "post_statuses": {
+      "published": "Published",
+      "draft": "Draft",
+      "archived": "Archived"
+    },
+    "audit_actions": {
+      "CREATE": "Create",
+      "UPDATE": "Update",
+      "DELETE": "Delete",
+      "LOGIN": "Login",
+      "LOGOUT": "Logout",
+      "ASSIGN": "Assign",
+      "ACTIVATE": "Activate",
+      "DEACTIVATE": "Deactivate"
+    }
+  },
+  "client": {
+    "my_posts": {
+      "title": "My Posts",
+      "empty": "You don't have any posts yet",
+      "create_button": "+ New Post",
+      "cancel_button": "Cancel",
+      "loading": "Loading your posts...",
+      "pagination_previous": "Previous",
+      "pagination_next": "Next"
+    },
+    "my_comments": {
+      "title": "My Comments",
+      "empty": "You haven't made any comments yet",
+      "loading": "Loading your comments...",
+      "delete_confirm": "Are you sure you want to delete this comment?"
+    },
+    "my_favorites": {
+      "title": "My Favorites",
+      "empty": "You don't have any favorite posts yet",
+      "loading": "Loading your favorites...",
+      "pagination_previous": "Previous",
+      "pagination_next": "Next"
+    },
+    "profile": {
+      "title": "My Profile",
+      "personal_info": "Personal Information",
+      "change_password": "Change Password",
+      "account_info": "Account Information",
+      "update_success": "Profile updated successfully",
+      "update_error": "Error updating profile",
+      "password_success": "Password changed successfully",
+      "password_error": "Error changing password",
+      "loading": "Loading your profile..."
+    },
+    "post_form": {
+      "create_title": "Create New Post",
+      "update_title": "Edit Post",
+      "title_label": "Post Title",
+      "body_label": "Post Content",
+      "category_label": "Category",
+      "create_button": "Create Post",
+      "update_button": "Update Post",
+      "cancel_button": "Cancel"
+    },
+    "validation": {
+      "post_title_min": "Post title must be at least 3 characters",
+      "post_body_min": "Post content must be at least 10 characters",
+      "password_min": "Password must be at least 8 characters",
+      "password_mismatch": "Passwords do not match",
+      "name_required": "Name is required",
+      "email_required": "Email is required"
+    }
   }
 }

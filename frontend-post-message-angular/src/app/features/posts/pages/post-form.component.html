@@ -1,0 +1,75 @@
+<div class="form-container">
+  <div class="form-header">
+    <h1>{{ isEditMode() ? ('posts.form.editTitle' | t) : ('posts.form.createTitle' | t) }}</h1>
+  </div>
+
+  @if (error()) {
+    <div class="form-error">
+      <p>{{ error() }}</p>
+    </div>
+  }
+
+  <form [formGroup]="postForm" (ngSubmit)="onSubmit()" class="post-form">
+    <div class="form-group">
+      <label for="title">{{ 'posts.form.titleLabel' | t }}</label>
+      <input
+        id="title"
+        type="text"
+        formControlName="title"
+        [placeholder]="'posts.form.titlePlaceholder' | t"
+        [attr.disabled]="isLoading() ? true : null"
+      />
+      @if (getFieldError('title')) {
+        <span class="error">{{ getFieldError('title') }}</span>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="content">{{ 'posts.form.contentLabel' | t }}</label>
+      <textarea
+        id="content"
+        formControlName="content"
+        [placeholder]="'posts.form.contentPlaceholder' | t"
+        rows="10"
+        [attr.disabled]="isLoading() ? true : null"
+      ></textarea>
+      @if (getFieldError('content')) {
+        <span class="error">{{ getFieldError('content') }}</span>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="status">{{ 'posts.form.statusLabel' | t }}</label>
+      <select
+        id="status"
+        formControlName="status"
+        [attr.disabled]="isLoading() ? true : null"
+      >
+        <option value="">{{ 'posts.form.statusDefault' | t }}</option>
+        @for (option of statusOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="tags">{{ 'posts.form.tagsLabel' | t }}</label>
+      <input
+        id="tags"
+        type="text"
+        formControlName="tags"
+        [placeholder]="'posts.form.tagsPlaceholder' | t"
+        [attr.disabled]="isLoading() ? true : null"
+      />
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="isLoading()">
+        {{ isLoading() ? ('posts.form.saving' | t) : ('posts.form.save' | t) }}
+      </button>
+      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isLoading()">
+        {{ 'posts.form.cancel' | t }}
+      </button>
+    </div>
+  </form>
+</div>

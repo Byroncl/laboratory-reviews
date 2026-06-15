@@ -1,0 +1,27 @@
+<div class="pagination-container">
+  <div class="pagination-info">
+    <span>{{ 'posts.pagination.info' | t }} {{ currentPage }} {{ 'posts.pagination.of' | t }} {{ totalPages }} ({{ pagination.total }} {{ 'posts.pagination.total' | t }})</span>
+  </div>
+
+  <div class="pagination-buttons">
+    <button
+      class="btn btn-secondary"
+      (click)="onPrevPage()"
+      [disabled]="!canGoPrev || isLoading"
+    >
+      {{ 'posts.pagination.previous' | t }}
+    </button>
+
+    <div class="page-indicator">
+      {{ currentPage }} / {{ totalPages }}
+    </div>
+
+    <button
+      class="btn btn-secondary"
+      (click)="onNextPage()"
+      [disabled]="!canGoNext || isLoading"
+    >
+      {{ 'posts.pagination.next' | t }}
+    </button>
+  </div>
+</div>

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from '../services/auth.service';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -14,7 +15,10 @@ describe('AuthController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
-      providers: [{ provide: AuthService, useValue: mockAuthService }],
+      providers: [
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: I18nService, useValue: { translate: jest.fn((key: string) => key) } },
+      ],
     })
       .overrideGuard(require('@nestjs/passport').AuthGuard('local'))
       .useValue({ canActivate: jest.fn().mockReturnValue(true) })

@@ -1,0 +1,42 @@
+<div class="post-card">
+  <div class="post-header">
+    <div class="post-info">
+      <h3 class="post-title">{{ post().title }}</h3>
+      <p class="post-author">Por: {{ post().author }}</p>
+      <p class="post-date">{{ post().createdAt | date: 'short' }}</p>
+    </div>
+    @if (post().imageUrl) {
+      <div class="post-image">
+        <img [src]="post().imageUrl" [alt]="post().title" />
+      </div>
+    }
+  </div>
+
+  <div class="post-body">
+    <p>{{ truncateBody(post().body) }}</p>
+  </div>
+
+  <div class="post-footer">
+    <div class="post-meta">
+      @if (post().categoryName) {
+        <span class="category">{{ post().categoryName }}</span>
+      }
+    </div>
+    <div class="post-actions">
+      <button class="btn btn-small btn-primary" (click)="onView()">Ver</button>
+      @if (showEditDelete()) {
+        <button class="btn btn-small btn-warning" (click)="onEdit()">Editar</button>
+        <button class="btn btn-small btn-danger" (click)="onDelete()">Eliminar</button>
+      }
+      @if (showFavorite()) {
+        <button
+          class="btn btn-small"
+          [class.btn-favorite]="isFavorite()"
+          (click)="onToggleFavorite()"
+        >
+          {{ isFavorite() ? '❤️' : '🤍' }}
+        </button>
+      }
+    </div>
+  </div>
+</div>

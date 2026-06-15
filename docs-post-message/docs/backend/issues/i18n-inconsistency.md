@@ -1,16 +1,16 @@
 ---
 sidebar_position: 4
-title: I18n Inconsistency Issue
-description: Two parallel i18n systems cause confusion
+title: Problema de Inconsistencia I18n
+description: Dos sistemas i18n paralelos generan confusión
 ---
 
-# I18n Inconsistency ⚠️
+# Inconsistencia I18n ⚠️
 
-## Problem
+## Problema
 
-The application has **two parallel i18n systems** that coexist:
+La aplicación tiene **dos sistemas i18n paralelos** que coexisten:
 
-### System 1: TranslationService (Singleton)
+### Sistema 1: TranslationService (Singleton)
 
 ```typescript
 // src/app/core/utils/translation.service.ts
@@ -24,20 +24,20 @@ export class TranslationService {
 
   translate(key: string, lang?: string, ...args: any[]) {
     const language = lang || this.language;
-    // Translate from loaded JSON
+    // Traducir desde JSON cargado
   }
 }
 
-// Global provider
+// Proveedor global
 {
   provide: 'TRANSLATION_SERVICE',
   useClass: TranslationService,
 }
 ```
 
-**Used by**: Guards, Filters, Gateway
+**Usado por**: Guards, Filtros, Gateway
 
-### System 2: I18nService (Request-Scoped)
+### Sistema 2: I18nService (Scoped por Petición)
 
 ```typescript
 // src/app/core/i18n/i18n.service.ts
@@ -49,59 +49,59 @@ export class I18nService {
 
   translate(key: string) {
     const language = this.request.headers['accept-language'];
-    // Translate from loaded JSON
+    // Traducir desde JSON cargado
   }
 }
 
-// Per-module provider
+// Proveedor por módulo
 {
   provide: I18nService,
   useClass: I18nService,
 }
 ```
 
-**Used by**: UsersModule, I18nModule
+**Usado por**: UsersModule, I18nModule
 
-## Problems
+## Problemas
 
-1. **Confusion** — Two services for same purpose
-2. **Inconsistency** — Guards/Filters use singleton, modules use request-scoped
-3. **Singleton doesn't get language** — `setLanguage()` never called, defaults to 'en'
-4. **Request-scoped not available in filters** — Filters can't inject REQUEST
+1. **Confusión** — Dos servicios para el mismo propósito
+2. **Inconsistencia** — Guards/Filtros usan singleton, módulos usan scoped por petición
+3. **El singleton no recibe el idioma** — `setLanguage()` nunca se llama, por defecto 'en'
+4. **El scoped por petición no está disponible en filtros** — Los filtros no pueden inyectar REQUEST
 
-## Impact
+## Impacto
 
-- **Error messages in wrong language** — All errors always in English
-- **Translation logic duplicated** — Both services load same JSON files
-- **Maintenance overhead** — Changes needed in two places
+- **Mensajes de error en el idioma incorrecto** — Todos los errores siempre en inglés
+- **Lógica de traducción duplicada** — Ambos servicios cargan los mismos archivos JSON
+- **Sobrecarga de mantenimiento** — Los cambios deben hacerse en dos lugares
 
-## Solution
+## Solución
 
-### Option A: Use Request-Scoped Everywhere
+### Opción A: Usar Scoped por Petición en Todas Partes
 
 ```typescript
-// Remove TranslationService entirely
-// Use I18nService everywhere
+// Eliminar TranslationService por completo
+// Usar I18nService en todas partes
 
-// In filters (use I18nMiddleware to ensure language is available)
+// En filtros (usar I18nMiddleware para asegurar que el idioma está disponible)
 @Catch()
 export class GlobalExceptionFilter {
   constructor(private i18nService: I18nService) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
-    // Can now use i18nService
+    // Ahora se puede usar i18nService
   }
 }
 ```
 
-**Pros**: Clean, request-aware
-**Cons**: Can't use in guards (guards are global)
+**Pros**: Limpio, consciente de la petición
+**Contras**: No se puede usar en guards (los guards son globales)
 
-### Option B: Use Singleton with Middleware
+### Opción B: Usar Singleton con Middleware
 
 ```typescript
-// Keep TranslationService as singleton
-// But have middleware set language before guards run
+// Mantener TranslationService como singleton
+// Pero hacer que el middleware establezca el idioma antes de que se ejecuten los guards
 
 @Injectable()
 export class I18nMiddleware implements NestMiddleware {
@@ -109,16 +109,16 @@ export class I18nMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction) {
     const language = req.headers['accept-language'] || 'en';
-    this.translationService.setLanguage(language);  // ✅ Set before handlers
+    this.translationService.setLanguage(language);  // ✅ Establecer antes de los manejadores
     next();
   }
 }
 ```
 
-**Pros**: Works in guards
-**Cons**: Less clean, mutable state
+**Pros**: Funciona en guards
+**Contras**: Menos limpio, estado mutable
 
-### Option C: Hybrid - I18nService with Fallback
+### Opción C: Híbrido - I18nService con Fallback
 
 ```typescript
 @Injectable()
@@ -130,17 +130,17 @@ export class I18nService {
 
   translate(key: string): string {
     try {
-      // Try request-scoped
+      // Intentar scoped por petición
       const language = this.request?.headers['accept-language'];
       return this.translationService.translate(key, language);
     } catch {
-      // Fallback to singleton
+      // Fallback al singleton
       return this.translationService.translate(key);
     }
   }
 }
 
-// In filters, use TranslationService directly
+// En filtros, usar TranslationService directamente
 @Catch()
 export class GlobalExceptionFilter {
   constructor(private translationService: TranslationService) {}
@@ -152,18 +152,18 @@ export class GlobalExceptionFilter {
 }
 ```
 
-**Pros**: Works everywhere, backward compatible
-**Cons**: Still two services
+**Pros**: Funciona en todas partes, compatible con versiones anteriores
+**Contras**: Siguen siendo dos servicios
 
-## Recommended Implementation
+## Implementación Recomendada
 
-1. **Keep TranslationService** (used by guards/filters)
-2. **Update I18nMiddleware** to set language before guards
-3. **Deprecate I18nService** in favor of TranslationService
-4. **Standardize usage** across all modules
+1. **Mantener TranslationService** (usado por guards/filtros)
+2. **Actualizar I18nMiddleware** para establecer el idioma antes de los guards
+3. **Deprecar I18nService** en favor de TranslationService
+4. **Estandarizar el uso** en todos los módulos
 
 ```typescript
-// Updated I18nMiddleware
+// I18nMiddleware actualizado
 @Injectable()
 export class I18nMiddleware implements NestMiddleware {
   constructor(private translationService: TranslationService) {}
@@ -171,22 +171,22 @@ export class I18nMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     const language = (req.headers['accept-language'] || 'en').substring(0, 2);
     this.translationService.setLanguage(language);
-    req['language'] = language;  // Also store on request for reference
+    req['language'] = language;  // También almacenar en la petición como referencia
     next();
   }
 }
 ```
 
-## Implementation Steps
+## Pasos de Implementación
 
-1. [ ] Decide on approach (A, B, or C)
-2. [ ] Consolidate service usage
-3. [ ] Update all modules to use single service
-4. [ ] Remove duplicate service
-5. [ ] Update tests
-6. [ ] Verify all error messages respect language
+1. [ ] Decidir el enfoque (A, B o C)
+2. [ ] Consolidar el uso del servicio
+3. [ ] Actualizar todos los módulos para usar un único servicio
+4. [ ] Eliminar el servicio duplicado
+5. [ ] Actualizar las pruebas
+6. [ ] Verificar que todos los mensajes de error respetan el idioma
 
-## Testing
+## Pruebas
 
 ```typescript
 it('should return error in Spanish', () => {
@@ -195,16 +195,16 @@ it('should return error in Spanish', () => {
     .set('Accept-Language', 'es')
     .expect(404);
 
-  expect(response.body.message).toContain('no encontrado');  // Spanish
+  expect(response.body.message).toContain('no encontrado');  // Español
 });
 ```
 
 ---
 
-**Severity**: 🟡 MEDIUM
-**Impact**: Confusing codebase, hard to maintain
-**Timeline**: Should be refactored in next sprint
+**Gravedad**: 🟡 MEDIA
+**Impacto**: Código confuso, difícil de mantener
+**Plazo**: Debería refactorizarse en el próximo sprint
 
 ---
 
-**Summary**: See [Known Issues Overview](./README.md)
+**Resumen**: Ver [Descripción General de Problemas Conocidos](./README.md)

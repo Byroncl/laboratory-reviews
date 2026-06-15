@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 import { AuthUser as User } from '../auth/models/auth.model';
 import { SidebarComponent } from '../../core/components/sidebar.component';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
-import { LanguageSelectorComponent } from './components/language-selector.component';
+import { LanguageSelectorComponent } from './components/language-selector/language-selector.component';
 
 @Component({
   selector: 'app-dashboard',

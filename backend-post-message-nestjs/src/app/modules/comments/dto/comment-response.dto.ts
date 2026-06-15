@@ -11,6 +11,20 @@ export class CommentMediaDto {
   filename: string;
 }
 
+export class ReactionCountDto {
+  @ApiProperty({ example: '👍' })
+  emoji: string;
+
+  @ApiProperty({ example: 5 })
+  count: number;
+
+  @ApiProperty({
+    type: [String],
+    example: ['user-1', 'user-2', 'user-3'],
+  })
+  users: string[];
+}
+
 export class CommentResponseDto {
   @ApiProperty({ example: '507f1f77bcf86cd799439011', description: 'Comment ID' })
   id: string;
@@ -52,4 +66,11 @@ export class CommentResponseDto {
 
   @ApiProperty({ example: '2024-01-01T00:00:00.000Z', description: 'Last update timestamp', required: false })
   updatedAt?: Date;
+
+  @ApiProperty({
+    type: [ReactionCountDto],
+    description: 'Reactions on this comment (when includeReactions=true)',
+    required: false,
+  })
+  reactions?: ReactionCountDto[];
 }

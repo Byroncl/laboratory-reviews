@@ -1,12 +1,12 @@
 ---
 sidebar_position: 4
-title: Validation Utilities
-description: Input validation helpers
+title: Utilidades de Validación
+description: Helpers de validación de entrada
 ---
 
-# Validation Utilities ✅
+# Utilidades de Validación ✅
 
-Shared validation logic for common checks.
+Lógica de validación compartida para comprobaciones comunes.
 
 ## ValidationUtils
 
@@ -32,7 +32,7 @@ export class ValidationUtils {
 }
 ```
 
-## Decorators
+## Decoradores
 
 ### @IsStrongPassword()
 
@@ -58,4 +58,4 @@ export function IsStrongPassword() {
 
 ---
 
-**Next**: [Database Relationships →](../database/relationships.md)
+**Siguiente**: [Relaciones de Base de Datos →](../database/relationships.md)

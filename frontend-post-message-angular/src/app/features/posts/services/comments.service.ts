@@ -1,82 +1,353 @@
-import { Injectable, signal } from '@angular/core';
+import { environment } from '../../../../environments/environment';
+import { Injectable, inject, signal, computed } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
-import { ApiService } from '../../../core/services/api.service';
-import { Comment, CreateCommentDto } from '../../../shared/models/comment.model';
+import { tap, catchError, retry, finalize, map } from 'rxjs/operators';
 
-@Injectable({ providedIn: 'root' })
+import {
+  IComment,
+  ICreateCommentDTO,
+  ICommentListResponse,
+  ICommentResponse,
+  ICommentFilters,
+  IPagination,
+} from '../interfaces';
+import { COMMENTS_PAGINATION_DEFAULTS, COMMENTS_API_ENDPOINTS } from '../constants';
+import { applyCommentFilters } from '../utils';
+import { getCommentId } from '../utils/entity-id.util';
+import {
+  calculateTotalPages,
+  calculateCurrentPage,
+  resetPagination,
+  canGoToNextPage,
+  canGoToPreviousPage,
+  getNextPageSkip,
+  getPreviousPageSkip,
+} from '../utils/pagination.util';
+
+@Injectable({
+  providedIn: 'root',
+})
 export class CommentsService {
-  readonly comments = signal<Comment[]>([]);
-  readonly loading = signal<boolean>(false);
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = environment.apiUrl;
+  private readonly retryAttempts = 2;
 
-  constructor(private api: ApiService) {}
+  // Signal-based state
+  private readonly comments$ = signal<IComment[]>([]);
+  private readonly loading$ = signal(false);
+  private readonly error$ = signal<string | null>(null);
+  private readonly pagination = signal<IPagination>({
+    skip: COMMENTS_PAGINATION_DEFAULTS.SKIP,
+    limit: COMMENTS_PAGINATION_DEFAULTS.LIMIT,
+    total: 0,
+  });
+  private readonly filters = signal<ICommentFilters>({});
 
-  private commentId(c: Comment): string {
-    return (c._id ?? c.id) as string;
+  // Public computed accessors
+  public readonly comments = computed(() => this.comments$());
+  public readonly isLoading = computed(() => this.loading$());
+  public readonly hasError = computed(() => this.error$() !== null);
+  public readonly errorMessage = computed(() => this.error$());
+  public readonly pagination$ = computed(() => this.pagination());
+  public readonly totalPages = computed(() =>
+    calculateTotalPages(this.pagination().total, this.pagination().limit),
+  );
+  public readonly currentPage = computed(() =>
+    calculateCurrentPage(this.pagination().skip, this.pagination().limit),
+  );
+  public readonly filteredComments = computed(() =>
+    applyCommentFilters(this.comments$(), this.filters()),
+  );
+
+  /**
+   * Load comments scoped to a specific post.
+   * postId is required — calling without it is a compile-time error.
+   */
+  public loadComments(postId: string, filters?: Omit<ICommentFilters, 'postId'>): Observable<ICommentListResponse> {
+    this.loading$.set(true);
+    this.error$.set(null);
+
+    const rawParams = this._buildLoadParams({ ...filters, postId });
+    let params = new HttpParams();
+    for (const [key, value] of Object.entries(rawParams)) {
+      if (value !== undefined && value !== null) {
+        params = params.set(key, String(value));
+      }
+    }
+
+    return this.http
+      .get<unknown>(`${this.baseUrl}${COMMENTS_API_ENDPOINTS.LIST}`, { params })
+      .pipe(
+        retry(this.retryAttempts),
+        map((raw) => this._adaptCommentListResponse(raw)),
+        tap((response) => this._handleLoadSuccess(response)),
+        catchError((err) => this._handleError(err, 'Failed to load comments')),
+        finalize(() => this.loading$.set(false)),
+      );
   }
 
-  getCommentsByPost(postId: string): Observable<{ data: Comment[]; message: string }> {
-    this.loading.set(true);
-    return this.api.get<{ data: Comment[]; message: string }>('/comments', { postId }).pipe(
-      tap(response => {
-        this.comments.set(response.data ?? []);
-        this.loading.set(false);
-      }),
-      catchError(err => {
-        this.loading.set(false);
-        return throwError(() => err);
-      })
+  /**
+   * Load comments scoped to a specific post — alias kept for backwards compatibility.
+   */
+  public loadCommentsByPost(
+    postId: string,
+    filters?: Omit<ICommentFilters, 'postId'>,
+  ): Observable<ICommentListResponse> {
+    return this.loadComments(postId, filters);
+  }
+
+  /**
+   * Returns the raw comment array for a given post.
+   * Calls GET /comments?postId={postId} and unwraps to IComment[].
+   */
+  public getCommentsByPostId(postId: string): Observable<IComment[]> {
+    return this.loadComments(postId).pipe(
+      map((response) => response.data),
     );
   }
 
-  createComment(dto: CreateCommentDto): Observable<{ data: Comment; message: string }> {
-    return this.api.post<{ data: Comment; message: string }>('/comments', dto).pipe(
-      tap(response => {
-        this.comments.set([...this.comments(), response.data]);
-      })
-    );
+  /**
+   * Create a new comment
+   */
+  public createComment(data: ICreateCommentDTO): Observable<ICommentResponse> {
+    this.loading$.set(true);
+    this.error$.set(null);
+
+    return this.http
+      .post<ICommentResponse>(`${this.baseUrl}${COMMENTS_API_ENDPOINTS.CREATE}`, data)
+      .pipe(
+        retry(this.retryAttempts),
+        tap((response) => this._handleCreateSuccess(response)),
+        catchError((err) => this._handleError(err, 'Failed to create comment')),
+        finalize(() => this.loading$.set(false)),
+      );
   }
 
-  updateComment(id: string, content: string): Observable<{ data: Comment; message: string }> {
-    return this.api.put<{ data: Comment; message: string }>(`/comments/${id}`, { content }).pipe(
-      tap(response => {
-        const index = this.comments().findIndex(c => this.commentId(c) === id);
-        if (index !== -1) {
-          const updated = [...this.comments()];
-          updated[index] = response.data;
-          this.comments.set(updated);
-        }
-      })
-    );
+  /**
+   * Update a comment
+   */
+  public updateComment(id: string, data: Partial<IComment>): Observable<ICommentResponse> {
+    this.loading$.set(true);
+    this.error$.set(null);
+
+    const url = `${this.baseUrl}${COMMENTS_API_ENDPOINTS.UPDATE.replace(':id', id)}`;
+
+    return this.http
+      .put<ICommentResponse>(url, data)
+      .pipe(
+        retry(this.retryAttempts),
+        tap((response) => this._handleUpdateSuccess(response)),
+        catchError((err) => this._handleError(err, 'Failed to update comment')),
+        finalize(() => this.loading$.set(false)),
+      );
   }
 
-  deleteComment(id: string): Observable<{ message: string }> {
-    return this.api.delete<{ message: string }>(`/comments/${id}`).pipe(
-      tap(() => {
-        this.comments.set(this.comments().filter(c => this.commentId(c) !== id));
-      })
-    );
+  /**
+   * Delete a comment
+   */
+  public deleteComment(id: string): Observable<any> {
+    this.loading$.set(true);
+    this.error$.set(null);
+
+    const url = `${this.baseUrl}${COMMENTS_API_ENDPOINTS.DELETE.replace(':id', id)}`;
+
+    return this.http
+      .delete<any>(url)
+      .pipe(
+        retry(this.retryAttempts),
+        tap(() => this._handleDeleteSuccess(id)),
+        catchError((err) => this._handleError(err, 'Failed to delete comment')),
+        finalize(() => this.loading$.set(false)),
+      );
   }
 
-  getReplies(commentId: string): Observable<{ data: Comment[]; message: string }> {
-    return this.api.get<{ data: Comment[]; message: string }>(`/comments/${commentId}/replies`);
+  /**
+   * Fetch all replies for a given comment.
+   * Calls GET /comments/:id/replies and returns the list response.
+   */
+  public getReplies(commentId: string): Observable<ICommentListResponse> {
+    const url = `${this.baseUrl}${COMMENTS_API_ENDPOINTS.REPLIES.replace(':id', commentId)}`;
+    return this.http
+      .get<ICommentListResponse>(url)
+      .pipe(
+        retry(this.retryAttempts),
+        catchError((err) => this._handleError(err, 'Failed to load replies')),
+      );
   }
 
-  createReply(parentCommentId: string, dto: CreateCommentDto): Observable<{ data: Comment; message: string }> {
-    return this.api.post<{ data: Comment; message: string }>(`/comments/${parentCommentId}/replies`, dto).pipe(
-      tap(response => {
-        const reply = response.data;
-        const parentIdx = this.comments().findIndex(c => this.commentId(c) === parentCommentId);
-        if (parentIdx !== -1) {
-          const updated = [...this.comments()];
-          const parent = { ...updated[parentIdx] };
-          parent.childCommentIds = [...(parent.childCommentIds ?? []), reply._id ?? reply.id ?? ''];
-          parent.replies = [...(parent.replies ?? []), reply];
-          parent.replyCount = (parent.replyCount ?? 0) + 1;
-          updated[parentIdx] = parent;
-          this.comments.set(updated);
-        }
-      })
+  /**
+   * Create a reply to a comment
+   */
+  public replyToComment(
+    commentId: string,
+    data: ICreateCommentDTO,
+  ): Observable<ICommentResponse> {
+    this.loading$.set(true);
+    this.error$.set(null);
+
+    const url = `${this.baseUrl}${COMMENTS_API_ENDPOINTS.REPLIES.replace(':id', commentId)}`;
+
+    return this.http
+      .post<ICommentResponse>(url, data)
+      .pipe(
+        retry(this.retryAttempts),
+        tap((response) => this._handleCreateSuccess(response)),
+        catchError((err) => this._handleError(err, 'Failed to reply to comment')),
+        finalize(() => this.loading$.set(false)),
+      );
+  }
+
+  /**
+   * Update the active filter state
+   */
+  public updateFilters(filters: ICommentFilters): void {
+    this.filters.set(filters);
+  }
+
+  /**
+   * Clear all active filters
+   */
+  public clearFilters(): void {
+    this.filters.set({});
+  }
+
+  /**
+   * Pagination: next page
+   */
+  public nextPage(): void {
+    if (canGoToNextPage(this.pagination())) {
+      const newSkip = getNextPageSkip(this.pagination());
+      this.pagination.set({ ...this.pagination(), skip: newSkip });
+    }
+  }
+
+  /**
+   * Pagination: previous page
+   */
+  public prevPage(): void {
+    if (canGoToPreviousPage(this.pagination())) {
+      const newSkip = getPreviousPageSkip(this.pagination());
+      this.pagination.set({ ...this.pagination(), skip: newSkip });
+    }
+  }
+
+  /**
+   * Clear all comments and reset pagination
+   */
+  public clearComments(): void {
+    this.comments$.set([]);
+    this.pagination.set(resetPagination(COMMENTS_PAGINATION_DEFAULTS.LIMIT));
+  }
+
+  // ─── Private helpers ────────────────────────────────────────────────────────
+
+  /**
+   * Adapts the raw backend response for GET /comments to ICommentListResponse.
+   *
+   * Backend shape: { statusCode, success, message, data: IComment[], timestamp }
+   * Frontend expected shape: { data: IComment[], pagination: { skip, limit, total }, message }
+   *
+   * The backend returns a flat Comment[] in data — no pagination envelope.
+   * We reconstruct pagination from the current signal so the shape contract is met.
+   */
+  private _adaptCommentListResponse(raw: unknown): ICommentListResponse {
+    const response = raw as Record<string, unknown>;
+
+    // Backend wraps everything in { data, statusCode, success, message, timestamp }
+    // data is either a Comment[] (flat list) or already has pagination structure
+    const inner = response?.['data'];
+    const message = typeof response?.['message'] === 'string' ? response['message'] : '';
+
+    if (Array.isArray(inner)) {
+      // Flat array — backend returned Comment[] directly in data
+      const currentPagination = this.pagination();
+      return {
+        data: inner as IComment[],
+        pagination: {
+          skip: currentPagination.skip,
+          limit: currentPagination.limit,
+          total: inner.length,
+        },
+        message,
+      };
+    }
+
+    if (inner && typeof inner === 'object' && Array.isArray((inner as Record<string, unknown>)['data'])) {
+      // Already in { data: IComment[], pagination: {...} } shape — pass through
+      return inner as ICommentListResponse;
+    }
+
+    // Unexpected shape — return empty safe fallback
+    console.error('[CommentsService] Unexpected response shape from GET /comments:', raw);
+    return {
+      data: [],
+      pagination: { skip: 0, limit: this.pagination().limit, total: 0 },
+      message,
+    };
+  }
+
+  private _buildLoadParams(filters?: ICommentFilters): Record<string, unknown> {
+    const params: Record<string, unknown> = {
+      skip: this.pagination().skip,
+      limit: this.pagination().limit,
+    };
+
+    if (filters?.searchTerm) params['search'] = filters.searchTerm;
+    if (filters?.author) params['author'] = filters.author;
+    if (filters?.postId) params['postId'] = filters.postId;
+    if (filters?.dateFrom) params['dateFrom'] = filters.dateFrom.toISOString();
+    if (filters?.dateTo) params['dateTo'] = filters.dateTo.toISOString();
+
+    return params;
+  }
+
+  private _handleLoadSuccess(response: ICommentListResponse): void {
+    this.comments$.set(response.data);
+    this.pagination.set({
+      skip: response.pagination.skip,
+      limit: response.pagination.limit,
+      total: response.pagination.total,
+    });
+    this.error$.set(null);
+  }
+
+  private _handleCreateSuccess(response: ICommentResponse): void {
+    this.comments$.set([response.data, ...this.comments$()]);
+    const current = this.pagination();
+    this.pagination.set({ ...current, total: current.total + 1 });
+    this.error$.set(null);
+  }
+
+  private _handleUpdateSuccess(response: ICommentResponse): void {
+    const updatedComment = response.data;
+    const updatedId = getCommentId(updatedComment);
+
+    if (!updatedId) return;
+
+    const updatedComments = this.comments$().map((comment) =>
+      getCommentId(comment) === updatedId ? updatedComment : comment,
     );
+
+    this.comments$.set(updatedComments);
+    this.error$.set(null);
+  }
+
+  private _handleDeleteSuccess(id: string): void {
+    const filtered = this.comments$().filter(
+      (comment) => getCommentId(comment) !== id,
+    );
+    this.comments$.set(filtered);
+
+    const current = this.pagination();
+    this.pagination.set({ ...current, total: Math.max(0, current.total - 1) });
+    this.error$.set(null);
+  }
+
+  private _handleError(error: any, defaultMessage: string): Observable<never> {
+    const errorMessage = error?.error?.message || error?.message || defaultMessage;
+    this.error$.set(errorMessage);
+    console.error('[CommentsService Error]', errorMessage, error);
+    return throwError(() => new Error(errorMessage));
   }
 }

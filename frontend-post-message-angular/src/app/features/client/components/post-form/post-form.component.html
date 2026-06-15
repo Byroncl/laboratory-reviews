@@ -1,0 +1,61 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="form-group">
+    <label for="title">{{ messages.TITLE_LABEL }}</label>
+    <input
+      id="title"
+      type="text"
+      formControlName="title"
+      [placeholder]="messages.TITLE_LABEL"
+      class="form-control"
+    />
+    @if (getFieldError('title')) {
+      <div class="error-message">
+        El título debe tener al menos {{ validation.POST.TITLE_MIN_LENGTH }} caracteres
+      </div>
+    }
+  </div>
+
+  <div class="form-group">
+    <label for="body">{{ messages.BODY_LABEL }}</label>
+    <textarea
+      id="body"
+      formControlName="body"
+      [placeholder]="messages.BODY_LABEL"
+      class="form-control"
+      rows="6"
+    ></textarea>
+    @if (getFieldError('body')) {
+      <div class="error-message">
+        El contenido debe tener al menos {{ validation.POST.BODY_MIN_LENGTH }} caracteres
+      </div>
+    }
+  </div>
+
+  <div class="form-group">
+    <label for="categoryId">{{ messages.CATEGORY_LABEL }}</label>
+    <input
+      id="categoryId"
+      type="text"
+      formControlName="categoryId"
+      [placeholder]="messages.CATEGORY_LABEL"
+      class="form-control"
+    />
+  </div>
+
+  <div class="button-group">
+    <button type="submit" class="btn btn-primary" [disabled]="form.invalid || isSubmitting$()">
+      @if (isSubmitting$()) {
+        Guardando...
+      } @else {
+        {{ (isEditing() ? messages.UPDATE_BUTTON : messages.CREATE_BUTTON) }}
+      }
+    </button>
+    <button type="button" class="btn btn-secondary" (click)="onCancel()">
+      {{ messages.CANCEL_BUTTON }}
+    </button>
+  </div>
+
+  @if (errorMessage$()) {
+    <div class="error-message">{{ errorMessage$() }}</div>
+  }
+</form>

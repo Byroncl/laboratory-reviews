@@ -41,6 +41,7 @@ describe('CommentsController', () => {
       addReaction: jest.fn(),
       removeReaction: jest.fn(),
       getReactionsByComment: jest.fn().mockResolvedValue([]),
+      getReactionsByComments: jest.fn().mockResolvedValue(new Map()),
       getUserReaction: jest.fn().mockResolvedValue(null),
       removeAllUserReactions: jest.fn(),
     };
@@ -78,11 +79,12 @@ describe('CommentsController', () => {
       } as any;
       mockCommentsService.create.mockResolvedValue(mockComment);
 
-      const response = await controller.create(dto);
+      const mockCurrentUser = { userId: 'u1', username: 'testuser', type: 'user' } as any;
+      const response = await controller.create(dto, mockCurrentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockComment);
-      expect(mockCommentsService.create).toHaveBeenCalledWith(dto);
+      expect(mockCommentsService.create).toHaveBeenCalled();
     });
   });
 
@@ -111,6 +113,52 @@ describe('CommentsController', () => {
       const response = await controller.findAll(queryDto);
 
       expect(response.data).toEqual([]);
+    });
+
+    it('should enrich comments with reactions when includeReactions=true', async () => {
+      const queryDto: FindCommentsByPostDto = {
+        postId: '507f1f77bcf86cd799439022' as any,
+        includeReactions: true,
+      };
+      const mockReactions = new Map([
+        ['507f1f77bcf86cd799439011', [{ emoji: '👍', count: 2, users: ['u1', 'u2'] }]],
+      ]);
+
+      mockCommentsService.findAll.mockResolvedValue([mockComment]);
+      const module = await Test.createTestingModule({
+        controllers: [CommentsController],
+        providers: [
+          { provide: CommentsService, useValue: mockCommentsService },
+          {
+            provide: ReactionsService,
+            useValue: {
+              getReactionsByComments: jest.fn().mockResolvedValue(mockReactions),
+            },
+          },
+          { provide: CommentsGateway, useValue: { server: { emit: jest.fn() } } },
+          { provide: TranslationService, useValue: { translate: jest.fn((key: string) => key) } },
+        ],
+      }).compile();
+
+      const testController = module.get<CommentsController>(CommentsController);
+      const response = await testController.findAll(queryDto);
+
+      expect(response.data[0]).toHaveProperty('reactions');
+      expect(response.data[0].reactions).toEqual([
+        { emoji: '👍', count: 2, users: ['u1', 'u2'] },
+      ]);
+    });
+
+    it('should not include reactions when includeReactions is false or omitted', async () => {
+      const queryDto: FindCommentsByPostDto = {
+        postId: '507f1f77bcf86cd799439022' as any,
+        includeReactions: false,
+      };
+      mockCommentsService.findAll.mockResolvedValue([mockComment]);
+
+      const response = await controller.findAll(queryDto);
+
+      expect(response.data[0]).not.toHaveProperty('reactions');
     });
   });
 

@@ -7,3 +7,4 @@ export * from './role.model';
 export * from './permission.model';
 export * from './file.model';
 export * from './audit-log.model';
+export * from './media-upload.model';

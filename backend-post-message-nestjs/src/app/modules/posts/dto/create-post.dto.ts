@@ -6,6 +6,10 @@ import {
   MinLength,
   MaxLength,
   IsMongoId,
+  IsEnum,
+  IsArray,
+  ArrayMaxSize,
+  ArrayUnique,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -73,4 +77,28 @@ export class CreatePostDto {
   @MinLength(1, { message: 'Category name cannot be empty' })
   @MaxLength(100, { message: 'Category name must not exceed 100 characters' })
   categoryName?: string;
+
+  @ApiPropertyOptional({
+    example: 'draft',
+    description: 'Post status',
+    enum: ['draft', 'published', 'archived'],
+  })
+  @IsOptional()
+  @IsEnum(['draft', 'published', 'archived'], {
+    message: 'Status must be one of: draft, published, archived',
+  })
+  status?: string;
+
+  @ApiPropertyOptional({
+    example: ['nestjs', 'typescript'],
+    description: 'Post tags (max 10, each max 30 characters)',
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray({ message: 'Tags must be an array' })
+  @ArrayMaxSize(10, { message: 'Tags must not exceed 10 items' })
+  @ArrayUnique({ message: 'Tags must be unique' })
+  @IsString({ each: true, message: 'Each tag must be a string' })
+  @MaxLength(30, { each: true, message: 'Each tag must not exceed 30 characters' })
+  tags?: string[];
 }

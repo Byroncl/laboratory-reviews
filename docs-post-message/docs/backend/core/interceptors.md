@@ -1,16 +1,16 @@
 ---
 sidebar_position: 2
-title: Interceptors
-description: Response transformation and logging
+title: Interceptores
+description: Transformación de respuestas y logging
 ---
 
-# Interceptors 🔄
+# Interceptores 🔄
 
-Interceptors transform responses and can log requests/responses.
+Los interceptores transforman respuestas y pueden registrar peticiones/respuestas.
 
 ## TransformInterceptor
 
-Wraps all API responses in a consistent envelope:
+Envuelve todas las respuestas de la API en un envelope consistente:
 
 ```typescript
 @Injectable()
@@ -28,12 +28,12 @@ export class TransformInterceptor implements NestInterceptor {
 }
 ```
 
-**Global Registration**:
+**Registro Global**:
 ```typescript
 app.useGlobalInterceptors(new TransformInterceptor());
 ```
 
-**Response Example**:
+**Ejemplo de Respuesta**:
 ```json
 {
   "statusCode": 200,
@@ -43,9 +43,9 @@ app.useGlobalInterceptors(new TransformInterceptor());
 }
 ```
 
-## LoggingInterceptor (Optional)
+## LoggingInterceptor (Opcional)
 
-Log all requests and responses:
+Registrar todas las peticiones y respuestas:
 
 ```typescript
 @Injectable()
@@ -68,4 +68,4 @@ export class LoggingInterceptor implements NestInterceptor {
 
 ---
 
-**Next**: [Filters →](./filters.md)
+**Siguiente**: [Filtros →](./filters.md)

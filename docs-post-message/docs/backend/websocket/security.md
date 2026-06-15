@@ -1,69 +1,69 @@
 ---
 sidebar_position: 2
-title: WebSocket Security
-description: Security concerns and improvements
+title: Seguridad WebSocket
+description: Problemas de seguridad y mejoras
 ---
 
-# WebSocket Security ⚠️
+# Seguridad WebSocket ⚠️
 
-## Current Issues
+## Problemas Actuales
 
-### 1. No Authentication on Mutations
+### 1. Sin Autenticación en Mutaciones
 
-The gateway doesn't verify JWT tokens on create/update/delete events:
+El gateway no verifica tokens JWT en los eventos de creación/actualización/eliminación:
 
 ```typescript
 @SubscribeMessage('comment:create')
 async handleCreateComment(
   @MessageBody() data: CreateCommentDto,
-  // ⚠️ No user verification
+  // ⚠️ Sin verificación de usuario
 ) {
   const comment = await this.commentsService.createComment(data);
   this.server.emit('comment:created', comment);
 }
 ```
 
-**Risk**: Any connected client can create/modify/delete comments
+**Riesgo**: Cualquier cliente conectado puede crear/modificar/eliminar comentarios
 
-### 2. WsAuthGuard Defined but Unused
+### 2. WsAuthGuard Definido pero Sin Uso
 
-The guard exists but isn't applied:
+El guard existe pero no se aplica:
 
 ```typescript
-// In ws-auth.guard.ts
+// En ws-auth.guard.ts
 @Injectable()
 export class WsAuthGuard implements CanActivate {
-  // Verifies JWT from handshake
+  // Verifica JWT del handshake
 }
 
-// But CommentsGateway doesn't use it
+// Pero CommentsGateway no lo usa
 ```
 
-### 3. In-Memory User Tracking
+### 3. Seguimiento de Usuarios en Memoria
 
-User presence is stored in memory and lost on server restart:
+La presencia del usuario se almacena en memoria y se pierde al reiniciar el servidor:
 
 ```typescript
 private userConnections: Map<string, { userId: string; username: string }> = new Map();
-// ⚠️ No persistence, vulnerable to spoofing
+// ⚠️ Sin persistencia, vulnerable a suplantación
 ```
 
-## Recommended Fixes
+## Correcciones Recomendadas
 
-### 1. Enable WsAuthGuard
+### 1. Habilitar WsAuthGuard
 
 ```typescript
 @WebSocketGateway({
   namespace: '/comments',
   cors: { origin: '*' },
 })
-@UseGuards(WsAuthGuard)  // ✅ Add this
+@UseGuards(WsAuthGuard)  // ✅ Agregar esto
 export class CommentsGateway {
   // ...
 }
 ```
 
-### 2. Verify User on Events
+### 2. Verificar Usuario en Eventos
 
 ```typescript
 @SubscribeMessage('comment:create')
@@ -71,13 +71,13 @@ async handleCreateComment(
   @MessageBody() data: CreateCommentDto,
   @ConnectedSocket() client: Socket,
 ) {
-  // ✅ Verify user from JWT
+  // ✅ Verificar usuario del JWT
   const user = client.handshake.user;
   if (!user) {
     throw new UnauthorizedException();
   }
 
-  // Verify user has permission
+  // Verificar que el usuario tiene permiso
   const hasPermission = user.role.permissions.some(
     p => p.identifier === 'comments:create'
   );
@@ -85,17 +85,17 @@ async handleCreateComment(
     throw new ForbiddenException();
   }
 
-  // Create with verified user
+  // Crear con usuario verificado
   const comment = await this.commentsService.createComment({
     ...data,
-    userId: user.userId,  // Use authenticated user
+    userId: user.userId,  // Usar usuario autenticado
   });
   
   this.server.emit('comment:created', comment);
 }
 ```
 
-### 3. Add Rate Limiting
+### 3. Agregar Rate Limiting
 
 ```typescript
 import { createClient } from 'redis';
@@ -109,18 +109,18 @@ export class RateLimitService {
     const count = await this.redis.incr(key);
     
     if (count === 1) {
-      await this.redis.expire(key, 60);  // Reset every minute
+      await this.redis.expire(key, 60);  // Resetear cada minuto
     }
 
-    return count <= 10;  // Max 10 per minute
+    return count <= 10;  // Máximo 10 por minuto
   }
 }
 ```
 
-### 4. Persistent User Sessions
+### 4. Sesiones de Usuario Persistentes
 
 ```typescript
-// Use Redis instead of Map
+// Usar Redis en lugar de Map
 @Injectable()
 export class UserSessionService {
   constructor(private redis: Redis) {}
@@ -128,7 +128,7 @@ export class UserSessionService {
   async registerUser(socketId: string, userId: string, username: string) {
     await this.redis.setex(
       `socket:${socketId}`,
-      3600,  // 1 hour expiry
+      3600,  // Expiración de 1 hora
       JSON.stringify({ userId, username })
     );
   }
@@ -140,16 +140,16 @@ export class UserSessionService {
 }
 ```
 
-## Checklist
+## Lista de Verificación
 
-- [ ] Apply `WsAuthGuard` to CommentsGateway
-- [ ] Verify JWT on all mutation events
-- [ ] Implement rate limiting
-- [ ] Use Redis for user sessions
-- [ ] Add permission checks for each event
-- [ ] Log security events
-- [ ] Add CORS origin whitelist
+- [ ] Aplicar `WsAuthGuard` a CommentsGateway
+- [ ] Verificar JWT en todos los eventos de mutación
+- [ ] Implementar rate limiting
+- [ ] Usar Redis para sesiones de usuario
+- [ ] Agregar comprobaciones de permisos para cada evento
+- [ ] Registrar eventos de seguridad
+- [ ] Agregar lista blanca de orígenes CORS
 
 ---
 
-**Next**: [Known Issues →](../issues/hardcoded-secrets.md)
+**Siguiente**: [Problemas Conocidos →](../issues/hardcoded-secrets.md)

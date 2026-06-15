@@ -1,16 +1,16 @@
 ---
 sidebar_position: 1
 title: Guards
-description: Route protection with auth and permissions
+description: Protección de rutas con autenticación y permisos
 ---
 
 # Guards 🔐
 
-Guards protect routes by verifying authentication and authorization before allowing access.
+Los guards protegen las rutas verificando la autenticación y autorización antes de permitir el acceso.
 
-## AuthGuard (Core)
+## AuthGuard (Principal)
 
-The main authentication guard for the application.
+El guard de autenticación principal de la aplicación.
 
 ```typescript
 @Injectable()
@@ -36,7 +36,7 @@ export class AuthGuard implements CanActivate {
       const payload = this.jwtService.verify(token);
       request.user = payload;
       
-      // Check @Auth() decorator for required roles
+      // Comprobar el decorador @Auth() para roles requeridos
       const requiredRoles = Reflect.getMetadata(AUTH_KEY, context.getHandler());
       if (requiredRoles && !requiredRoles.includes(payload.type)) {
         throw new ForbiddenException('Insufficient permissions');
@@ -50,9 +50,9 @@ export class AuthGuard implements CanActivate {
 }
 ```
 
-**Location**: `src/app/core/guards/auth.guard.ts`
+**Ubicación**: `src/app/core/guards/auth.guard.ts`
 
-**Global Registration**:
+**Registro Global**:
 ```typescript
 @Module({
   providers: [
@@ -67,7 +67,7 @@ export class AppModule {}
 
 ## PermissionsGuard
 
-Enforces role-based permission checks:
+Aplica comprobaciones de permisos basadas en roles:
 
 ```typescript
 @Injectable()
@@ -104,11 +104,11 @@ export class PermissionsGuard implements CanActivate {
 }
 ```
 
-**Location**: `src/app/core/guards/permissions.guard.ts`
+**Ubicación**: `src/app/core/guards/permissions.guard.ts`
 
 ## WsAuthGuard (WebSocket)
 
-Verifies JWT tokens for WebSocket connections.
+Verifica tokens JWT para conexiones WebSocket.
 
 ```typescript
 @Injectable()
@@ -136,13 +136,13 @@ export class WsAuthGuard implements CanActivate {
 }
 ```
 
-**Location**: `src/app/core/guards/ws-auth.guard.ts`
+**Ubicación**: `src/app/core/guards/ws-auth.guard.ts`
 
-⚠️ **Currently unused** — CommentsGateway doesn't apply this guard.
+⚠️ **Actualmente sin uso** — CommentsGateway no aplica este guard.
 
-## JwtAuthGuard (Legacy)
+## JwtAuthGuard (Legado)
 
-Passport-based JWT guard (coexists with core AuthGuard):
+Guard JWT basado en Passport (coexiste con el AuthGuard principal):
 
 ```typescript
 @Injectable()
@@ -153,82 +153,82 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 }
 ```
 
-**Location**: `src/app/modules/auth/guards/jwt-auth.guard.ts`
+**Ubicación**: `src/app/modules/auth/guards/jwt-auth.guard.ts`
 
-⚠️ **Deprecated** — Use core AuthGuard with @Auth() instead
+⚠️ **Deprecado** — Usar el AuthGuard principal con @Auth() en su lugar
 
-## Using Guards
+## Uso de Guards
 
-### With @Auth() Decorator
+### Con el Decorador @Auth()
 
 ```typescript
 @Controller('users')
 export class UsersController {
   @Get('profile')
-  @Auth()  // Protected - requires any authenticated user
+  @Auth()  // Protegido - requiere cualquier usuario autenticado
   getProfile(@CurrentUser() user: CurrentUserPayload) {
     return user;
   }
 
   @Get('admin')
-  @Auth({ roles: ['admin'] })  // Protected - admin only
+  @Auth({ roles: ['admin'] })  // Protegido - solo admin
   getAdmin() {
     return { admin: true };
   }
 
   @Get('public')
-  // No @Auth() - publicly accessible
+  // Sin @Auth() - acceso público
   getPublic() {
     return { message: 'Public' };
   }
 }
 ```
 
-### With @HasPermission() Decorator
+### Con el Decorador @HasPermission()
 
 ```typescript
 @Controller('posts')
 export class PostsController {
   @Delete(':id')
   @Auth()
-  @HasPermission('posts:delete')  // Check permission
+  @HasPermission('posts:delete')  // Comprobar permiso
   deletePost(@Param('id') id: string) {
     return this.postsService.deletePost(id);
   }
 }
 ```
 
-## Guard Execution Order
+## Orden de Ejecución de Guards
 
 ```mermaid
 graph TB
-    Request["HTTP Request"]
+    Request["Petición HTTP"]
     GlobalGuards["APP_GUARD<br/>AuthGuard"]
-    RouteGuards["Route Guards<br/>@UseGuards()"]
-    Handler["Route Handler"]
+    RouteGuards["Guards de Ruta<br/>@UseGuards()"]
+    Handler["Manejador de Ruta"]
     
     Request --> GlobalGuards
-    GlobalGuards -->|✅ Passed| RouteGuards
-    GlobalGuards -->|❌ Failed| Unauthorized["401 Unauthorized"]
-    RouteGuards -->|✅ Passed| Handler
-    RouteGuards -->|❌ Failed| Forbidden["403 Forbidden"]
+    GlobalGuards -->|✅ Pasado| RouteGuards
+    GlobalGuards -->|❌ Fallido| Unauthorized["401 No Autorizado"]
+    RouteGuards -->|✅ Pasado| Handler
+    RouteGuards -->|❌ Fallido| Forbidden["403 Prohibido"]
 ```
 
-## Example: Protected Endpoint
+## Ejemplo: Endpoint Protegido
 
 ```typescript
-// Request
+// Petición
 GET /users/123
 Authorization: Bearer eyJhbGc...
 
-// AuthGuard Processing
-1. Extract token from header ✅
-2. Verify JWT signature ✅
-3. Check @Auth() metadata ✅
-4. Attach user to request ✅
-5. Pass to handler
+// Procesamiento de AuthGuard
+1. Extraer token del header ✅
+2. Verificar firma JWT ✅
+3. Comprobar metadatos @Auth() ✅
+4. Adjuntar usuario a la petición ✅
+5. Pasar al manejador
 
-// Response
+// Respuesta
 {
   "statusCode": 200,
   "data": { "id": "123", "username": "john" },
@@ -236,7 +236,7 @@ Authorization: Bearer eyJhbGc...
 }
 ```
 
-## Error Responses
+## Respuestas de Error
 
 ```json
 {
@@ -258,4 +258,4 @@ Authorization: Bearer eyJhbGc...
 
 ---
 
-**Next**: [Interceptors →](./interceptors.md)
+**Siguiente**: [Interceptores →](./interceptors.md)

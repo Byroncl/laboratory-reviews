@@ -141,13 +141,14 @@ describe('PostsController', () => {
   describe('create', () => {
     it('should create a post and return wrapped response', async () => {
       const dto: CreatePostDto = { title: 'Test Post', content: 'Test content' };
+      const currentUser = { userId: 'u1', username: 'testuser', type: 'user' } as any;
       mockPostsService.create.mockResolvedValue(mockPost);
 
-      const response = await controller.create(dto);
+      const response = await controller.create(dto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockPost);
-      expect(mockPostsService.create).toHaveBeenCalledWith(dto);
+      expect(mockPostsService.create).toHaveBeenCalledWith(dto, 'u1');
     });
 
     it('should create a post with imageUrl', async () => {
@@ -157,20 +158,22 @@ describe('PostsController', () => {
         imageUrl: 'http://localhost:9000/posts/photo.jpg',
         imageFilename: 'photo.jpg',
       };
+      const currentUser = { userId: 'u1', username: 'testuser', type: 'user' } as any;
       mockPostsService.create.mockResolvedValue(mockPostWithImage);
 
-      const response = await controller.create(dto);
+      const response = await controller.create(dto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockPostWithImage);
-      expect(mockPostsService.create).toHaveBeenCalledWith(dto);
+      expect(mockPostsService.create).toHaveBeenCalledWith(dto, 'u1');
     });
 
     it('should create a post without image', async () => {
       const dto: CreatePostDto = { title: 'No Image Post', content: 'Content' };
+      const currentUser = { userId: 'u1', username: 'testuser', type: 'user' } as any;
       mockPostsService.create.mockResolvedValue(mockPost);
 
-      const response = await controller.create(dto);
+      const response = await controller.create(dto, currentUser);
 
       expect(response.success).toBe(true);
       expect(response.data).not.toHaveProperty('imageUrl');
@@ -210,7 +213,7 @@ describe('PostsController', () => {
       const response = await controller.update(findOneDto, dto, currentUser);
 
       expect(response.success).toBe(true);
-      expect(response.data.imageUrl).toBe('http://localhost:9000/posts/new.jpg');
+      expect(response.data!.imageUrl).toBe('http://localhost:9000/posts/new.jpg');
     });
   });
 

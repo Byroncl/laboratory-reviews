@@ -1,27 +1,27 @@
 ---
 sidebar_position: 4
-title: Comments Module
-description: Comments with real-time WebSocket support
+title: Módulo Comments
+description: Comentarios con soporte WebSocket en tiempo real
 ---
 
-# Comments Module 💬
+# Módulo Comments 💬
 
-Manages post comments with real-time updates via Socket.IO WebSocket gateway.
+Gestiona los comentarios de posts con actualizaciones en tiempo real mediante el gateway WebSocket de Socket.IO.
 
-## Overview
+## Descripción General
 
 ```mermaid
 graph TB
     subgraph "HTTP"
-        Controller["CommentsController<br/>CRUD REST endpoints"]
+        Controller["CommentsController<br/>Endpoints REST CRUD"]
     end
     
     subgraph "WebSocket"
-        Gateway["CommentsGateway<br/>Real-time events"]
+        Gateway["CommentsGateway<br/>Eventos en tiempo real"]
     end
     
-    Service["CommentsService<br/>Business logic"]
-    Model["Comment Mongoose Model"]
+    Service["CommentsService<br/>Lógica de negocio"]
+    Model["Modelo Mongoose de Comment"]
     
     Controller --> Service
     Gateway --> Service
@@ -56,7 +56,7 @@ export class Comment {
 }
 ```
 
-## REST Controller
+## Controlador REST
 
 ```typescript
 @Controller('comments')
@@ -93,7 +93,7 @@ export class CommentsController {
 }
 ```
 
-## WebSocket Gateway
+## Gateway WebSocket
 
 ```typescript
 @WebSocketGateway({
@@ -185,33 +185,33 @@ export class CommentsGateway
 }
 ```
 
-## Socket Events
+## Eventos del Socket
 
-### Client → Server
+### Cliente → Servidor
 
-| Event | Payload | Purpose |
+| Evento | Payload | Propósito |
 |-------|---------|---------|
-| `user:register` | `{ userId, username }` | Register user presence |
-| `comment:create` | `CreateCommentDto` | Create comment |
-| `comment:update` | `{ id, body }` | Update comment |
-| `comment:delete` | `id: string` | Delete comment |
-| `comments:list` | `postId: string` | Fetch all comments for post |
-| `comment:typing` | `{ username }` | User started typing |
-| `comment:typing:stop` | `{ username }` | User stopped typing |
+| `user:register` | `{ userId, username }` | Registrar presencia del usuario |
+| `comment:create` | `CreateCommentDto` | Crear comentario |
+| `comment:update` | `{ id, body }` | Actualizar comentario |
+| `comment:delete` | `id: string` | Eliminar comentario |
+| `comments:list` | `postId: string` | Obtener todos los comentarios del post |
+| `comment:typing` | `{ username }` | Usuario comenzó a escribir |
+| `comment:typing:stop` | `{ username }` | Usuario dejó de escribir |
 
-### Server → Client
+### Servidor → Cliente
 
-| Event | Payload | Purpose |
+| Evento | Payload | Propósito |
 |-------|---------|---------|
-| `comment:created` | `Comment` | New comment created |
-| `comment:updated` | `Comment` | Comment updated |
-| `comment:deleted` | `id: string` | Comment deleted |
-| `comments:list` | `Comment[]` | Comments list response |
-| `users:connected` | `{ userId, username }[]` | Connected users list |
-| `comment:typing` | `{ username }` | User is typing |
-| `comment:typing:stop` | `{ username }` | User stopped typing |
+| `comment:created` | `Comment` | Nuevo comentario creado |
+| `comment:updated` | `Comment` | Comentario actualizado |
+| `comment:deleted` | `id: string` | Comentario eliminado |
+| `comments:list` | `Comment[]` | Respuesta con lista de comentarios |
+| `users:connected` | `{ userId, username }[]` | Lista de usuarios conectados |
+| `comment:typing` | `{ username }` | Usuario está escribiendo |
+| `comment:typing:stop` | `{ username }` | Usuario dejó de escribir |
 
-## Service
+## Servicio
 
 ```typescript
 @Injectable()
@@ -222,7 +222,7 @@ export class CommentsService {
   ) {}
 
   async createComment(createCommentDto: CreateCommentDto) {
-    // Verify post exists
+    // Verificar que el post existe
     await this.postsService.findById(createCommentDto.postId);
 
     const comment = new this.commentModel(createCommentDto);
@@ -284,7 +284,7 @@ export class UpdateCommentDto {
 }
 ```
 
-## Client Example (Angular)
+## Ejemplo de Cliente (Angular)
 
 ```typescript
 import { Socket, io } from 'socket.io-client';
@@ -322,28 +322,28 @@ export class CommentsService {
 }
 ```
 
-## REST Endpoints
+## Endpoints REST
 
-| Endpoint | Method | Auth | Purpose |
+| Endpoint | Método | Auth | Propósito |
 |----------|--------|------|---------|
-| `/comments` | POST | ❌ | Create comment |
-| `/comments/post/:postId` | GET | ❌ | Get comments for post |
-| `/comments/:id` | GET | ❌ | Get comment by ID |
-| `/comments/:id` | PATCH | ❌ | Update comment |
-| `/comments/:id` | DELETE | ❌ | Delete comment |
+| `/comments` | POST | ❌ | Crear comentario |
+| `/comments/post/:postId` | GET | ❌ | Obtener comentarios del post |
+| `/comments/:id` | GET | ❌ | Obtener comentario por ID |
+| `/comments/:id` | PATCH | ❌ | Actualizar comentario |
+| `/comments/:id` | DELETE | ❌ | Eliminar comentario |
 
-## Security Concerns ⚠️
+## Problemas de Seguridad ⚠️
 
-1. **No authentication on WebSocket**: The gateway doesn't verify JWT tokens
-2. **In-memory user tracking**: User presence is stored in memory and lost on reconnect
-3. **No authorization checks**: Any connected user can create/update/delete comments
+1. **Sin autenticación en WebSocket**: El gateway no verifica tokens JWT
+2. **Seguimiento de usuarios en memoria**: La presencia del usuario se almacena en memoria y se pierde al reconectar
+3. **Sin comprobaciones de autorización**: Cualquier cliente conectado puede crear/actualizar/eliminar comentarios
 
-See [WebSocket Security Issues](../websocket/security.md)
+Ver [Problemas de Seguridad WebSocket](../websocket/security.md)
 
-## Architecture Note
+## Nota Arquitectónica
 
-Like Posts, this module uses flat Service → Model pattern. Consider refactoring to Clean Architecture for consistency.
+Como Posts, este módulo usa el patrón Servicio → Modelo plano. Considerar refactorizar a Arquitectura Limpia para consistencia.
 
 ---
 
-**Next**: [Files Module →](./files.md)
+**Siguiente**: [Módulo Files →](./files.md)

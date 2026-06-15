@@ -63,9 +63,9 @@ describe('NotificationsController', () => {
       };
       mockService.getByUser.mockResolvedValue(payload as any);
 
-      const result = await controller.getNotifications(mockUser, { page: 1, limit: 10 });
+      const result = await controller.getNotifications(mockUser, { skip: 0, limit: 10 } as any);
 
-      expect(mockService.getByUser).toHaveBeenCalledWith('user-1', { page: 1, limit: 10 });
+      expect(mockService.getByUser).toHaveBeenCalledWith('user-1', { skip: 0, limit: 10 });
       expect(result.data).toEqual(payload);
       expect(result.success).toBe(true);
     });
@@ -73,9 +73,9 @@ describe('NotificationsController', () => {
     it('should pass userId from current user to service', async () => {
       mockService.getByUser.mockResolvedValue({ items: [], total: 0, unread: 0 });
 
-      await controller.getNotifications({ userId: 'user-42', username: 'bob', type: 'user' }, {});
+      await controller.getNotifications({ userId: 'user-42', username: 'bob', type: 'user' }, { skip: 0, limit: 10 } as any);
 
-      expect(mockService.getByUser).toHaveBeenCalledWith('user-42', {});
+      expect(mockService.getByUser).toHaveBeenCalledWith('user-42', { skip: 0, limit: 10 });
     });
   });
 

@@ -14,6 +14,7 @@ import { PostDetailComponent } from './features/posts/pages/post-detail.componen
 import { authGuard } from './core/guards/auth.guard';
 import { postsRoutes } from './features/posts/posts.routes';
 import { profileRoutes } from './features/profile/profile.routes';
+import { CLIENT_ROUTES } from './features/client/client.routes';
 
 export const routes: Routes = [
   // Public routes (no authGuard)
@@ -29,6 +30,11 @@ export const routes: Routes = [
     path: 'auth',
     component: AuthComponent,
     children: authRoutes,
+  },
+  {
+    path: 'client',
+    canActivate: [authGuard],
+    children: CLIENT_ROUTES,
   },
   {
     path: 'dashboard',

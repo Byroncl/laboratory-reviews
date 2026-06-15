@@ -1,5 +1,19 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+export class CategoryDataDto {
+  @ApiProperty({ example: '507f1f77bcf86cd799439011', description: 'Category ID' })
+  _id: string;
+
+  @ApiProperty({ example: 'Technology', description: 'Category name' })
+  name: string;
+
+  @ApiProperty({ example: 'technology', description: 'Category slug' })
+  slug: string;
+
+  @ApiProperty({ example: '#3B82F6', description: 'Category color (hex)' })
+  color: string;
+}
+
 export class PostResponseDto {
   @ApiProperty({ example: '507f1f77bcf86cd799439011', description: 'Post ID' })
   id: string;
@@ -24,4 +38,10 @@ export class PostResponseDto {
     description: 'MinIO filename of the post image',
   })
   imageFilename?: string;
+
+  @ApiPropertyOptional({
+    type: CategoryDataDto,
+    description: 'Populated category data with color and metadata',
+  })
+  categoryId?: CategoryDataDto;
 }

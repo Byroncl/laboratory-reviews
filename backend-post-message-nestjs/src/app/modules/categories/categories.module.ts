@@ -1,9 +1,21 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Category, CategorySchema } from './schemas/category.schema';
-import { CategoriesService } from './services/categories.service';
 import { CategoriesController } from './controllers/categories.controller';
-import { TranslationService } from '../../core/utils/translation.service';
+import { CategoriesService } from './services/categories.service';
+import { CategoryRepository } from './infrastructure/repositories/category.repository';
+import { CategoryMapper } from './infrastructure/mappers/category.mapper';
+import {
+  CreateCategoryUseCase,
+  GetCategoryByIdUseCase,
+  GetCategoryBySlugUseCase,
+  GetAllCategoriesUseCase,
+  GetActiveCategoriesUseCase,
+  UpdateCategoryUseCase,
+  DeleteCategoryUseCase,
+  BulkCreateCategoriesUseCase,
+  CategoryUseCaseFactory,
+} from './application/use-cases/category.use-cases';
 
 @Module({
   imports: [
@@ -12,7 +24,20 @@ import { TranslationService } from '../../core/utils/translation.service';
     ]),
   ],
   controllers: [CategoriesController],
-  providers: [CategoriesService, TranslationService],
-  exports: [CategoriesService],
+  providers: [
+    CategoriesService,
+    CategoryMapper,
+    CategoryRepository,
+    CreateCategoryUseCase,
+    GetCategoryByIdUseCase,
+    GetCategoryBySlugUseCase,
+    GetAllCategoriesUseCase,
+    GetActiveCategoriesUseCase,
+    UpdateCategoryUseCase,
+    DeleteCategoryUseCase,
+    BulkCreateCategoriesUseCase,
+    CategoryUseCaseFactory,
+  ],
+  exports: [CategoriesService, CategoryRepository, CategoryUseCaseFactory],
 })
 export class CategoriesModule {}

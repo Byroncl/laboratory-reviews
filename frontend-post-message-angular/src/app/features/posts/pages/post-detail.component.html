@@ -1,0 +1,94 @@
+<div class="post-detail-container">
+  @if (postLoading()) {
+    <div class="post-detail-loading">
+      <p>{{ 'posts.detail.loading' | t }}</p>
+    </div>
+  }
+
+  @if (postError()) {
+    <div class="post-detail-error">
+      <p>{{ 'posts.detail.error' | t }}: {{ postError() }}</p>
+    </div>
+  }
+
+  @if (!postLoading() && post()) {
+    <div class="post-detail">
+      <a routerLink="/posts" class="btn btn-secondary">{{ 'posts.list.backToPosts' | t }}</a>
+
+      <div class="post-header">
+        <h1>{{ post()!.title }}</h1>
+        <span class="post-status" [ngClass]="'status-' + post()!.status">
+          {{ post()!.status }}
+        </span>
+      </div>
+
+      <div class="post-meta">
+        @if (post()!.createdAt) {
+          <span class="meta-item">
+            <strong>{{ 'posts.detail.published' | t }}:</strong> {{ post()!.createdAt | date: 'long' }}
+          </span>
+        }
+        <span class="meta-item">
+          <strong>{{ 'posts.detail.views' | t }}:</strong> {{ post()!.viewCount || 0 }}
+        </span>
+      </div>
+
+      @if (post()!.tags && post()!.tags!.length > 0) {
+        <div class="post-tags">
+          <strong>{{ 'posts.detail.tags' | t }}:</strong>
+          @for (tag of post()!.tags!; track tag) {
+            <span class="tag">{{ tag }}</span>
+          }
+        </div>
+      }
+
+      <div class="post-body">
+        {{ post()!.content }}
+      </div>
+
+      <div class="comments-section">
+        <h2>{{ 'posts.detail.commentsTitle' | t }} ({{ post()!.commentCount || 0 }})</h2>
+
+        <app-comment-form
+          [postId]="post()!.id || post()!._id || ''"
+          (submitted)="onCommentSubmitted()"
+        ></app-comment-form>
+
+        @if (commentsLoading$()) {
+          <div class="comments-loading">
+            <p>{{ 'posts.detail.commentsLoading' | t }}</p>
+          </div>
+        }
+
+        @if (commentsHasError$()) {
+          <div class="comments-error">
+            <p>{{ 'posts.detail.commentsError' | t }}</p>
+          </div>
+        }
+
+        @if (!commentsLoading$() && comments$().length > 0) {
+          <div class="comments-list">
+            @for (comment of comments$(); track comment.id) {
+              <app-comment-item [comment]="comment" [postId]="postId" (replyAdded)="onCommentSubmitted()"></app-comment-item>
+            }
+          </div>
+        }
+
+        @if (!commentsLoading$() && comments$().length === 0) {
+          <div class="comments-empty">
+            <p>{{ 'posts.detail.commentsEmpty' | t }}</p>
+          </div>
+        }
+
+        @if (pagination$()) {
+          <app-pagination
+            [pagination]="pagination$()"
+            [isLoading]="commentsLoading$()"
+            (nextPage)="onNextPage()"
+            (prevPage)="onPrevPage()"
+          ></app-pagination>
+        }
+      </div>
+    </div>
+  }
+</div>

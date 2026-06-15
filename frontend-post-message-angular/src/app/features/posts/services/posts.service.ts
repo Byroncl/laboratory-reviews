@@ -1,217 +1,162 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { tap, delay, catchError } from 'rxjs/operators';
+import { tap, catchError, finalize } from 'rxjs/operators';
 import { throwError } from 'rxjs';
-import { ApiService } from '../../../core/services/api.service';
-import { Post, CreatePostDto, UpdatePostDto } from '../../../shared/models/post.model';
+import { environment } from '../../../../environments/environment';
 
-@Injectable({ providedIn: 'root' })
-export class PostsService {
-  readonly posts = signal<Post[]>([]);
-  readonly loading = signal<boolean>(false);
-  readonly search = signal<string>('');
-  readonly selectedPost = signal<Post | null>(null);
+import {
+  IPost,
+  ICreatePostDTO,
+  IUpdatePostDTO,
+  IPostListResponse,
+  IPostResponse,
+  IPostFilters,
+} from '../interfaces';
+import { POSTS_API_ENDPOINTS } from '../constants';
+import { applyPostFilters } from '../utils';
+import { PostsBaseService } from './posts-base.service';
 
-  // Pagination state
-  readonly pagination = signal<{ skip: number; limit: number; total: number }>({
-    skip: 0,
-    limit: 10,
-    total: 0,
-  });
+@Injectable({
+  providedIn: 'root',
+})
+export class PostsService extends PostsBaseService<IPost> {
+  protected override baseUrl = environment.apiUrl;
 
-  // Advanced filter state
-  readonly filterAuthor = signal<string>('');
-  readonly filterDateFrom = signal<string>('');
-  readonly filterDateTo = signal<string>('');
+  // Semantic public computed aliases over inherited protected signals
+  public readonly posts$ = computed(() => this.items$());
+  public readonly isLoadingPosts = computed(() => this.loading$());
+  public readonly postError = computed(() => this.error$());
+  public readonly pagination$ = computed(() => this.pagination());
 
-  readonly filteredPosts = computed(() => {
-    const query = this.search().toLowerCase();
-    let posts = this.posts();
+  // Filter state
+  private readonly filters = signal<IPostFilters>({});
 
-    if (query) {
-      posts = posts.filter(
-        p =>
-          p.title.toLowerCase().includes(query) ||
-          (p.content ?? p.body ?? '').toLowerCase().includes(query)
+  // Client-side filtered view (composition of server results + local filters)
+  public readonly filteredPosts$ = computed(() =>
+    applyPostFilters(this.items$(), this.filters()),
+  );
+
+  constructor() {
+    super(inject(HttpClient));
+  }
+
+  /**
+   * Load posts with optional filters
+   */
+  public loadPosts(filters?: IPostFilters): Observable<IPostListResponse> {
+    if (filters) {
+      this.filters.set(filters);
+    }
+    return this.loadItems(filters);
+  }
+
+  /**
+   * Create a new post
+   */
+  public createPost(data: ICreatePostDTO): Observable<IPostResponse> {
+    return this.createItem(data);
+  }
+
+  /**
+   * Update an existing post
+   */
+  public updatePost(id: string, data: IUpdatePostDTO): Observable<IPostResponse> {
+    return this.updateItem(id, data);
+  }
+
+  /**
+   * Delete a post
+   */
+  public deletePost(id: string): Observable<any> {
+    return this.deleteItem(id);
+  }
+
+  /**
+   * Get a single post by ID and sync it into the list state
+   */
+  public getPost(id: string): Observable<IPostResponse> {
+    this.loading$.set(true);
+    this.error$.set(null);
+
+    return this.http
+      .get<IPostResponse>(`${this.baseUrl}${POSTS_API_ENDPOINTS.DETAIL.replace(':id', id)}`)
+      .pipe(
+        tap((response) => {
+          const updatedId = this._getId(response.data);
+          if (updatedId) {
+            const updatedItems = this.items$().map((item) =>
+              this._getId(item) === updatedId ? response.data : item,
+            );
+            this.items$.set(updatedItems);
+          }
+          this.error$.set(null);
+        }),
+        catchError((err) => this._handleError(err, 'Failed to load post')),
+        finalize(() => this.loading$.set(false)),
       );
+  }
+
+  /**
+   * Publish a post (change status to published)
+   */
+  public publishPost(id: string): Observable<IPostResponse> {
+    return this.updatePost(id, { status: 'published' });
+  }
+
+  /**
+   * Archive a post (change status to archived)
+   */
+  public archivePost(id: string): Observable<IPostResponse> {
+    return this.updatePost(id, { status: 'archived' });
+  }
+
+  /**
+   * Update the active filter state without triggering a reload
+   */
+  public updateFilters(filters: IPostFilters): void {
+    this.filters.set(filters);
+  }
+
+  /**
+   * Get a snapshot of the current filters
+   */
+  public getFilters(): IPostFilters {
+    return this.filters();
+  }
+
+  /**
+   * Clear all active filters
+   */
+  public clearFilters(): void {
+    this.filters.set({});
+  }
+
+  /**
+   * Override base to append filter params to API query string
+   */
+  protected override _buildLoadParams(filters?: IPostFilters): Record<string, unknown> {
+    const params = super._buildLoadParams(filters);
+
+    if (filters?.searchTerm) {
+      params['search'] = filters.searchTerm;
+    }
+    if (filters?.author) {
+      params['author'] = filters.author;
+    }
+    if (filters?.status) {
+      params['status'] = filters.status;
+    }
+    if (filters?.dateFrom) {
+      params['dateFrom'] = filters.dateFrom.toISOString();
+    }
+    if (filters?.dateTo) {
+      params['dateTo'] = filters.dateTo.toISOString();
+    }
+    if (filters?.tags && filters.tags.length > 0) {
+      params['tags'] = filters.tags.join(',');
     }
 
-    const author = this.filterAuthor().toLowerCase();
-    if (author) {
-      posts = posts.filter(p => p.author.toLowerCase().includes(author));
-    }
-
-    if (this.filterDateFrom()) {
-      const fromDate = new Date(this.filterDateFrom());
-      posts = posts.filter(p => new Date(p.createdAt) >= fromDate);
-    }
-
-    if (this.filterDateTo()) {
-      const toDate = new Date(this.filterDateTo());
-      posts = posts.filter(p => new Date(p.createdAt) <= toDate);
-    }
-
-    return posts;
-  });
-
-  readonly totalPosts = computed(() => this.pagination().total || this.posts().length);
-  readonly filteredCount = computed(() => this.filteredPosts().length);
-
-  readonly totalPages = computed(() => {
-    const { limit, total } = this.pagination();
-    if (!total) return 1;
-    return Math.ceil(total / limit);
-  });
-
-  readonly currentPage = computed(() => {
-    const { skip, limit } = this.pagination();
-    return Math.floor(skip / limit) + 1;
-  });
-
-  constructor(private api: ApiService) {}
-
-  private postId(post: Post): string {
-    return (post._id ?? post.id) as string;
-  }
-
-  loadPosts(
-    skip: number = 0,
-    limit: number = 10,
-    filters?: { status?: string; author?: string }
-  ): Observable<{ data: Post[] | { items: Post[]; total: number }; message: string }> {
-    this.loading.set(true);
-    const params: Record<string, unknown> = { skip, limit };
-    if (filters?.status) params['status'] = filters.status;
-    if (filters?.author) params['author'] = filters.author;
-
-    return this.api.get<{ data: Post[] | { items: Post[]; total: number }; message: string }>('/posts', params).pipe(
-      delay(300),
-      tap(response => {
-        const data = response.data;
-        if (data && typeof data === 'object' && 'items' in data) {
-          this.posts.set((data as { items: Post[]; total: number }).items ?? []);
-          this.pagination.set({ skip, limit, total: (data as { items: Post[]; total: number }).total ?? 0 });
-        } else {
-          this.posts.set((data as Post[]) ?? []);
-          this.pagination.set({ skip, limit, total: ((data as Post[]) ?? []).length });
-        }
-        this.loading.set(false);
-      }),
-      catchError(err => {
-        this.loading.set(false);
-        return throwError(() => err);
-      })
-    );
-  }
-
-  nextPage(): void {
-    const { skip, limit, total } = this.pagination();
-    const nextSkip = skip + limit;
-    if (nextSkip < total) {
-      const filters = {
-        author: this.filterAuthor() || undefined
-      };
-      this.loadPosts(nextSkip, limit, filters).subscribe();
-    }
-  }
-
-  prevPage(): void {
-    const { skip, limit } = this.pagination();
-    const prevSkip = Math.max(0, skip - limit);
-    if (prevSkip !== skip) {
-      const filters = {
-        author: this.filterAuthor() || undefined
-      };
-      this.loadPosts(prevSkip, limit, filters).subscribe();
-    }
-  }
-
-  resetFilters(): void {
-    this.filterAuthor.set('');
-    this.filterDateFrom.set('');
-    this.filterDateTo.set('');
-    this.search.set('');
-  }
-
-  getPost(id: string): Observable<{ data: Post; message: string }> {
-    this.loading.set(true);
-    return this.api.get<{ data: Post; message: string }>(`/posts/${id}`).pipe(
-      delay(300),
-      tap(response => {
-        const post = response.data;
-        this.selectedPost.set(post);
-        const index = this.posts().findIndex(p => this.postId(p) === id);
-        if (index !== -1) {
-          const updated = [...this.posts()];
-          updated[index] = post;
-          this.posts.set(updated);
-        }
-        this.loading.set(false);
-      }),
-      catchError(err => {
-        this.loading.set(false);
-        return throwError(() => err);
-      })
-    );
-  }
-
-  createPost(dto: CreatePostDto): Observable<{ data: Post; message: string }> {
-    this.loading.set(true);
-    return this.api.post<{ data: Post; message: string }>('/posts', dto).pipe(
-      tap(response => {
-        this.posts.set([response.data, ...this.posts()]);
-        this.loading.set(false);
-      }),
-      catchError(err => {
-        this.loading.set(false);
-        return throwError(() => err);
-      })
-    );
-  }
-
-  updatePost(id: string, dto: UpdatePostDto): Observable<{ data: Post; message: string }> {
-    this.loading.set(true);
-    return this.api.put<{ data: Post; message: string }>(`/posts/${id}`, dto).pipe(
-      tap(response => {
-        const updated = response.data;
-        const index = this.posts().findIndex(p => this.postId(p) === id);
-        if (index !== -1) {
-          const posts = [...this.posts()];
-          posts[index] = updated;
-          this.posts.set(posts);
-        }
-        const sel = this.selectedPost();
-        if (sel && this.postId(sel) === id) {
-          this.selectedPost.set(updated);
-        }
-        this.loading.set(false);
-      }),
-      catchError(err => {
-        this.loading.set(false);
-        return throwError(() => err);
-      })
-    );
-  }
-
-  deletePost(id: string): Observable<{ message: string }> {
-    this.loading.set(true);
-    return this.api.delete<{ message: string }>(`/posts/${id}`).pipe(
-      tap(() => {
-        this.posts.set(this.posts().filter(p => this.postId(p) !== id));
-        const sel = this.selectedPost();
-        if (sel && this.postId(sel) === id) {
-          this.selectedPost.set(null);
-        }
-        this.loading.set(false);
-      }),
-      catchError(err => {
-        this.loading.set(false);
-        return throwError(() => err);
-      })
-    );
-  }
-
-  setSearch(query: string): void {
-    this.search.set(query);
+    return params;
   }
 }

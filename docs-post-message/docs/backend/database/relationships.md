@@ -1,96 +1,96 @@
 ---
 sidebar_position: 2
-title: Schema Relationships
-description: MongoDB relationships and population
+title: Relaciones entre Schemas
+description: Relaciones en MongoDB y populación de datos
 ---
 
-# Database Relationships 🔗
+# Relaciones de Base de Datos 🔗
 
-How schemas relate to each other in MongoDB.
+Cómo se relacionan los schemas entre sí en MongoDB.
 
-## Relationship Types
+## Tipos de Relaciones
 
-### One-to-Many (1:N)
+### Uno-a-Muchos (1:N)
 
-**User → Posts**
+**Usuario → Posts**
 
-A user can create many posts.
+Un usuario puede crear muchos posts.
 
 ```typescript
-// In Post schema
+// En el schema de Post
 @Prop({ type: Schema.Types.ObjectId, ref: 'User' })
 author: User;
 
-// Usage
+// Uso
 const post = await postModel
   .findById(id)
-  .populate('author');  // Fetch author details
+  .populate('author');  // Obtener detalles del autor
 ```
 
-**Post → Comments**
+**Post → Comentarios**
 
-A post can have many comments.
+Un post puede tener muchos comentarios.
 
 ```typescript
-// In Comment schema
+// En el schema de Comment
 @Prop({ type: Schema.Types.ObjectId, ref: 'Post', required: true })
 postId: Post;
 ```
 
-### One-to-One (1:1)
+### Uno-a-Uno (1:1)
 
-**User → Role**
+**Usuario → Rol**
 
-A user has one role.
+Un usuario tiene un rol.
 
 ```typescript
 @Prop({ type: Schema.Types.ObjectId, ref: 'Role' })
 role: Role;
 
-// Fetch user with role
+// Obtener usuario con rol
 const user = await userModel
   .findById(id)
   .populate('role');
 ```
 
-### One-to-Many (1:N)
+### Uno-a-Muchos (1:N)
 
-**Role → Permissions**
+**Rol → Permisos**
 
-A role grants many permissions.
+Un rol otorga muchos permisos.
 
 ```typescript
 @Prop({ type: [Schema.Types.ObjectId], ref: 'Permission', default: [] })
 permissions: Permission[];
 
-// Fetch role with permissions
+// Obtener rol con permisos
 const role = await roleModel
   .findById(id)
   .populate('permissions');
 ```
 
-## Populate Pattern
+## Patrón de Populate
 
-### Single Level
+### Nivel Simple
 
 ```typescript
 const user = await userModel
   .findById(userId)
   .populate('role');
 
-// Result
+// Resultado
 {
   _id: '123',
   username: 'john',
   role: {
     _id: '456',
     name: 'admin',
-    permissions: ['789', '790']  // Still IDs, not populated
+    permissions: ['789', '790']  // Siguen siendo IDs, no populados
   }
 }
 ```
 
-### Multi-Level (Nested)
+### Multi-Nivel (Anidado)
 
 ```typescript
 const user = await userModel
@@ -102,7 +102,7 @@ const user = await userModel
     }
   });
 
-// Result
+// Resultado
 {
   _id: '123',
   username: 'john',
@@ -117,28 +117,28 @@ const user = await userModel
 }
 ```
 
-### Select Specific Fields
+### Seleccionar Campos Específicos
 
 ```typescript
 const post = await postModel
   .findById(postId)
-  .populate('author', 'username email');  // Only these fields
+  .populate('author', 'username email');  // Solo estos campos
 
-// Result
+// Resultado
 {
   title: 'My Post',
   author: {
     username: 'john',
     email: 'john@example.com'
-    // password_hash omitted
+    // password_hash omitido
   }
 }
 ```
 
-## Query Examples
+## Ejemplos de Consultas
 
 ```typescript
-// Find user and populate role with permissions
+// Buscar usuario y popularlo con rol y permisos
 const user = await userModel
   .findById(userId)
   .populate({
@@ -148,37 +148,37 @@ const user = await userModel
     }
   });
 
-// Find all posts by user, populate author
+// Buscar todos los posts de un usuario, populando el autor
 const posts = await postModel
   .find({ author: userId })
   .populate('author', 'username');
 
-// Find post and all its comments
+// Buscar post y todos sus comentarios
 const post = await postModel
   .findById(postId)
   .populate('comments');
 ```
 
-## Performance Considerations
+## Consideraciones de Rendimiento
 
-### Lean Queries
+### Consultas Lean
 
-Don't populate if not needed:
+No poblar si no es necesario:
 
 ```typescript
-// Without .populate() — faster
+// Sin .populate() — más rápido
 const posts = await postModel.find().lean();
 
-// With .populate() — slower but includes related data
+// Con .populate() — más lento pero incluye datos relacionados
 const posts = await postModel.find().populate('author');
 ```
 
-### Indexing
+### Indexación
 
-Add indexes on frequently joined fields:
+Agregar índices en campos que se unen frecuentemente:
 
 ```typescript
-// In schema
+// En el schema
 @Prop({ type: Schema.Types.ObjectId, ref: 'User', index: true })
 author: User;
 
@@ -186,9 +186,9 @@ author: User;
 postId: Post;
 ```
 
-### Aggregation Framework
+### Framework de Agregación
 
-For complex queries:
+Para consultas complejas:
 
 ```typescript
 const posts = await postModel.aggregate([
@@ -209,9 +209,9 @@ const posts = await postModel.aggregate([
 ]);
 ```
 
-## Soft Deletes
+## Borrado Lógico
 
-Don't fetch deleted documents:
+No obtener documentos eliminados:
 
 ```typescript
 const posts = await postModel
@@ -221,4 +221,4 @@ const posts = await postModel
 
 ---
 
-**Next**: [Summary](../intro.md)
+**Siguiente**: [Resumen](../intro.md)

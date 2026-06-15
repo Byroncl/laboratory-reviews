@@ -1,0 +1,207 @@
+╔════════════════════════════════════════════════════════════════════╗
+║          🎨 LANDING PAGE REDESIGN - REDDIT-STYLE ✅               ║
+╚════════════════════════════════════════════════════════════════════╝
+
+📱 LAYOUT NUEVO (Inspirado en Reddit)
+═══════════════════════════════════════════════════════════════════
+
+ANTES:
+  ┌─────────────────────────────┐
+  │  Simple Hero                 │
+  │  Search bar                  │
+  │  Post grid (1 col)           │
+  │  Fin                         │
+  └─────────────────────────────┘
+
+AHORA:
+  ┌─────────────────────────────────────────────────┐
+  │  HEADER                                         │
+  ├─────────────────────────────────────────────────┤
+  │  ▓▓▓ HERO BANNER ▓▓▓                            │
+  │  Gradient + CTA Buttons                         │
+  ├──────────────┬──────────────────────────────────┤
+  │ SIDEBAR      │  MAIN FEED                       │
+  │ • Search    │  ┌──────────────────────────────┐ │
+  │ • Communities│ │ ▲ POST CARD (Reddit-style) │ │
+  │ • Info      │ │ 0 • Vote sidebar + Content  │ │
+  │             │ │ ▼ • Actions                 │ │
+  │             │ └──────────────────────────────┘ │
+  │             │ ┌──────────────────────────────┐ │
+  │             │ │ ▲ POST CARD 2               │ │
+  │             │ │ 1                            │ │
+  │             │ │ ▼                            │ │
+  │             │ └──────────────────────────────┘ │
+  ├──────────────┴──────────────────────────────────┤
+  │  FOOTER (Dark Theme)                            │
+  └─────────────────────────────────────────────────┘
+
+
+═════════════════════════════════════════════════════════════════════
+
+✨ COMPONENTES NUEVOS/MEJORADOS:
+
+1️⃣  FOOTER COMPONENT (Nuevo)
+    ✅ Tema oscuro profesional (gray-900)
+    ✅ 4 columnas: Product, Community, Legal
+    ✅ Social icons (Twitter, GitHub, Discord)
+    ✅ Copyright & branding
+    ✅ Responsive design
+
+2️⃣  HOME COMPONENT (Mejorado)
+    ✅ Hero banner con gradient
+    ✅ Sidebar sticky con comunidades
+    ✅ Search box en sidebar
+    ✅ Info card con features
+    ✅ Grid responsivo (1/4 cols)
+    ✅ Estados visuales mejorados
+    ✅ Emojis moderna
+
+3️⃣  POST CARD (Mejorado - Reddit-style)
+    ✅ Vote sidebar (▲ 0 ▼)
+    ✅ Contador de votos dinámico
+    ✅ Badge de comunidad
+    ✅ Tiempo relativo (2h ago)
+    ✅ Thumbnail de imagen
+    ✅ Action buttons (Comments, Share, Save)
+    ✅ Hover effects suave
+
+
+═════════════════════════════════════════════════════════════════════
+
+🎯 CARACTERÍSTICAS PRINCIPALES:
+
+HERO BANNER
+  • Gradient: Primary → Gray-900
+  • Headline atractivo
+  • 2 CTA buttons (Create Post, Sign In)
+
+SIDEBAR
+  • Search input (sticky)
+  • 4 comunidades populares
+    - r/Technology (24.5K members)
+    - r/Programming (18.3K members)
+    - r/Gaming (42.1K members)
+    - r/Design (15.7K members)
+  • Info card con features
+
+REDDIT-STYLE POST CARD
+  ┌─────┬─────────────────────────────────┐
+  │ ▲   │ r/posts • Posted by user • 2h   │
+  │ 0   │                                 │
+  │ ▼   │ 📰 Amazing Post Title Here      │
+  │     │                                 │
+  │     │ Post preview text... (2 lines) │
+  │     │ [Thumbnail image] 24x24         │
+  │     │                                 │
+  │     │ 💬 5 Comments | 🔗 Share | ⊕ Save
+  └─────┴─────────────────────────────────┘
+
+FOOTER
+  Product | Community | Legal | Social Icons
+  © 2026 PostMessage. All rights reserved.
+
+
+═════════════════════════════════════════════════════════════════════
+
+📱 RESPONSIVE DESIGN:
+
+Mobile (<768px)
+  ✓ 1 columna (full-width)
+  ✓ Sidebar oculto
+  ✓ Compact post cards
+
+Tablet (768px-1024px)
+  ✓ 2 columnas (25% sidebar, 75% feed)
+  ✓ Layout balanced
+
+Desktop (>1024px)
+  ✓ 4 columnas (25% sidebar, 75% feed)
+  ✓ Full layout optimal
+
+
+═════════════════════════════════════════════════════════════════════
+
+🎮 INTERACTIVIDAD:
+
+Vote System
+  ▲ Upvote    → +1 voto (amarillo si votado)
+  ▼ Downvote  → -1 voto (rojo si votado)
+  
+Tiempo Relativo
+  "2h ago", "5m ago", "3d ago"
+  
+Acciones
+  💬 Comments (opens post detail)
+  🔗 Share (copy link)
+  ⊕ Save (bookmark)
+
+
+═════════════════════════════════════════════════════════════════════
+
+🎨 PALETA DE COLORES:
+
+Primary:      #000000 (Negro)
+Gray:         #6B7280 (Gris)
+Background:   #F3F4F6 (Gris claro)
+Card:         #FFFFFF (Blanco)
+Dark:         #1F2937 (Gris oscuro)
+Accent:       Gradients
+
+
+═════════════════════════════════════════════════════════════════════
+
+📁 ARCHIVOS MODIFICADOS:
+
+✏️  src/app/features/home/pages/home.component.ts
+    └─ Redesign completo con hero, sidebar, feed
+    └─ Agregado footer import
+
+✏️  src/app/features/home/components/post-card/post-card.component.ts
+    └─ Vote sidebar + contador dinámico
+    └─ Comunidad badge
+    └─ Tiempo relativo
+    └─ Action buttons
+    └─ Thumbnail de imagen
+
+📄 src/app/shared/components/footer/footer.component.ts (NUEVO)
+    └─ Footer profesional con 4 columnas
+    └─ Social icons
+    └─ Responsive design
+    └─ Dark theme
+
+
+═════════════════════════════════════════════════════════════════════
+
+✅ TESTING:
+
+1. npm run serve
+2. Abre http://localhost:4200
+
+Verifica:
+  ✓ Hero banner visible con gradient
+  ✓ Sidebar con comunidades (desktop)
+  ✓ Búsqueda funciona
+  ✓ Posts cargan con vote sidebar
+  ✓ Upvote/downvote cambia color y contador
+  ✓ Tiempo relativo se muestra
+  ✓ Footer aparece en la parte inferior
+  ✓ Responsive en móvil (sidebar oculto)
+  ✓ Hover effects funcionan
+
+
+═════════════════════════════════════════════════════════════════════
+
+🎬 DESPUÉS:
+
+Landing page ahora es:
+✨ Más vistosa
+✨ Profesional
+✨ Similar a Reddit
+✨ Responsive
+✨ Interactiva
+✨ Moderna
+
+¡Lista para impresionar a los usuarios! 🚀
+
+
+═════════════════════════════════════════════════════════════════════

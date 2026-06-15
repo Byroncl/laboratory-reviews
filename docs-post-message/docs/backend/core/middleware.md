@@ -1,16 +1,16 @@
 ---
 sidebar_position: 5
 title: Middleware
-description: Request pre-processing
+description: Preprocesamiento de peticiones
 ---
 
 # Middleware 🛣️
 
-Middleware processes requests before they reach handlers.
+El middleware procesa las peticiones antes de que lleguen a los manejadores.
 
 ## I18nMiddleware
 
-Detects and sets the request language:
+Detecta y establece el idioma de la petición:
 
 ```typescript
 @Injectable()
@@ -23,17 +23,17 @@ export class I18nMiddleware implements NestMiddleware {
 }
 ```
 
-**Registration**:
+**Registro**:
 ```typescript
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(I18nMiddleware)
-      .forRoutes('*');  // Apply to all routes
+      .forRoutes('*');  // Aplicar a todas las rutas
   }
 }
 ```
 
 ---
 
-**Next**: [Database Schemas →](../database/schemas.md)
+**Siguiente**: [Schemas de Base de Datos →](../database/schemas.md)

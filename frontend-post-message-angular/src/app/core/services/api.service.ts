@@ -12,13 +12,15 @@ export class ApiService {
   get<T>(endpoint: string, params?: Record<string, unknown>): Observable<T> {
     let httpParams = new HttpParams();
     if (params) {
-      Object.keys(params).forEach(key => {
+      Object.keys(params).forEach((key) => {
         if (params[key] !== null && params[key] !== undefined) {
           httpParams = httpParams.set(key, String(params[key]));
         }
       });
     }
-    return this.http.get<T>(`${this.apiUrl}${endpoint}`, { params: httpParams });
+    return this.http.get<T>(`${this.apiUrl}${endpoint}`, {
+      params: httpParams,
+    });
   }
 
   post<T>(endpoint: string, body: unknown): Observable<T> {

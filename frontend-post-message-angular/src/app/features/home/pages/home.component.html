@@ -1,0 +1,118 @@
+<app-header />
+
+<div class="home-layout">
+  <!-- Left Sidebar - Categories -->
+  <aside class="left-sidebar">
+    <div class="sidebar-content">
+      <h3 class="sidebar-title">{{ 'home.categories' | t }}</h3>
+      <nav class="categories-menu">
+        <a href="#" class="category-link active">
+          <span class="icon">🏠</span>
+          <span>{{ 'home.allPosts' | t }}</span>
+        </a>
+        @for (cat of categories(); track cat.id) {
+          <a href="#" class="category-link">
+            <span class="icon">📁</span>
+            <span>{{ cat.name }}</span>
+            @if (cat.postCount) {
+              <span class="count">{{ cat.postCount }}</span>
+            }
+          </a>
+        }
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Center - Feed -->
+  <main class="main-content">
+    <!-- Hero section -->
+    <section class="hero-section">
+      <h1>{{ 'home.hero.title' | t }}</h1>
+      <p>{{ 'home.hero.subtitle' | t }}</p>
+      @if (isAuthenticated()) {
+        <button class="hero-cta" (click)="navigateToDashboard()">
+          {{ 'home.hero.ctaAuthenticated' | t }}
+        </button>
+      } @else {
+        <button class="hero-cta" (click)="navigateToLogin()">
+          {{ 'home.hero.ctaGuest' | t }}
+        </button>
+      }
+    </section>
+
+    <!-- Search -->
+    <div class="search-box">
+      <input
+        type="text"
+        [placeholder]="'home.search.placeholder' | t"
+        [formControl]="searchControl"
+      />
+    </div>
+
+    <!-- Posts Feed -->
+    @if (loading()) {
+      <div class="loading-skeleton">
+        @for (i of [1,2,3]; track i) {
+          <div class="skeleton-card"></div>
+        }
+      </div>
+    }
+
+    @if (!loading() && loadError()) {
+      <div class="error-state">
+        <p>{{ 'home.empty.loadError' | t }}</p>
+        <button (click)="retry()" class="retry-btn">{{ 'home.retry' | t }}</button>
+      </div>
+    }
+
+    @if (!loading() && !loadError() && filteredPosts().length === 0) {
+      <div class="empty-state">
+        <p>{{ searchQuery() ? ('home.empty.search' | t) : ('home.empty.posts' | t) }}</p>
+      </div>
+    }
+
+    @if (!loading() && !loadError() && filteredPosts().length > 0) {
+      <div class="posts-grid">
+        @for (post of filteredPosts(); track post.id) {
+          <app-post-card [post]="post" />
+        }
+      </div>
+    }
+  </main>
+
+  <!-- Right Sidebar -->
+  <aside class="right-sidebar">
+    <div class="sidebar-content">
+      <!-- Featured Users -->
+      <div class="widget">
+        <h3 class="widget-title">{{ 'home.featuredUsers' | t }}</h3>
+        <div class="users-list">
+          @for (user of featuredUsers(); track user.id) {
+            <a href="#" class="user-card">
+              <div class="user-avatar">
+                @if (user.avatar) {
+                  <img [src]="user.avatar" [alt]="user.name" />
+                } @else {
+                  <div class="avatar-placeholder">{{ user.name.charAt(0) | uppercase }}</div>
+                }
+              </div>
+              <div class="user-info">
+                <p class="user-name">{{ user.name }}</p>
+                <p class="user-posts">{{ user.postCount }} posts</p>
+              </div>
+            </a>
+          }
+          @if (featuredUsers().length === 0) {
+            <p class="empty-list">{{ 'home.noUsers' | t }}</p>
+          }
+        </div>
+      </div>
+
+      <!-- About -->
+      <div class="widget">
+        <h3 class="widget-title">{{ 'home.about' | t }}</h3>
+        <p class="about-text">{{ 'home.aboutText' | t }}</p>
+      </div>
+    </div>
+  </aside>
+</div>

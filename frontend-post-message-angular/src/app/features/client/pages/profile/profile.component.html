@@ -1,0 +1,73 @@
+<div class="profile">
+  <div class="container">
+    <h2>{{ messages.TITLE | t }}</h2>
+
+    @if (isLoadingProfile$()) {
+      <div class="loading">{{ messages.LOADING | t }}</div>
+    } @else {
+      <div class="profile-card">
+        <div class="section">
+          <h3>{{ messages.PERSONAL_INFO | t }}</h3>
+          <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()">
+            <div class="form-group">
+              <label for="name">{{ 'profile.name' | t }}</label>
+              <input id="name" type="text" formControlName="name" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="lastname">{{ 'profile.lastname' | t }}</label>
+              <input id="lastname" type="text" formControlName="lastname" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="username">{{ 'profile.account.username' | t }}</label>
+              <input id="username" type="text" formControlName="username" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="email">{{ 'profile.email' | t }}</label>
+              <input id="email" type="email" formControlName="email" class="form-control" />
+            </div>
+            <div class="button-group">
+              <button type="submit" class="btn btn-primary" [disabled]="!profileForm.dirty || isLoading$()">
+                {{ isLoading$() ? ('profile.info.saving' | t) : ('client.post_form.update_button' | t) }}
+              </button>
+            </div>
+            @if (error$()) {
+              <div class="error-message">{{ error$() }}</div>
+            }
+            @if (successMessage$()) {
+              <div class="success-message">{{ successMessage$() }}</div>
+            }
+          </form>
+        </div>
+
+        <div class="section">
+          <h3>{{ messages.CHANGE_PASSWORD | t }}</h3>
+          <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
+            <div class="form-group">
+              <label for="currentPassword">{{ 'profile.password.current' | t }}</label>
+              <input id="currentPassword" type="password" formControlName="currentPassword" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="newPassword">{{ 'profile.password.new' | t }}</label>
+              <input id="newPassword" type="password" formControlName="newPassword" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword">{{ 'profile.password.confirm' | t }}</label>
+              <input id="confirmPassword" type="password" formControlName="confirmPassword" class="form-control" />
+            </div>
+            <div class="button-group">
+              <button type="submit" class="btn btn-warning" [disabled]="!passwordForm.valid || isLoading$()">
+                {{ isLoading$() ? ('profile.info.saving' | t) : ('profile.password.change' | t) }}
+              </button>
+            </div>
+            @if (passwordError$()) {
+              <div class="error-message">{{ passwordError$() }}</div>
+            }
+            @if (passwordSuccess$()) {
+              <div class="success-message">{{ passwordSuccess$() }}</div>
+            }
+          </form>
+        </div>
+      </div>
+    }
+  </div>
+</div>

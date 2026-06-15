@@ -1,27 +1,27 @@
 ---
 sidebar_position: 1
-title: Auth Module
-description: Authentication and JWT token management
+title: Módulo Auth
+description: Autenticación y gestión de tokens JWT
 ---
 
-# Auth Module 🔐
+# Módulo Auth 🔐
 
-The Auth module handles user authentication, JWT token generation, and validation.
+El módulo Auth maneja la autenticación de usuarios, generación y validación de tokens JWT.
 
-## Overview
+## Descripción General
 
 ```mermaid
 graph TB
-    subgraph "Auth Module"
+    subgraph "Módulo Auth"
         Controller["AuthController<br/>POST /auth/login<br/>POST /auth/register"]
         Service["AuthService<br/>validateUser()<br/>login()"]
         JwtService["JwtService<br/>sign()<br/>verify()"]
     end
     
-    subgraph "Dependencies"
+    subgraph "Dependencias"
         UsersModule["UsersModule<br/>UsersService"]
-        PassportModule["PassportModule<br/>JWT Strategy"]
-        JwtModule["JwtModule<br/>Token management"]
+        PassportModule["PassportModule<br/>Estrategia JWT"]
+        JwtModule["JwtModule<br/>Gestión de tokens"]
     end
     
     Controller --> Service
@@ -31,7 +31,7 @@ graph TB
     JwtModule --> JwtService
 ```
 
-## Module Structure
+## Estructura del Módulo
 
 ```
 src/app/modules/auth/
@@ -40,42 +40,42 @@ src/app/modules/auth/
 ├── services/
 │   └── auth.service.ts
 ├── guards/
-│   └── jwt-auth.guard.ts      # Legacy Passport-based
+│   └── jwt-auth.guard.ts      # Legado basado en Passport
 ├── strategies/
-│   └── jwt.strategy.ts        # Passport JWT strategy
+│   └── jwt.strategy.ts        # Estrategia JWT de Passport
 ├── dtos/
 │   ├── login.dto.ts
 │   └── register.dto.ts
 └── auth.module.ts
 ```
 
-## Authentication Flow
+## Flujo de Autenticación
 
-### Login Flow
+### Flujo de Login
 
 ```mermaid
 sequenceDiagram
-    participant Client
+    participant Client as Cliente
     participant Controller as AuthController
     participant Service as AuthService
     participant UsersService
     participant CryptoUtils as CryptoUtils
     participant JwtService
-    participant Client2 as Client (authenticated)
+    participant Client2 as Cliente (autenticado)
     
     Client->>Controller: POST /auth/login { username, password }
     Controller->>Service: validateUser(username, password)
     Service->>UsersService: findByUsername(username)
-    UsersService->>Service: user
+    UsersService->>Service: usuario
     Service->>CryptoUtils: comparePasswords(password, user.password_hash)
     CryptoUtils->>Service: true/false
-    alt password matches
+    alt la contraseña coincide
         Service->>JwtService: sign({ userId, type, role })
-        JwtService->>Service: JWT token
+        JwtService->>Service: token JWT
         Service->>Controller: { token, user }
         Controller->>Client: { statusCode: 200, data: { token, user }, ... }
-    else password doesn't match
-        Service->>Controller: Throw UnauthorizedException
+    else la contraseña no coincide
+        Service->>Controller: Lanzar UnauthorizedException
         Controller->>Client: { statusCode: 401, message: 'Invalid credentials', ... }
     end
     
@@ -83,15 +83,15 @@ sequenceDiagram
     Controller->>AuthGuard: canActivate()
     AuthGuard->>JwtService: verify(token)
     JwtService->>AuthGuard: { userId, type, role }
-    AuthGuard->>Controller: Attach user to request
-    Controller->>Protected: Handler with req.user
+    AuthGuard->>Controller: Adjuntar usuario a la petición
+    Controller->>Protected: Manejador con req.user
 ```
 
-## Services
+## Servicios
 
 ### AuthService
 
-Handles user authentication:
+Maneja la autenticación de usuarios:
 
 ```typescript
 @Injectable()
@@ -102,7 +102,7 @@ export class AuthService {
     private cryptoUtils: CryptoUtils,
   ) {}
 
-  // Validate username/password credentials
+  // Validar credenciales username/password
   async validateUser(username: string, password: string): Promise<any> {
     const user = await this.usersService.findUserByUsername(username);
     if (user && await this.cryptoUtils.comparePasswords(password, user.password_hash)) {
@@ -112,7 +112,7 @@ export class AuthService {
     return null;
   }
 
-  // Create JWT token from user
+  // Crear token JWT a partir del usuario
   async login(user: any) {
     const payload = {
       userId: user._id,
@@ -127,9 +127,9 @@ export class AuthService {
 }
 ```
 
-**Location**: `src/app/modules/auth/services/auth.service.ts`
+**Ubicación**: `src/app/modules/auth/services/auth.service.ts`
 
-## Controllers
+## Controladores
 
 ### AuthController
 
@@ -154,13 +154,13 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
-    // Register new user (delegates to UsersService)
+    // Registrar nuevo usuario (delega a UsersService)
     return this.usersService.createUser(registerDto);
   }
 }
 ```
 
-**Location**: `src/app/modules/auth/controllers/auth.controller.ts`
+**Ubicación**: `src/app/modules/auth/controllers/auth.controller.ts`
 
 ## DTOs
 
@@ -203,11 +203,11 @@ export class RegisterDto {
 }
 ```
 
-**Location**: `src/app/modules/auth/dtos/`
+**Ubicación**: `src/app/modules/auth/dtos/`
 
-## JWT Token Structure
+## Estructura del Token JWT
 
-The JWT payload contains:
+El payload JWT contiene:
 
 ```json
 {
@@ -229,29 +229,29 @@ The JWT payload contains:
 }
 ```
 
-## Security Configuration
+## Configuración de Seguridad
 
-⚠️ **SECURITY ISSUE**: JWT secret is hardcoded in `auth.module.ts`:
+⚠️ **PROBLEMA DE SEGURIDAD**: El secreto JWT está hardcodeado en `auth.module.ts`:
 
 ```typescript
 JwtModule.register({
-  secret: 'yourSecretKey',  // ❌ HARDCODED!
+  secret: 'yourSecretKey',  // ❌ ¡HARDCODEADO!
   signOptions: { expiresIn: '24h' },
 })
 ```
 
-**Should use environment variable**:
+**Debe usar variable de entorno**:
 ```typescript
 secret: process.env.JWT_SECRET || 'fallback-secret',
 ```
 
-See [Hardcoded Secrets Issue](../issues/hardcoded-secrets.md)
+Ver [Problema de Secretos Hardcodeados](../issues/hardcoded-secrets.md)
 
 ## Guards
 
-### JwtAuthGuard (Legacy)
+### JwtAuthGuard (Legado)
 
-Passport-based JWT guard (coexists with core AuthGuard):
+Guard JWT basado en Passport (coexiste con el AuthGuard principal):
 
 ```typescript
 @Injectable()
@@ -262,34 +262,34 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 }
 ```
 
-**Location**: `src/app/modules/auth/guards/jwt-auth.guard.ts`
+**Ubicación**: `src/app/modules/auth/guards/jwt-auth.guard.ts`
 
-### Core AuthGuard (Recommended)
+### Core AuthGuard (Recomendado)
 
-The main authentication guard is in `core/guards/auth.guard.ts`. Use `@Auth()` decorator to protect routes:
+El guard de autenticación principal está en `core/guards/auth.guard.ts`. Usar el decorador `@Auth()` para proteger rutas:
 
 ```typescript
 @Controller('users')
 export class UsersController {
   @Get(':id')
-  @Auth()  // Protected with AuthGuard
+  @Auth()  // Protegido con AuthGuard
   findOne(@Param('id') id: string) {
-    // Only authenticated users can access
+    // Solo usuarios autenticados pueden acceder
   }
 
   @Get()
-  @Auth({ roles: ['admin'] })  // Only admins
+  @Auth({ roles: ['admin'] })  // Solo administradores
   findAll() {
-    // Only admin users can access
+    // Solo usuarios admin pueden acceder
   }
 }
 ```
 
-## Strategies
+## Estrategias
 
 ### JwtStrategy
 
-Passport JWT strategy configuration:
+Configuración de la estrategia JWT de Passport:
 
 ```typescript
 @Injectable()
@@ -298,7 +298,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: 'yourSecretKey',  // ❌ Also hardcoded here
+      secretOrKey: 'yourSecretKey',  // ❌ También hardcodeado aquí
     });
   }
 
@@ -312,9 +312,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 }
 ```
 
-**Location**: `src/app/modules/auth/strategies/jwt.strategy.ts`
+**Ubicación**: `src/app/modules/auth/strategies/jwt.strategy.ts`
 
-## Module Registration
+## Registro del Módulo
 
 ```typescript
 @Module({
@@ -335,14 +335,14 @@ export class AuthModule {}
 
 ## Endpoints
 
-| Endpoint | Method | Auth | Purpose |
+| Endpoint | Método | Auth | Propósito |
 |----------|--------|------|---------|
-| `/auth/login` | POST | ❌ | Login with username/password |
-| `/auth/register` | POST | ❌ | Register new user |
+| `/auth/login` | POST | ❌ | Login con username/contraseña |
+| `/auth/register` | POST | ❌ | Registrar nuevo usuario |
 
-## Request/Response Examples
+## Ejemplos de Petición/Respuesta
 
-### Login Request
+### Petición de Login
 
 ```bash
 curl -X POST http://localhost:3000/auth/login \
@@ -353,7 +353,7 @@ curl -X POST http://localhost:3000/auth/login \
   }'
 ```
 
-### Login Response (Success)
+### Respuesta de Login (Éxito)
 
 ```json
 {
@@ -372,7 +372,7 @@ curl -X POST http://localhost:3000/auth/login \
 }
 ```
 
-### Login Response (Failure)
+### Respuesta de Login (Fallo)
 
 ```json
 {
@@ -384,38 +384,38 @@ curl -X POST http://localhost:3000/auth/login \
 }
 ```
 
-## Usage in Routes
+## Uso en Rutas
 
 ```typescript
 @Controller('users')
 export class UsersController {
   @Get('profile')
-  @Auth()  // Protected - requires valid JWT
+  @Auth()  // Protegido - requiere JWT válido
   getProfile(@CurrentUser() user: CurrentUserPayload) {
-    return user;  // Return current user info
+    return user;  // Devolver info del usuario actual
   }
 
   @Get('admin')
-  @Auth({ roles: ['admin'] })  // Protected - only admins
+  @Auth({ roles: ['admin'] })  // Protegido - solo admins
   getAdminData() {
     return { admin: true };
   }
 
   @Get('public')
-  // No @Auth() - public endpoint
+  // Sin @Auth() - endpoint público
   getPublic() {
     return { message: 'Public data' };
   }
 }
 ```
 
-## Related Documentation
+## Documentación Relacionada
 
-- [Core Guards](../core/guards.md)
-- [Users Module](./users.md)
-- [Decorators](../core/decorators.md)
-- [Hardcoded Secrets Issue](../issues/hardcoded-secrets.md)
+- [Guards Principales](../core/guards.md)
+- [Módulo Users](./users.md)
+- [Decoradores](../core/decorators.md)
+- [Problema de Secretos Hardcodeados](../issues/hardcoded-secrets.md)
 
 ---
 
-**Next**: [Users Module →](./users.md)
+**Siguiente**: [Módulo Users →](./users.md)

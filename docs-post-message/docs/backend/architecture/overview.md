@@ -1,40 +1,40 @@
 ---
 sidebar_position: 1
-title: Architecture Overview
-description: High-level architecture of the Post-Message backend
+title: Descripción de la Arquitectura
+description: Arquitectura de alto nivel del backend de Post-Message
 ---
 
-# Architecture Overview
+# Descripción de la Arquitectura
 
-## System Design
+## Diseño del Sistema
 
-The Post-Message backend follows a **layered architecture** with partial **Clean Architecture** principles applied only to the Users module.
+El backend de Post-Message sigue una **arquitectura en capas** con principios parciales de **Arquitectura Limpia** aplicados únicamente al módulo de Usuarios.
 
 ```mermaid
 graph TB
-    subgraph "Presentation Layer"
-        Controllers["🎮 Controllers<br/>Handle HTTP Requests"]
+    subgraph "Capa de Presentación"
+        Controllers["🎮 Controladores<br/>Manejan Peticiones HTTP"]
     end
     
-    subgraph "Application Layer"
-        Services["📦 Services<br/>Business Logic"]
-        Gateways["⚡ WebSocket Gateways<br/>Real-time Events"]
+    subgraph "Capa de Aplicación"
+        Services["📦 Servicios<br/>Lógica de Negocio"]
+        Gateways["⚡ Gateways WebSocket<br/>Eventos en Tiempo Real"]
     end
     
-    subgraph "Infrastructure Layer"
-        Guards["🔐 Guards<br/>Auth/Permissions"]
-        Interceptors["🔄 Interceptors<br/>Response Transform"]
-        Filters["❌ Filters<br/>Exception Handling"]
-        Middleware["🛣️ Middleware<br/>Request Preprocessing"]
+    subgraph "Capa de Infraestructura"
+        Guards["🔐 Guards<br/>Autenticación/Permisos"]
+        Interceptors["🔄 Interceptores<br/>Transformación de Respuestas"]
+        Filters["❌ Filtros<br/>Manejo de Excepciones"]
+        Middleware["🛣️ Middleware<br/>Preprocesamiento de Peticiones"]
     end
     
-    subgraph "Data Layer"
-        Models["📊 Mongoose Models<br/>Database Schemas"]
-        Database["🗄️ MongoDB<br/>Data Persistence"]
+    subgraph "Capa de Datos"
+        Models["📊 Modelos Mongoose<br/>Schemas de Base de Datos"]
+        Database["🗄️ MongoDB<br/>Persistencia de Datos"]
     end
     
-    subgraph "External Services"
-        MinIO["☁️ MinIO<br/>File Storage"]
+    subgraph "Servicios Externos"
+        MinIO["☁️ MinIO<br/>Almacenamiento de Archivos"]
     end
     
     Controllers --> Guards
@@ -47,16 +47,16 @@ graph TB
     Models --> Database
     Services --> MinIO
     
-    Interceptors -.->|Transform| Controllers
-    Filters -.->|Catch| Controllers
-    Middleware -.->|Preprocess| Controllers
+    Interceptors -.->|Transformar| Controllers
+    Filters -.->|Capturar| Controllers
+    Middleware -.->|Preprocesar| Controllers
 ```
 
-## Module Dependency Graph
+## Grafo de Dependencias de Módulos
 
 ```mermaid
 graph LR
-    AppModule["AppModule<br/>Root"]
+    AppModule["AppModule<br/>Raíz"]
     
     AppModule --> ConfigModule
     AppModule --> MongooseModule
@@ -84,34 +84,34 @@ graph LR
     style I18nModule fill:#74b9ff
 ```
 
-## Request Flow
+## Flujo de una Petición
 
 ```mermaid
 sequenceDiagram
-    participant Client
+    participant Client as Cliente
     participant Middleware
-    participant Guards
-    participant Controllers
-    participant Services
+    participant Guards as Guards
+    participant Controllers as Controladores
+    participant Services as Servicios
     participant Database as MongoDB
     participant Response as Interceptor
     
-    Client->>Middleware: HTTP Request
-    Middleware->>Middleware: Extract language
-    Middleware->>Guards: Middleware passes request
-    Guards->>Guards: Verify JWT
-    Guards->>Guards: Check permissions
-    Guards->>Controllers: Auth success
-    Controllers->>Services: Call business logic
-    Services->>Database: Query/Update
-    Database->>Services: Return data
-    Services->>Controllers: Return result
-    Controllers->>Response: Return response
-    Response->>Response: Transform envelope
+    Client->>Middleware: Petición HTTP
+    Middleware->>Middleware: Extrae idioma
+    Middleware->>Guards: Middleware pasa la petición
+    Guards->>Guards: Verifica JWT
+    Guards->>Guards: Comprueba permisos
+    Guards->>Controllers: Autenticación exitosa
+    Controllers->>Services: Llama a la lógica de negocio
+    Services->>Database: Consulta/Actualización
+    Database->>Services: Devuelve datos
+    Services->>Controllers: Devuelve resultado
+    Controllers->>Response: Devuelve respuesta
+    Response->>Response: Transforma envelope
     Response->>Client: { statusCode, data, timestamp }
 ```
 
-## Authentication & Authorization Flow
+## Flujo de Autenticación y Autorización
 
 ```mermaid
 graph TB
@@ -119,18 +119,18 @@ graph TB
         LoginCtrl["POST /auth/login<br/>username + password"]
         AuthService["AuthService<br/>bcrypt.compare()"]
         JwtService["JwtService<br/>sign(payload)"]
-        Token["JWT Token<br/>{ userId, type, role }"]
+        Token["Token JWT<br/>{ userId, type, role }"]
     end
     
-    subgraph "Protected Route"
+    subgraph "Ruta Protegida"
         Request["GET /api/protected<br/>Authorization: Bearer {token}"]
-        AuthGuard["AuthGuard<br/>Verify JWT"]
-        PermGuard["PermissionsGuard<br/>Check permissions"]
-        Handler["Route Handler<br/>@Auth() @HasPermission()"]
+        AuthGuard["AuthGuard<br/>Verificar JWT"]
+        PermGuard["PermissionsGuard<br/>Comprobar permisos"]
+        Handler["Manejador de Ruta<br/>@Auth() @HasPermission()"]
     end
     
-    subgraph "Response"
-        TransformInterceptor["TransformInterceptor<br/>Wrap response"]
+    subgraph "Respuesta"
+        TransformInterceptor["TransformInterceptor<br/>Envolver respuesta"]
         Final["{ statusCode, data, timestamp }"]
     end
     
@@ -150,89 +150,89 @@ graph TB
     style Final fill:#fdcb6e
 ```
 
-## Users Module: Clean Architecture Pattern
+## Módulo de Usuarios: Patrón de Arquitectura Limpia
 
-Only the **Users module** implements full Clean Architecture:
+Solo el **módulo de Usuarios** implementa la Arquitectura Limpia completa:
 
 ```mermaid
 graph TB
-    subgraph "Users Module"
-        Controller["UsersController<br/>(Presentation)"]
+    subgraph "Módulo de Usuarios"
+        Controller["UsersController<br/>(Presentación)"]
         
-        subgraph "Application Layer"
-            Service["UsersService<br/>(Orchestrator)"]
-            UseCases["Use Cases<br/>CreateUserUseCase<br/>FindUserByIdUseCase<br/>UpdateUserUseCase"]
+        subgraph "Capa de Aplicación"
+            Service["UsersService<br/>(Orquestador)"]
+            UseCases["Casos de Uso<br/>CreateUserUseCase<br/>FindUserByIdUseCase<br/>UpdateUserUseCase"]
         end
         
-        subgraph "Domain Layer"
-            Repository["IUserRepository<br/>(Abstract)"]
+        subgraph "Capa de Dominio"
+            Repository["IUserRepository<br/>(Abstracto)"]
         end
         
-        subgraph "Infrastructure Layer"
-            MongoRepo["UserMongoRepository<br/>(Implementation)"]
-            Model["User Mongoose Model"]
+        subgraph "Capa de Infraestructura"
+            MongoRepo["UserMongoRepository<br/>(Implementación)"]
+            Model["Modelo Mongoose de Usuario"]
         end
     end
     
     Controller --> Service
     Service --> UseCases
     UseCases --> Repository
-    Repository -.->|implements| MongoRepo
+    Repository -.->|implementa| MongoRepo
     MongoRepo --> Model
 ```
 
-## Other Modules: Flat Pattern
+## Otros Módulos: Patrón Plano
 
-All other modules bypass domain/use-case layers:
+El resto de módulos omite las capas de dominio y casos de uso:
 
 ```mermaid
 graph TB
-    subgraph "Posts Module (Flat)"
+    subgraph "Módulo Posts (Plano)"
         Controller["PostsController"]
         Service["PostsService"]
-        Model["Post Mongoose Model"]
+        Model["Modelo Mongoose de Post"]
     end
     
-    Controller -->|Direct| Service
-    Service -->|Direct| Model
+    Controller -->|Directo| Service
+    Service -->|Directo| Model
     
     style Controller fill:#74b9ff
     style Service fill:#74b9ff
     style Model fill:#74b9ff
 ```
 
-## Core Infrastructure Components
+## Componentes de la Infraestructura Central
 
 ### Guards
 
-Protects routes with authentication and authorization:
+Protege las rutas con autenticación y autorización:
 
 ```mermaid
 graph LR
-    Request["Incoming Request"]
+    Request["Petición Entrante"]
     
-    subgraph "Guard Chain"
-        AuthGuard["🔐 AuthGuard<br/>Verify JWT"]
-        PermGuard["🛡️ PermissionsGuard<br/>Check Permissions"]
-        WsAuthGuard["⚡ WsAuthGuard<br/>WebSocket Auth<br/>(unused)"]
+    subgraph "Cadena de Guards"
+        AuthGuard["🔐 AuthGuard<br/>Verificar JWT"]
+        PermGuard["🛡️ PermissionsGuard<br/>Comprobar Permisos"]
+        WsAuthGuard["⚡ WsAuthGuard<br/>Auth WebSocket<br/>(sin uso)"]
     end
     
-    Proceed["✅ Request Allowed"]
-    Reject["❌ 401/403 Error"]
+    Proceed["✅ Petición Permitida"]
+    Reject["❌ Error 401/403"]
     
     Request --> AuthGuard
-    AuthGuard -->|Valid| PermGuard
-    AuthGuard -->|Invalid| Reject
-    PermGuard -->|Allowed| Proceed
-    PermGuard -->|Denied| Reject
+    AuthGuard -->|Válido| PermGuard
+    AuthGuard -->|Inválido| Reject
+    PermGuard -->|Permitido| Proceed
+    PermGuard -->|Denegado| Reject
 ```
 
-### Response Transformation
+### Transformación de Respuestas
 
 ```mermaid
 graph TB
-    Endpoint["Route Handler<br/>returns: { name, email }"]
-    Interceptor["TransformInterceptor<br/>Wraps response"]
+    Endpoint["Manejador de Ruta<br/>devuelve: { name, email }"]
+    Interceptor["TransformInterceptor<br/>Envuelve la respuesta"]
     
     Response["<br/>{\n  statusCode: 200,<br/>  data: { name, email },<br/>  timestamp: '2024-06-13...',<br/>  success: true<br/>}"]
     
@@ -242,15 +242,15 @@ graph TB
     style Response fill:#fdcb6e
 ```
 
-### Exception Handling
+### Manejo de Excepciones
 
 ```mermaid
 graph TB
-    Error["Exception Thrown<br/>in Route Handler"]
-    Filter["GlobalExceptionFilter<br/>Catches all exceptions"]
+    Error["Excepción Lanzada<br/>en el Manejador de Ruta"]
+    Filter["GlobalExceptionFilter<br/>Captura todas las excepciones"]
     
-    NotValidation["Non-validation Error"]
-    ValidationError["ValidationError"]
+    NotValidation["Error no de validación"]
+    ValidationError["Error de Validación"]
     
     Response1["{ statusCode, message,<br/>timestamp, success: false }"]
     Response2["{ statusCode, message,<br/>errors: [], success: false }"]
@@ -265,22 +265,22 @@ graph TB
     style Filter fill:#ff7675
 ```
 
-## Data Layer
+## Capa de Datos
 
-### Entity Relationships
+### Relaciones entre Entidades
 
 ```mermaid
 erDiagram
-    USER ||--o{ POST : "creates"
-    USER ||--o{ COMMENT : "has"
-    USER ||--|| ROLE : "assigned"
-    POST ||--o{ COMMENT : "has"
-    ROLE ||--o{ PERMISSION : "grants"
+    USER ||--o{ POST : "crea"
+    USER ||--o{ COMMENT : "tiene"
+    USER ||--|| ROLE : "asignado"
+    POST ||--o{ COMMENT : "tiene"
+    ROLE ||--o{ PERMISSION : "otorga"
     
     USER {
         ObjectId id
-        string username "unique"
-        string email "unique"
+        string username "único"
+        string email "único"
         string password_hash
         string type "admin, user, client"
         boolean isActive
@@ -323,117 +323,117 @@ erDiagram
     }
 ```
 
-## File Storage Architecture
+## Arquitectura de Almacenamiento de Archivos
 
 ```mermaid
 graph TB
-    Client["Frontend<br/>Upload File"]
+    Client["Frontend<br/>Subir Archivo"]
     Controller["FilesController<br/>@Post('/upload')"]
     Service["FilesService"]
     MinIO["MinIO<br/>Object Storage"]
-    FileRecord["File Metadata<br/>filename, url"]
+    FileRecord["Metadatos del Archivo<br/>filename, url"]
     
     Client -->|multipart/form-data| Controller
-    Controller -->|Validate| Service
+    Controller -->|Validar| Service
     Service -->|Put object| MinIO
-    Service -->|Save reference| FileRecord
-    FileRecord -->|Return public URL| Client
+    Service -->|Guardar referencia| FileRecord
+    FileRecord -->|Devolver URL pública| Client
     
     style MinIO fill:#ff9f43
     style FileRecord fill:#74b9ff
 ```
 
-## Real-Time Communication (WebSocket)
+## Comunicación en Tiempo Real (WebSocket)
 
 ```mermaid
 graph TB
-    Client1["Client 1"]
-    Client2["Client 2"]
+    Client1["Cliente 1"]
+    Client2["Cliente 2"]
     
-    subgraph "Socket.IO Server"
-        Gateway["CommentsGateway<br/>/comments namespace"]
-        Events["Event Handlers<br/>user:register<br/>comment:create<br/>comment:update<br/>comments:list"]
+    subgraph "Servidor Socket.IO"
+        Gateway["CommentsGateway<br/>namespace /comments"]
+        Events["Manejadores de Eventos<br/>user:register<br/>comment:create<br/>comment:update<br/>comments:list"]
         Service["CommentsService"]
     end
     
-    Database["MongoDB<br/>Comments Collection"]
+    Database["MongoDB<br/>Colección Comments"]
     
-    Client1 -->|emit event| Gateway
-    Client2 -->|emit event| Gateway
+    Client1 -->|emitir evento| Gateway
+    Client2 -->|emitir evento| Gateway
     Gateway --> Events
     Events --> Service
     Service --> Database
     Service -->|broadcast| Gateway
-    Gateway -->|emit event| Client1
-    Gateway -->|emit event| Client2
+    Gateway -->|emitir evento| Client1
+    Gateway -->|emitir evento| Client2
     
     style Gateway fill:#00b894
     style Events fill:#00b894
 ```
 
-## Performance Considerations
+## Consideraciones de Rendimiento
 
-1. **Database Indexing**: Ensure indexes on frequently queried fields
-   - `users.username` (unique)
-   - `users.email` (unique)
-   - `roles.identifier` (unique)
-   - `posts.author` (foreign key)
-   - `comments.postId` (foreign key)
+1. **Indexación de Base de Datos**: Asegurar índices en campos consultados frecuentemente
+   - `users.username` (único)
+   - `users.email` (único)
+   - `roles.identifier` (único)
+   - `posts.author` (clave foránea)
+   - `comments.postId` (clave foránea)
 
-2. **Pagination**: Use `PaginationService` (currently unused) for large datasets
+2. **Paginación**: Usar `PaginationService` (actualmente sin uso) para conjuntos de datos grandes
 
-3. **Caching**: Not implemented yet; consider Redis for session storage
+3. **Caché**: Aún no implementado; considerar Redis para almacenamiento de sesiones
 
-4. **File Storage**: MinIO provides object storage with eventual consistency
+4. **Almacenamiento de Archivos**: MinIO provee object storage con consistencia eventual
 
-## Security Layers
+## Capas de Seguridad
 
 ```mermaid
 graph TB
-    Request["Incoming Request"]
-    HTTPS["HTTPS/TLS<br/>Transport Security"]
-    CORS["CORS Validation<br/>Origin Check"]
-    Auth["JWT Verification<br/>Signature + Expiry"]
-    Perms["Permission Check<br/>RBAC"]
-    Validation["Input Validation<br/>class-validator"]
+    Request["Petición Entrante"]
+    HTTPS["HTTPS/TLS<br/>Seguridad en Transporte"]
+    CORS["Validación CORS<br/>Verificación de Origen"]
+    Auth["Verificación JWT<br/>Firma + Expiración"]
+    Perms["Comprobación de Permisos<br/>RBAC"]
+    Validation["Validación de Entrada<br/>class-validator"]
     
     Request --> HTTPS
     HTTPS --> CORS
     CORS --> Auth
     Auth --> Perms
     Perms --> Validation
-    Validation -->|✅ Allowed| Handler["Route Handler"]
+    Validation -->|✅ Permitido| Handler["Manejador de Ruta"]
     
     style HTTPS fill:#00b894
     style Auth fill:#0984e3
     style Perms fill:#6c5ce7
 ```
 
-## Deployment Architecture
+## Arquitectura de Despliegue
 
 ```mermaid
 graph LR
-    subgraph "Client"
-        Browser["🌐 Browser<br/>Angular App"]
+    subgraph "Cliente"
+        Browser["🌐 Navegador<br/>App Angular"]
     end
     
-    subgraph "Server"
+    subgraph "Servidor"
         Node["🚀 NestJS<br/>Node.js"]
     end
     
-    subgraph "Data"
+    subgraph "Datos"
         Mongo["🗄️ MongoDB"]
     end
     
-    subgraph "Storage"
+    subgraph "Almacenamiento"
         Minio["☁️ MinIO"]
     end
     
     Browser -->|HTTP/WebSocket| Node
-    Node -->|Query| Mongo
+    Node -->|Consulta| Mongo
     Node -->|Object Store| Minio
 ```
 
 ---
 
-**Next**: [Layers →](./layers.md)
+**Siguiente**: [Capas →](./layers.md)

@@ -1,0 +1,68 @@
+@if (!isLoggedIn()) {
+  <div class="comment-gate" (click)="showAuthModal.set(true)">
+    <span class="comment-gate-icon">💬</span>
+    <span>Sign in to join the conversation</span>
+  </div>
+} @else {
+  <form [formGroup]="commentForm" (ngSubmit)="onSubmit()" class="comment-form">
+    @if (submitError) {
+      <div class="form-error">
+        <p>{{ submitError }}</p>
+      </div>
+    }
+
+    <div class="form-group">
+      <label for="content">{{ 'posts.comment.label' | t }}</label>
+      <textarea
+        id="content"
+        formControlName="content"
+        [placeholder]="'posts.comment.placeholder' | t"
+        rows="4"
+        [attr.disabled]="isSubmitting ? true : null"
+      ></textarea>
+      @if (getFieldError('content')) {
+        <span class="error">{{ getFieldError('content') }}</span>
+      }
+    </div>
+
+    <!-- Media upload -->
+    <app-media-upload
+      [disabled]="isSubmitting"
+      (filesReady)="mediaResult.set($event)"
+      (uploadingChange)="isUploading.set($event)"
+    />
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || isUploading()">
+        @if (isSubmitting || isUploading()) {
+          <span class="inline-flex items-center gap-1.5">
+            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            {{ 'posts.comment.submitting' | t }}
+          </span>
+        } @else {
+          {{ 'posts.comment.submit' | t }}
+        }
+      </button>
+      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSubmitting || isUploading()">
+        {{ 'posts.comment.cancel' | t }}
+      </button>
+    </div>
+  </form>
+}
+
+@if (showAuthModal()) {
+  <div class="auth-modal-backdrop" (click)="closeAuthModal()">
+    <div class="auth-modal" (click)="$event.stopPropagation()">
+      <h3>Sign in to comment</h3>
+      <p>You must be signed in to leave a comment.</p>
+      <div class="auth-modal-actions">
+        <button class="btn btn-primary" (click)="goToLogin()">Sign In</button>
+        <button class="btn btn-outline" (click)="goToRegister()">Register</button>
+        <button class="btn btn-ghost" (click)="closeAuthModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+}

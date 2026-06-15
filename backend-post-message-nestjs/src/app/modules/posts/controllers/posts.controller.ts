@@ -6,7 +6,10 @@ import {
   Param,
   Delete,
   Put,
+  Patch,
   Query,
+  ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PaginationQueryDto } from '../../../core/dto/pagination.dto';
 import {
@@ -29,6 +32,13 @@ import { CurrentUser } from '../../../core/decorators/current-user.decorator';
 import type { CurrentUserPayload } from '../../../core/decorators/current-user.decorator';
 import { AuditActionDecorator } from '../../../core/decorators/audit-action.decorator';
 import { AuditAction, EntityType } from '../../audit/schemas/audit-log.schema';
+import {
+  POSTS_SWAGGER,
+  POSTS_RESPONSE_DESCRIPTIONS,
+  POSTS_PARAM_DESCRIPTIONS,
+  POSTS_MESSAGES,
+  POST_STATUSES,
+} from '../constants/posts.constants';
 
 @ApiTags('posts')
 @Controller('posts')
@@ -41,39 +51,99 @@ export class PostsController {
 
   @Auth()
   @AuditActionDecorator(AuditAction.CREATE, EntityType.POST)
-  @ApiOperation({ summary: 'Create a new post' })
+  @ApiOperation(POSTS_SWAGGER.CREATE)
   @ApiBody({ type: CreatePostDto })
-  @ApiResponse({ status: 201, description: 'Post created successfully', type: PostResponseDto })
-  @ApiResponse({ status: 400, description: 'Validation failed' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 201,
+    description: POSTS_RESPONSE_DESCRIPTIONS.CREATED,
+    type: PostResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: POSTS_RESPONSE_DESCRIPTIONS.VALIDATION_FAILED,
+  })
+  @ApiResponse({
+    status: 401,
+    description: POSTS_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
   @Post()
-  async create(@Body() createPostDto: CreatePostDto) {
-    const post = await this.postsService.create(createPostDto);
+  async create(
+    @Body() createPostDto: CreatePostDto,
+    @CurrentUser() currentUser: CurrentUserPayload,
+  ) {
+    const post = await this.postsService.create(createPostDto, currentUser.userId);
     this.postsGateway.notifyPostCreated(post, 'System');
-    return ApiRes.success(post, this.i18n.translate('posts.created'));
+    return ApiRes.success(post, this.i18n.translate(POSTS_MESSAGES.CREATED));
   }
 
-  @ApiOperation({ summary: 'Get all posts (paginated with filters)' })
-  @ApiResponse({ status: 200, description: 'Paginated list of posts' })
+  @Auth()
+  @ApiOperation(POSTS_SWAGGER.FIND_BY_AUTHOR)
+  @ApiResponse({
+    status: 200,
+    description: POSTS_RESPONSE_DESCRIPTIONS.LIST,
+  })
+  @Get('my-posts')
+  async getMyPosts(
+    @CurrentUser() currentUser: CurrentUserPayload,
+    @Query() paginationDto: PaginationQueryDto,
+  ) {
+    const isClient = (currentUser as any).type === 'client';
+    const isAdmin =
+      (currentUser as any).role === 'admin' ||
+      (typeof (currentUser as any).role === 'object' && (currentUser as any).role?.name === 'admin');
+
+    if (!isClient && !isAdmin) {
+      throw new ForbiddenException(
+        this.i18n.translate(POSTS_MESSAGES.UNAUTHORIZED_DELETE),
+      );
+    }
+    const result = await this.postsService.findByAuthorId(
+      currentUser.userId,
+      paginationDto.skip,
+      paginationDto.limit,
+    );
+    return ApiRes.success(result);
+  }
+
+  @ApiOperation(POSTS_SWAGGER.FIND_ALL)
+  @ApiResponse({
+    status: 200,
+    description: POSTS_RESPONSE_DESCRIPTIONS.LIST,
+  })
   @Get()
   async findAll(
     @Query() paginationDto: PaginationQueryDto,
     @Query('categoryId') categoryId?: string,
     @Query('status') status?: string,
-    @Query('author') author?: string
+    @Query('tags') tags?: string,
+    @Query('author') author?: string,
+    @Query('search') search?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
   ) {
     const result = await this.postsService.findAllPaginated(
       paginationDto.skip,
       paginationDto.limit,
-      { categoryId, status, author }
+      { categoryId, status, tags, author, search, sortBy, sortOrder },
     );
     return ApiRes.success(result);
   }
 
-  @ApiOperation({ summary: 'Get a post by ID' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Post MongoDB ObjectId' })
-  @ApiResponse({ status: 200, description: 'Post found', type: PostResponseDto })
-  @ApiResponse({ status: 404, description: 'Post not found' })
+  @ApiOperation(POSTS_SWAGGER.FIND_ONE)
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: POSTS_PARAM_DESCRIPTIONS.ID,
+  })
+  @ApiResponse({
+    status: 200,
+    description: POSTS_RESPONSE_DESCRIPTIONS.FOUND,
+    type: PostResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: POSTS_RESPONSE_DESCRIPTIONS.NOT_FOUND,
+  })
   @Get(':id')
   async findOne(@Param() findOneDto: FindOneDto) {
     const post = await this.postsService.findOne(findOneDto.id);
@@ -81,13 +151,29 @@ export class PostsController {
   }
 
   @Auth()
-  @AuditActionDecorator(AuditAction.UPDATE, EntityType.POST, { captureSnapshot: true })
-  @ApiOperation({ summary: 'Update a post' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Post MongoDB ObjectId' })
+  @AuditActionDecorator(AuditAction.UPDATE, EntityType.POST, {
+    captureSnapshot: true,
+  })
+  @ApiOperation(POSTS_SWAGGER.UPDATE)
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: POSTS_PARAM_DESCRIPTIONS.ID,
+  })
   @ApiBody({ type: UpdatePostDto })
-  @ApiResponse({ status: 200, description: 'Post updated successfully', type: PostResponseDto })
-  @ApiResponse({ status: 404, description: 'Post not found' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 200,
+    description: POSTS_RESPONSE_DESCRIPTIONS.UPDATED,
+    type: PostResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: POSTS_RESPONSE_DESCRIPTIONS.NOT_FOUND,
+  })
+  @ApiResponse({
+    status: 401,
+    description: POSTS_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
   @Put(':id')
   async update(
     @Param() findOneDto: FindOneDto,
@@ -96,16 +182,29 @@ export class PostsController {
   ) {
     const post = await this.postsService.update(findOneDto.id, updatePostDto);
     this.postsGateway.notifyPostUpdated(post, currentUser.username);
-    return ApiRes.success(post, this.i18n.translate('posts.updated'));
+    return ApiRes.success(post, this.i18n.translate(POSTS_MESSAGES.UPDATED));
   }
 
   @Auth()
   @AuditActionDecorator(AuditAction.DELETE, EntityType.POST)
-  @ApiOperation({ summary: 'Delete a post' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Post MongoDB ObjectId' })
-  @ApiResponse({ status: 200, description: 'Post deleted successfully' })
-  @ApiResponse({ status: 404, description: 'Post not found' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiOperation(POSTS_SWAGGER.DELETE)
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: POSTS_PARAM_DESCRIPTIONS.ID,
+  })
+  @ApiResponse({
+    status: 200,
+    description: POSTS_RESPONSE_DESCRIPTIONS.DELETED,
+  })
+  @ApiResponse({
+    status: 404,
+    description: POSTS_RESPONSE_DESCRIPTIONS.NOT_FOUND,
+  })
+  @ApiResponse({
+    status: 401,
+    description: POSTS_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
   @Delete(':id')
   async remove(
     @Param() findOneDto: FindOneDto,
@@ -113,18 +212,66 @@ export class PostsController {
   ) {
     await this.postsService.remove(findOneDto.id);
     this.postsGateway.notifyPostDeleted(findOneDto.id, currentUser.username);
-    return ApiRes.success(null, this.i18n.translate('posts.deleted'));
+    return ApiRes.success(null, this.i18n.translate(POSTS_MESSAGES.DELETED));
   }
 
   @Auth()
-  @ApiOperation({ summary: 'Bulk create posts' })
+  @ApiOperation({ summary: 'Update post status', description: 'Update only the status of a post' })
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: POSTS_PARAM_DESCRIPTIONS.ID,
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['status'],
+      properties: {
+        status: { type: 'string', enum: ['draft', 'published', 'archived'] },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: POSTS_RESPONSE_DESCRIPTIONS.UPDATED,
+    type: PostResponseDto,
+  })
+  @ApiResponse({ status: 400, description: POSTS_RESPONSE_DESCRIPTIONS.VALIDATION_FAILED })
+  @ApiResponse({ status: 401, description: POSTS_RESPONSE_DESCRIPTIONS.UNAUTHORIZED })
+  @ApiResponse({ status: 404, description: POSTS_RESPONSE_DESCRIPTIONS.NOT_FOUND })
+  @Patch(':id/status')
+  async updateStatus(
+    @Param() findOneDto: FindOneDto,
+    @Body('status') status: string,
+  ) {
+    if (!POST_STATUSES.includes(status as any)) {
+      throw new BadRequestException(
+        `Status must be one of: ${POST_STATUSES.join(', ')}`,
+      );
+    }
+    const post = await this.postsService.updateStatus(findOneDto.id, status);
+    return ApiRes.success(post, this.i18n.translate(POSTS_MESSAGES.UPDATED));
+  }
+
+  @Auth()
+  @ApiOperation(POSTS_SWAGGER.CREATE)
   @ApiBody({ type: [CreatePostDto] })
-  @ApiResponse({ status: 201, description: 'Posts created successfully', type: [PostResponseDto] })
-  @ApiResponse({ status: 400, description: 'Validation failed' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 201,
+    description: POSTS_RESPONSE_DESCRIPTIONS.CREATED,
+    type: [PostResponseDto],
+  })
+  @ApiResponse({
+    status: 400,
+    description: POSTS_RESPONSE_DESCRIPTIONS.VALIDATION_FAILED,
+  })
+  @ApiResponse({
+    status: 401,
+    description: POSTS_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
   @Post('bulk')
   async bulkCreate(@Body() createPostDtos: CreatePostDto[]) {
     const result = await this.postsService.bulkCreate(createPostDtos);
-    return ApiRes.success(result, this.i18n.translate('posts.created'));
+    return ApiRes.success(result, this.i18n.translate(POSTS_MESSAGES.CREATED));
   }
 }

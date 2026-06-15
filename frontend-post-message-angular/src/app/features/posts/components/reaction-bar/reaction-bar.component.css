@@ -1,0 +1,33 @@
+.reaction-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.reaction-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 1rem;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.15s;
+}
+
+.reaction-btn:hover {
+  background: #f0f0f0;
+}
+
+.reaction-btn.reacted {
+  background: #e8f0fe;
+  border-color: #4285f4;
+}
+
+.reaction-count {
+  font-size: 0.85rem;
+  color: #555;
+}

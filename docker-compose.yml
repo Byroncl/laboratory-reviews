@@ -9,6 +9,13 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     volumes:
       - mongo_data:/data/db
+    networks:
+      - app-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Servidor de almacenamiento de objetos (MinIO)
   minio:
@@ -24,29 +31,46 @@ services:
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
+    networks:
+      - app-network
+    healthcheck:
+      test: curl -f http://localhost:9000/minio/health/live || exit 1
+      interval: 30s
+      timeout: 20s
+      retries: 3
 
   # Servidor de Aplicación (NestJS)
   nestjs-app:
-    image: node:20-alpine
+    build:
+      context: ./backend-post-message-nestjs
+      dockerfile: Dockerfile
     container_name: mi_nestjs
     restart: always
     ports:
       - "3000:3000"
-    volumes:
-      - ./backend-post-message-nestjs:/usr/src/app
-      - /usr/src/app/node_modules
-    working_dir: /usr/src/app
-    command: sh -c "npm install && npm run start"
     depends_on:
-      - mongodb
-      - minio
+      mongodb:
+        condition: service_started
+      minio:
+        condition: service_started
     environment:
-      - MONGODB_URI=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DB_NAME}?authSource=admin
-      - PORT=${NODE_PORT}
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
-      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
+      NODE_ENV: production
+      SEED_ENABLED: "true"
+      TESTING: "true"
+      MONGODB_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DB_NAME}?authSource=admin
+      PORT: 3000
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
 
   # Documentación (HTTP Server)
   docs:
@@ -56,11 +80,14 @@ services:
     container_name: mi_docs
     restart: always
     ports:
-      - "3001:3000"
-    volumes:
-      - ./docs-post-message:/app
-    working_dir: /app
+      - "3001:3001"
+    networks:
+      - app-network
 
 volumes:
   mongo_data:
   minio_data:
+
+networks:
+  app-network:
+    driver: bridge
