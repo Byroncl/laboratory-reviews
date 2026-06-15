@@ -33,11 +33,10 @@ export class AuthEffects {
             }
             return AuthActions.loginSuccess({ user, token: access_token });
           }),
-          catchError((error) =>
-            of(AuthActions.loginFailure({
-              error: error.error?.message || 'Invalid credentials'
-            }))
-          )
+          catchError((error) => {
+            const errorMessage = this.extractErrorMessage(error);
+            return of(AuthActions.loginFailure({ error: errorMessage }));
+          })
         )
       )
     )
@@ -118,11 +117,10 @@ export class AuthEffects {
             }
             return AuthActions.registerSuccess({ user });
           }),
-          catchError((error) =>
-            of(AuthActions.registerFailure({
-              error: error.error?.message || 'Registration failed'
-            }))
-          )
+          catchError((error) => {
+            const errorMessage = this.extractErrorMessage(error, 'Registration failed');
+            return of(AuthActions.registerFailure({ error: errorMessage }));
+          })
         )
       )
     )
@@ -173,4 +171,25 @@ export class AuthEffects {
       ),
     { dispatch: false }
   );
+
+  private extractErrorMessage(error: any, defaultMessage = 'Invalid credentials'): string {
+    // Handle array of messages (from validation errors)
+    if (Array.isArray(error.error?.message)) {
+      return error.error.message.join('\n');
+    }
+    // Handle single message string
+    if (typeof error.error?.message === 'string') {
+      return error.error.message;
+    }
+    // Handle error object with message property
+    if (error.error?.error) {
+      return error.error.error;
+    }
+    // Handle string error response
+    if (typeof error.error === 'string') {
+      return error.error;
+    }
+    // Default fallback
+    return defaultMessage;
+  }
 }
