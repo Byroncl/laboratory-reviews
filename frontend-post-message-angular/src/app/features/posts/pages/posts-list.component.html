@@ -65,20 +65,20 @@
         </div>
 
         <div class="form-group">
-          <label for="content">Contenido</label>
+          <label for="body">Contenido</label>
           <textarea
-            id="content"
+            id="body"
             class="form-textarea"
-            formControlName="content"
+            formControlName="body"
             placeholder="Ingresa el contenido del post"
             rows="8"
           ></textarea>
-          @if (editForm.get('content')?.invalid && editForm.get('content')?.touched) {
+          @if (editForm.get('body')?.invalid && editForm.get('body')?.touched) {
             <span class="form-error">
-              @if (editForm.get('content')?.errors?.['required']) {
+              @if (editForm.get('body')?.errors?.['required']) {
                 El contenido es requerido
               }
-              @if (editForm.get('content')?.errors?.['minlength']) {
+              @if (editForm.get('body')?.errors?.['minlength']) {
                 El contenido debe tener al menos 20 caracteres
               }
             </span>

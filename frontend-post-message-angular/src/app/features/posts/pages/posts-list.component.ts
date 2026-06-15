@@ -87,7 +87,7 @@ export class PostsListComponent implements OnInit {
   private initEditForm(post: IPost): void {
     this.editForm = this.fb.group({
       title: [post.title, [Validators.required, Validators.minLength(5)]],
-      content: [post.content, [Validators.required, Validators.minLength(20)]],
+      body: [post.content, [Validators.required, Validators.minLength(20)]],
       tags: [post.tags?.join(', ') || '', []],
     });
   }
@@ -164,7 +164,7 @@ export class PostsListComponent implements OnInit {
     const formValue = this.editForm.value;
     const updateData = {
       title: formValue.title,
-      content: formValue.content,
+      body: formValue.body,
       tags: formValue.tags
         ? formValue.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag)
         : [],
