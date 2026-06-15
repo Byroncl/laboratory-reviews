@@ -224,6 +224,7 @@ export class PostsListComponent implements OnInit {
     const createData: any = {
       title: formValue.title,
       content: formValue.body,
+      body: formValue.body,  // Backend schema uses 'body' for storage
       author,
       tags: formValue.tags
         ? formValue.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag)

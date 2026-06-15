@@ -93,9 +93,10 @@ export class PostFormComponent implements OnInit {
     const currentUser = this.authService.currentUser$();
     const author = currentUser?.username || 'Anonymous';
 
-    const data: ICreatePostDTO = {
+    const data: any = {
       title: formValue.title,
       content: formValue.body,
+      body: formValue.body,  // Backend schema uses 'body' for storage
       author,
     };
 

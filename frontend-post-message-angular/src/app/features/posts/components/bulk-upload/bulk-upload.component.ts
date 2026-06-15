@@ -209,9 +209,11 @@ export class BulkUploadComponent {
         }
       }
 
-      const dto: ICreatePostDTO = {
+      const contentValue = ((obj['content'] || obj['body']) as string).trim();
+      const dto: any = {
         title: typeof obj['title'] === 'string' ? obj['title'].trim() : `Post ${i + 1}`,
-        content: ((obj['content'] || obj['body']) as string).trim(),
+        content: contentValue,
+        body: contentValue,  // Backend schema uses 'body' for storage
         author: obj['author'] as string || 'Anonymous',
       };
 
