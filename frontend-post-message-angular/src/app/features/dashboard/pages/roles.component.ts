@@ -72,7 +72,7 @@ export class RolesComponent {
   // Computed filtered roles
   readonly filteredRoles = computed(() => {
     const roles = this.rolesService.roles$();
-    const filters = { searchTerm: this.globalSearch$() };
+    const filters = { searchTerm: this.globalSearch() };
 
     let filtered = filterRoles(roles, filters);
     filtered = applyColumnFilters(filtered, this.columnFilters$());
@@ -244,8 +244,8 @@ export class RolesComponent {
   }
 
   private updateActiveFilters(): void {
-    this.hasActiveFilters$.set(
-      this.globalSearch$() !== '' ||
+    this.hasActiveFilters.set(
+      this.globalSearch() !== '' ||
         Object.keys(this.columnFilters$()).length > 0
     );
   }
