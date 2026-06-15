@@ -202,4 +202,15 @@ export class PostsService extends PostsBaseService<IPost> {
 
     return params;
   }
+
+  /**
+   * Upload image file
+   */
+  public uploadImage(formData: FormData): Observable<any> {
+    return this.http
+      .post<any>(`${this.baseUrl}/files/upload`, formData)
+      .pipe(
+        catchError((err) => this._handleError(err, 'Failed to upload image')),
+      );
+  }
 }

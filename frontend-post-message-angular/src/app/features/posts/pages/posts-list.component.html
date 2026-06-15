@@ -185,6 +185,29 @@
           />
         </div>
 
+        <div class="form-group">
+          <label for="create-image">Imagen (opcional)</label>
+          <div class="image-upload-container">
+            <input
+              type="file"
+              id="create-image"
+              accept="image/*"
+              (change)="onImageSelected($event)"
+              [disabled]="uploadingImage()"
+              class="image-input"
+            />
+            @if (uploadingImage()) {
+              <p class="upload-status">Subiendo imagen...</p>
+            }
+            @if (uploadedImageUrl()) {
+              <div class="image-preview">
+                <img [src]="uploadedImageUrl()" alt="Vista previa" />
+                <p class="image-uploaded">✅ Imagen cargada</p>
+              </div>
+            }
+          </div>
+        </div>
+
         <div class="modal-actions">
           <button
             type="button"

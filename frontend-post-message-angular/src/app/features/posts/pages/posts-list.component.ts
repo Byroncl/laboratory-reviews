@@ -46,6 +46,8 @@ export class PostsListComponent implements OnInit {
   readonly selectedStatus = signal<string>('');
   readonly isSavingEdit = signal(false);
   readonly isCreatingPost = signal(false);
+  readonly uploadingImage = signal(false);
+  readonly uploadedImageUrl = signal<string | null>(null);
 
   editForm!: FormGroup;
   createForm!: FormGroup;
@@ -214,13 +216,18 @@ export class PostsListComponent implements OnInit {
     this.isCreatingPost.set(true);
     const formValue = this.createForm.value;
 
-    const createData = {
+    const createData: any = {
       title: formValue.title,
       body: formValue.body,
       tags: formValue.tags
         ? formValue.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag)
         : [],
     };
+
+    // Add image URL if uploaded
+    if (this.uploadedImageUrl()) {
+      createData.imageUrl = this.uploadedImageUrl();
+    }
 
     this.postsService.createPost(createData).subscribe({
       next: () => {
@@ -239,6 +246,44 @@ export class PostsListComponent implements OnInit {
 
   closeCreateModal(): void {
     this.showCreateModal.set(false);
+    this.uploadedImageUrl.set(null);
+  }
+
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      this.notificationService.toast('Por favor selecciona una imagen válida', 'warning');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      this.notificationService.toast('La imagen no debe superar 5MB', 'warning');
+      return;
+    }
+
+    this.uploadingImage.set(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    this.postsService.uploadImage(formData).subscribe({
+      next: (response: any) => {
+        this.uploadedImageUrl.set(response.data.imageUrl || response.imageUrl);
+        this.notificationService.toast('✅ Imagen cargada correctamente', 'success');
+        this.uploadingImage.set(false);
+      },
+      error: (err) => {
+        this.notificationService.toast('❌ Error al cargar la imagen', 'error');
+        console.error('Failed to upload image:', err);
+        this.uploadingImage.set(false);
+      },
+    });
   }
 
   onNextPage(): void {
