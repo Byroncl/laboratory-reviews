@@ -223,7 +223,7 @@ export class PostsListComponent implements OnInit {
 
     const createData: any = {
       title: formValue.title,
-      body: formValue.body,
+      Content: formValue.body,
       author,
       tags: formValue.tags
         ? formValue.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag)
@@ -280,12 +280,19 @@ export class PostsListComponent implements OnInit {
 
     this.postsService.uploadImage(formData).subscribe({
       next: (response: any) => {
-        this.uploadedImageUrl.set(response.data.imageUrl || response.imageUrl);
-        this.notificationService.toast('✅ Imagen cargada correctamente', 'success');
+        console.log('Upload response:', response);
+        const imageUrl = response?.data?.imageUrl || response?.imageUrl || response?.url;
+        if (imageUrl) {
+          this.uploadedImageUrl.set(imageUrl);
+          this.notificationService.toast('✅ Imagen cargada correctamente', 'success');
+        } else {
+          console.warn('No imageUrl in response:', response);
+          this.notificationService.toast('⚠️ Imagen cargada pero sin URL', 'warning');
+        }
         this.uploadingImage.set(false);
       },
       error: (err) => {
-        this.notificationService.toast('❌ Error al cargar la imagen', 'error');
+        this.notificationService.toast('❌ Error al cargar la imagen: ' + (err?.error?.message || err?.message || 'Error desconocido'), 'error');
         console.error('Failed to upload image:', err);
         this.uploadingImage.set(false);
       },
