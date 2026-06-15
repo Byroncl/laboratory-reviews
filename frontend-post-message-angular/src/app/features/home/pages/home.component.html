@@ -19,49 +19,27 @@
             class="category-link"
             [class.active]="selectedCategoryId() === cat.id"
             (click)="selectCategory(cat.id)"
-            [style.border-left-color]="selectedCategoryId() === cat.id ? (cat.color || '#0076d6') : 'transparent'"
+            [style.border-left-color]="
+              selectedCategoryId() === cat.id
+                ? cat.color || '#0076d6'
+                : 'transparent'
+            "
           >
-            <span class="icon-dot" [style.background-color]="cat.color || '#818384'"></span>
+            <span
+              class="icon-dot"
+              [style.background-color]="cat.color || '#818384'"
+            ></span>
             <span class="category-name">{{ cat.name }}</span>
             @if (cat.postCount) {
-              <span class="count" [style.background-color]="(cat.color || '#0076d6') + '1A'" [style.color]="cat.color || '#0076d6'">{{ cat.postCount }}</span>
+              <span
+                class="count"
+                [style.background-color]="(cat.color || '#0076d6') + '1A'"
+                [style.color]="cat.color || '#0076d6'"
+                >{{ cat.postCount }}</span
+              >
             }
           </button>
         }
-      </nav>
-    </div>
-
-    <!-- Quick Links Widget -->
-    <div class="sidebar-content mt-4">
-      <h3 class="sidebar-title">Enlaces Rápidos</h3>
-      <nav class="quick-links-menu">
-        <a href="#" class="quick-link" (click)="$event.preventDefault()">
-          <span class="icon">📖</span>
-          <span class="link-name">Guías del Sitio</span>
-        </a>
-        <a href="#" class="quick-link" (click)="$event.preventDefault()">
-          <span class="icon">❓</span>
-          <span class="link-name">Preguntas Frecuentes</span>
-        </a>
-        <a href="#" class="quick-link" (click)="$event.preventDefault()">
-          <span class="icon">🛡️</span>
-          <span class="link-name">Código de Conducta</span>
-        </a>
-      </nav>
-    </div>
-
-    <!-- Ayuda Widget -->
-    <div class="sidebar-content mt-4">
-      <h3 class="sidebar-title">Ayuda</h3>
-      <nav class="quick-links-menu">
-        <a href="#" class="quick-link" (click)="$event.preventDefault()">
-          <span class="icon">✉️</span>
-          <span class="link-name">Soporte Técnico</span>
-        </a>
-        <a href="#" class="quick-link" (click)="$event.preventDefault()">
-          <span class="icon">💬</span>
-          <span class="link-name">Centro de Ayuda</span>
-        </a>
       </nav>
     </div>
   </aside>
@@ -95,7 +73,7 @@
     <!-- Posts Feed -->
     @if (loading()) {
       <div class="loading-skeleton">
-        @for (i of [1,2,3]; track i) {
+        @for (i of [1, 2, 3]; track i) {
           <div class="skeleton-card"></div>
         }
       </div>
@@ -104,13 +82,19 @@
     @if (!loading() && loadError()) {
       <div class="error-state">
         <p>{{ 'home.empty.loadError' | t }}</p>
-        <button (click)="retry()" class="retry-btn">{{ 'home.retry' | t }}</button>
+        <button (click)="retry()" class="retry-btn">
+          {{ 'home.retry' | t }}
+        </button>
       </div>
     }
 
     @if (!loading() && !loadError() && filteredPosts().length === 0) {
       <div class="empty-state">
-        <p>{{ searchQuery() ? ('home.empty.search' | t) : ('home.empty.posts' | t) }}</p>
+        <p>
+          {{
+            searchQuery() ? ('home.empty.search' | t) : ('home.empty.posts' | t)
+          }}
+        </p>
       </div>
     }
 
@@ -143,11 +127,16 @@
           @for (user of featuredUsers(); track user.id) {
             <div class="user-card">
               <div class="user-avatar">
-                <div class="avatar-placeholder bg-gradient-to-tr">{{ user.name.charAt(0).toUpperCase() }}</div>
+                <div class="avatar-placeholder bg-gradient-to-tr">
+                  {{ user.name.charAt(0).toUpperCase() }}
+                </div>
               </div>
               <div class="user-info">
                 <p class="user-name">{{ '@' + user.name }}</p>
-                <p class="user-posts">{{ user.postCount }} {{ (user.postCount === 1 ? 'post' : 'posts') }}</p>
+                <p class="user-posts">
+                  {{ user.postCount }}
+                  {{ user.postCount === 1 ? 'post' : 'posts' }}
+                </p>
               </div>
             </div>
           }
