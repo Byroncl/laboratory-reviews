@@ -33,6 +33,7 @@ interface Activity {
   ],
   templateUrl: './client.component.html',
   styleUrl: './client.component.scss',
+  host: { class: 'reddit-layout-wrapper' },
 })
 export class ClientComponent implements OnInit, OnDestroy {
   recentActivity = signal<Activity[]>([]);

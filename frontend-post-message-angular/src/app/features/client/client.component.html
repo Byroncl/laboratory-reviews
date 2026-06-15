@@ -1,4 +1,39 @@
 <div class="reddit-layout">
+  <!-- Left Sidebar - Navigation Menu -->
+  <aside class="left-sidebar">
+    <div class="sidebar-content">
+      <div class="nav-menu">
+        <h3 class="sidebar-title">{{ 'navigation.menu' | t }}</h3>
+        <ul>
+          <li>
+            <a [routerLink]="['my-posts']" routerLinkActive="active" class="nav-link">
+              <span class="icon">📝</span>
+              <span>{{ 'navigation.myPosts' | t }}</span>
+            </a>
+          </li>
+          <li>
+            <a [routerLink]="['my-favorites']" routerLinkActive="active" class="nav-link">
+              <span class="icon">❤️</span>
+              <span>{{ 'navigation.myFavorites' | t }}</span>
+            </a>
+          </li>
+          <li>
+            <a [routerLink]="['my-comments']" routerLinkActive="active" class="nav-link">
+              <span class="icon">💬</span>
+              <span>{{ 'navigation.myComments' | t }}</span>
+            </a>
+          </li>
+          <li>
+            <a [routerLink]="['profile']" routerLinkActive="active" class="nav-link">
+              <span class="icon">👤</span>
+              <span>{{ 'navigation.myProfile' | t }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+
   <!-- Main Content -->
   <main class="main-content">
     <router-outlet></router-outlet>
