@@ -23,7 +23,7 @@ describe('AuthService', () => {
     jest.clearAllMocks();
 
     mockValidateUserUseCase = { execute: jest.fn() };
-    mockLoginUseCase = { execute: jest.fn() };
+    mockLoginUseCase = { execute: jest.fn(), executeFromUser: jest.fn() };
     mockJwtService = { sign: jest.fn().mockReturnValue('signed_token') };
     const mockClientRepository = { findByUsername: jest.fn() };
 
@@ -70,13 +70,14 @@ describe('AuthService', () => {
         sub: '507f1f77bcf86cd799439011',
         type: 'user',
       };
-      mockLoginUseCase.execute.mockResolvedValue(payload);
+      mockLoginUseCase.executeFromUser.mockResolvedValue(payload);
 
       const userObject = { _id: '507f1f77bcf86cd799439011', username: 'johndoe' };
       const result = await service.login(userObject);
 
       expect(result).toHaveProperty('access_token');
       expect(result.access_token).toBe('signed_token');
+      expect(mockLoginUseCase.executeFromUser).toHaveBeenCalledWith(userObject);
       expect(mockJwtService.sign).toHaveBeenCalledWith(payload);
     });
   });
