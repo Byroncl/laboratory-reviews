@@ -3,6 +3,7 @@ import { BadRequestException } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from '../services/auth.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { ClientRepository } from '../../clients/infrastructure/repositories/client.repository';
 import { LoginDto } from '../dto/login.dto';
 
 describe('AuthController', () => {
@@ -20,11 +21,17 @@ describe('AuthController', () => {
       translate: jest.fn((key: string) => key),
     } as any;
 
+    const mockClientRepository = {
+      findByUsername: jest.fn(),
+      create: jest.fn(),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: I18nService, useValue: mockI18nService },
+        { provide: ClientRepository, useValue: mockClientRepository },
       ],
     }).compile();
 
@@ -42,7 +49,10 @@ describe('AuthController', () => {
         password: 'password123',
       };
       const user = { _id: '507f1f77bcf86cd799439011', username: 'johndoe' };
-      const tokenResult = { access_token: 'jwt_token' };
+      const tokenResult = {
+        access_token: 'jwt_token',
+        user: { id: user._id, username: user.username, type: 'user' },
+      };
 
       mockAuthService.validateCredentials.mockResolvedValue({
         data: user,
@@ -57,7 +67,12 @@ describe('AuthController', () => {
         credentials.password,
       );
       expect(mockAuthService.login).toHaveBeenCalledWith(user);
-      expect(result).toEqual({ ...tokenResult, userType: 'user' });
+      expect(result).toEqual({
+        access_token: 'jwt_token',
+        user: { id: user._id, username: user.username, type: 'user' },
+        userType: 'user',
+        expiresIn: 86400,
+      });
     });
 
     it('should validate client credentials and return token with type client', async () => {
@@ -66,7 +81,10 @@ describe('AuthController', () => {
         password: 'password123',
       };
       const client = { _id: '607f1f77bcf86cd799439012', username: 'clientuser' };
-      const tokenResult = { access_token: 'jwt_token_client' };
+      const tokenResult = {
+        access_token: 'jwt_token_client',
+        user: { id: client._id, username: client.username, type: 'client' },
+      };
 
       mockAuthService.validateCredentials.mockResolvedValue({
         data: client,
@@ -81,7 +99,12 @@ describe('AuthController', () => {
         credentials.password,
       );
       expect(mockAuthService.login).toHaveBeenCalledWith(client);
-      expect(result).toEqual({ ...tokenResult, userType: 'client' });
+      expect(result).toEqual({
+        access_token: 'jwt_token_client',
+        user: { id: client._id, username: client.username, type: 'client' },
+        userType: 'client',
+        expiresIn: 86400,
+      });
     });
 
     it('should throw BadRequestException when validation fails', async () => {
