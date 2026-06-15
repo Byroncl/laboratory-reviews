@@ -85,6 +85,7 @@ export class PostsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Internal method called by the controller when a post is created
   notifyPostCreated(post: any, createdBy: string): void {
+    if (!this.server) return;
     this.server.emit('post:created', {
       id: post._id || post.id,
       title: post.title,
@@ -99,6 +100,7 @@ export class PostsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Internal method called by the controller when a post is updated
   notifyPostUpdated(post: any, updatedBy: string): void {
+    if (!this.server) return;
     this.server.emit('post:updated', {
       id: post._id || post.id,
       title: post.title,
@@ -112,6 +114,7 @@ export class PostsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Internal method called by the controller when a post is deleted
   notifyPostDeleted(postId: string, deletedBy: string): void {
+    if (!this.server) return;
     this.server.emit('post:deleted', {
       id: postId,
       deletedBy,
@@ -121,6 +124,7 @@ export class PostsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Internal method called by the controller when a post is published
   notifyPostPublished(post: any, publishedBy: string): void {
+    if (!this.server) return;
     this.server.emit('post:published', {
       id: post._id || post.id,
       title: post.title,

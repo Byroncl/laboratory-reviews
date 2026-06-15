@@ -1,8 +1,30 @@
+<!-- Loading Modal -->
+@if (showLoadingModal()) {
+  <div class="loading-modal-overlay">
+    <div class="loading-modal">
+      <div class="liquid-loader">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#0071e3;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#0058b8;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <path class="liquid-path" d="M0,50 Q25,40 50,50 T100,50 L100,100 L0,100 Z" fill="url(#gradient)" />
+          <path class="liquid-path" d="M0,50 Q25,45 50,50 T100,50 L100,100 L0,100 Z" fill="url(#gradient)" style="animation-delay: -0.5s" />
+        </svg>
+      </div>
+      <p class="loading-text">Uploading posts...</p>
+    </div>
+  </div>
+}
+
 <div class="bulk-upload">
   <h3>{{ 'posts.bulk.title' | t }}</h3>
 
   <div class="upload-controls">
-    <label for="bulk-file" class="btn btn-secondary">
+    <label for="bulk-file" class="btn btn-choose-file">
+      <span class="btn-icon">📁</span>
       {{ 'posts.bulk.chooseFile' | t }}
     </label>
     <input
@@ -13,16 +35,30 @@
       (change)="onFileSelected($event)"
     />
 
+    <button
+      type="button"
+      class="btn btn-download"
+      (click)="downloadFormatTemplate()"
+      title="Download JSON format template with examples"
+    >
+      <span class="btn-icon">⬇️</span>
+      Download Format
+    </button>
+
     @if (parsedCount() > 0) {
-      <span class="parsed-info">{{ parsedCount() }} {{ 'posts.bulk.parsedInfo' | t }}</span>
+      <span class="parsed-info">
+        <span class="badge">{{ parsedCount() }}</span>
+        {{ 'posts.bulk.parsedInfo' | t }}
+      </span>
     }
 
     <button
       type="button"
-      class="btn btn-primary"
+      class="btn btn-upload"
       (click)="onUpload()"
       [disabled]="!canUpload"
     >
+      <span class="btn-icon">⚡</span>
       {{ isLoading() ? ('posts.bulk.uploading' | t) : ('posts.bulk.upload' | t) }}
     </button>
   </div>

@@ -1,9 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { PostsService } from '../../services';
 import { ICreatePostDTO, IBulkCreateResponse } from '../../interfaces';
 import { PostStatus } from '../../types';
+import { AuthService } from '../../../auth/services/auth.service';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 interface ParseResult {
   valid: ICreatePostDTO[];
@@ -19,12 +21,17 @@ interface ParseResult {
 })
 export class BulkUploadComponent {
   private postsService = inject(PostsService);
+  private authService = inject(AuthService);
+  private notificationService = inject(NotificationService);
+
+  @Output() uploadSuccess = new EventEmitter<void>();
 
   readonly isLoading = signal(false);
   readonly parseError = signal<string | null>(null);
   readonly invalidRows = signal<Array<{ index: number; reason: string }>>([]);
   readonly uploadResult = signal<IBulkCreateResponse | null>(null);
   readonly parsedCount = signal<number>(0);
+  readonly showLoadingModal = signal(false);
 
   private parsedDtos: ICreatePostDTO[] = [];
 
@@ -58,24 +65,93 @@ export class BulkUploadComponent {
     if (this.parsedDtos.length === 0) return;
 
     this.isLoading.set(true);
+    this.showLoadingModal.set(true);
     this.uploadResult.set(null);
 
-    this.postsService.bulkCreatePosts(this.parsedDtos).subscribe({
-      next: (result) => {
-        this.uploadResult.set(result);
+    const author = this.authService.currentUser$()?.username || 'Anonymous';
+    const postsWithAuthor = this.parsedDtos.map(post => {
+      const { content, ...rest } = post;
+      return {
+        ...rest,
+        author,
+        body: content
+      };
+    });
+
+    console.log('Sending posts:', postsWithAuthor);
+    this.postsService.bulkCreatePosts(postsWithAuthor as any).subscribe({
+      next: (response: any) => {
         this.isLoading.set(false);
-        this.parsedDtos = [];
-        this.parsedCount.set(0);
+
+        let created = 0;
+        let failed = 0;
+
+        // Handle different response formats
+        if (response.created !== undefined && response.failed !== undefined) {
+          // Expected format
+          created = response.created;
+          failed = response.failed;
+        } else if (Array.isArray(response.data)) {
+          // Backend returns array of created posts
+          created = response.data.length;
+          failed = 0;
+        }
+
+        const result = { created, failed, errors: response.errors || [] };
+        this.uploadResult.set(result);
+        const successMsg = failed === 0
+          ? `✅ Successfully uploaded ${created} posts!`
+          : `⚠️ Uploaded ${created} posts with ${failed} failures`;
+
+        this.notificationService.toast(successMsg, failed === 0 ? 'success' : 'warning');
+
+        setTimeout(() => {
+          this.showLoadingModal.set(false);
+          if (failed === 0) {
+            this.uploadSuccess.emit();
+            this.parsedDtos = [];
+            this.parsedCount.set(0);
+            this.uploadResult.set(null);
+          }
+        }, 800);
       },
       error: (err) => {
         this.parseError.set(err?.message ?? 'Upload failed.');
+        this.notificationService.toast('❌ Upload failed: ' + (err?.message ?? 'Unknown error'), 'error');
         this.isLoading.set(false);
+        this.showLoadingModal.set(false);
       },
     });
   }
 
   get canUpload(): boolean {
     return this.parsedDtos.length > 0 && this.invalidRows().length === 0 && !this.isLoading();
+  }
+
+  downloadFormatTemplate(): void {
+    const template = [
+      {
+        title: 'My First Post',
+        content: 'This is the content of my first post. It can be as long as needed.',
+        status: 'draft',
+        tags: ['angular', 'tutorial']
+      },
+      {
+        title: 'Understanding TypeScript',
+        content: 'TypeScript is a strongly typed programming language built on top of JavaScript. It adds optional static typing, which helps catch errors early.',
+        status: 'published',
+        tags: ['typescript', 'programming']
+      }
+    ];
+
+    const json = JSON.stringify(template, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'posts-format.json';
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   private _parseJson(text: string): void {
