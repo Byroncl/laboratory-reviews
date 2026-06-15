@@ -44,7 +44,7 @@ export class I18nService {
           createAccount: 'Crear cuenta',
           copyright: '© 2024 Albatros. Todos los derechos reservados.',
           types: {
-            user: 'Usuario',
+            user: 'Usuario Administrativo',
             client: 'Cliente'
           },
           errors: {
@@ -72,7 +72,7 @@ export class I18nService {
           joinTitle: 'Únete a nosotros',
           joinSubtitle: 'Crea tu cuenta y comienza a gestionar tu plataforma hoy',
           types: {
-            user: 'Usuario',
+            user: 'Usuario Administrativo',
             client: 'Cliente'
           },
           errors: {
@@ -686,7 +686,7 @@ export class I18nService {
           createAccount: 'Create account',
           copyright: '© 2024 Albatros. All rights reserved.',
           types: {
-            user: 'User',
+            user: 'Admin User',
             client: 'Client'
           },
           errors: {
@@ -714,7 +714,7 @@ export class I18nService {
           joinTitle: 'Join us',
           joinSubtitle: 'Create your account and start managing your platform today',
           types: {
-            user: 'User',
+            user: 'Admin User',
             client: 'Client'
           },
           errors: {
