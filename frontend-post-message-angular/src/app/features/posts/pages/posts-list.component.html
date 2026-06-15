@@ -123,6 +123,95 @@
   </div>
 }
 
+<!-- Create Modal -->
+@if (showCreateModal()) {
+  <div class="modal-overlay" (click)="closeCreateModal()">
+    <div class="modal modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Crear Nuevo Post</h2>
+        <button class="modal-close" (click)="closeCreateModal()">×</button>
+      </div>
+      <form [formGroup]="createForm" class="modal-body">
+        <div class="form-group">
+          <label for="create-title">Título</label>
+          <input
+            type="text"
+            id="create-title"
+            class="form-input"
+            formControlName="title"
+            placeholder="Ingresa el título del post"
+          />
+          @if (createForm.get('title')?.invalid && createForm.get('title')?.touched) {
+            <span class="form-error">
+              @if (createForm.get('title')?.errors?.['required']) {
+                El título es requerido
+              }
+              @if (createForm.get('title')?.errors?.['minlength']) {
+                El título debe tener al menos 5 caracteres
+              }
+            </span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="create-body">Contenido</label>
+          <textarea
+            id="create-body"
+            class="form-textarea"
+            formControlName="body"
+            placeholder="Ingresa el contenido del post"
+            rows="8"
+          ></textarea>
+          @if (createForm.get('body')?.invalid && createForm.get('body')?.touched) {
+            <span class="form-error">
+              @if (createForm.get('body')?.errors?.['required']) {
+                El contenido es requerido
+              }
+              @if (createForm.get('body')?.errors?.['minlength']) {
+                El contenido debe tener al menos 20 caracteres
+              }
+            </span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="create-tags">Tags (separados por comas)</label>
+          <input
+            type="text"
+            id="create-tags"
+            class="form-input"
+            formControlName="tags"
+            placeholder="ej: angular, typescript, frontend"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn btn-cancel"
+            (click)="closeCreateModal()"
+            [disabled]="isCreatingPost()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn-confirm"
+            (click)="createPost()"
+            [disabled]="!createForm.valid || isCreatingPost()"
+          >
+            @if (isCreatingPost()) {
+              Creando...
+            } @else {
+              Crear Post
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
 <!-- Status Modal -->
 @if (showStatusModal()) {
   <div class="modal-overlay" (click)="showStatusModal.set(false)">
@@ -146,7 +235,7 @@
 <div class="posts-container">
   <div class="posts-header">
     <h1>{{ 'posts.list.title' | t }}</h1>
-    <a routerLink="/posts/new" class="btn btn-primary">{{ 'posts.list.newPost' | t }}</a>
+    <button (click)="openCreateModal()" class="btn btn-primary">{{ 'posts.list.newPost' | t }}</button>
   </div>
 
   <app-bulk-upload (uploadSuccess)="loadPosts()"></app-bulk-upload>

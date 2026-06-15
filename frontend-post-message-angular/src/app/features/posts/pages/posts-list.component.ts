@@ -40,12 +40,15 @@ export class PostsListComponent implements OnInit {
   // Modal states
   readonly showViewModal = signal(false);
   readonly showEditModal = signal(false);
+  readonly showCreateModal = signal(false);
   readonly showStatusModal = signal(false);
   readonly selectedPost = signal<IPost | null>(null);
   readonly selectedStatus = signal<string>('');
   readonly isSavingEdit = signal(false);
+  readonly isCreatingPost = signal(false);
 
   editForm!: FormGroup;
+  createForm!: FormGroup;
 
   ngOnInit(): void {
     this.loadPosts();
@@ -187,6 +190,55 @@ export class PostsListComponent implements OnInit {
 
   closeEditModal(): void {
     this.showEditModal.set(false);
+  }
+
+  openCreateModal(): void {
+    this.initCreateForm();
+    this.showCreateModal.set(true);
+  }
+
+  private initCreateForm(): void {
+    this.createForm = this.fb.group({
+      title: ['', [Validators.required, Validators.minLength(5)]],
+      body: ['', [Validators.required, Validators.minLength(20)]],
+      tags: ['', []],
+    });
+  }
+
+  createPost(): void {
+    if (!this.createForm.valid) {
+      this.notificationService.toast('Por favor completa los campos requeridos', 'warning');
+      return;
+    }
+
+    this.isCreatingPost.set(true);
+    const formValue = this.createForm.value;
+
+    const createData = {
+      title: formValue.title,
+      body: formValue.body,
+      tags: formValue.tags
+        ? formValue.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag)
+        : [],
+    };
+
+    this.postsService.createPost(createData).subscribe({
+      next: () => {
+        this.notificationService.toast('✅ Post creado correctamente', 'success');
+        this.showCreateModal.set(false);
+        this.isCreatingPost.set(false);
+        this.loadPosts();
+      },
+      error: (err) => {
+        this.notificationService.toast('❌ Error al crear el post', 'error');
+        console.error('Failed to create post:', err);
+        this.isCreatingPost.set(false);
+      },
+    });
+  }
+
+  closeCreateModal(): void {
+    this.showCreateModal.set(false);
   }
 
   onNextPage(): void {
