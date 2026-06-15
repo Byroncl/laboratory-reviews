@@ -7,6 +7,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { takeUntil } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { PostsService } from '../../posts/services/posts.service';
+import { FavoritesService } from '../../posts/services/favorites.service';
 import { PostCardComponent } from '../components/post-card/post-card.component';
 import { HeaderComponent } from '../components/header/header.component';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
@@ -28,6 +29,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 })
 export class HomeComponent implements OnInit, OnDestroy {
   public readonly postsService = inject(PostsService);
+  private readonly favoritesService = inject(FavoritesService);
   private readonly categoriesService = inject(CategoriesService);
   private readonly store = inject(Store);
   private readonly router = inject(Router);
@@ -84,6 +86,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.favoritesService.loadFavorites().pipe(
+      takeUntil(this.destroy$),
+      catchError(() => of(null))
+    ).subscribe();
     this.loadData();
     this.loadSidebarData();
   }

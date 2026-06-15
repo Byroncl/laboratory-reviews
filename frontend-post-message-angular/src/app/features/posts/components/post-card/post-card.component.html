@@ -47,7 +47,7 @@
       </div>
       <div class="stat" [class.active]="isFavorited()">
         <span class="stat-icon">{{ isFavorited() ? '❤️' : '🤍' }}</span>
-        <span class="stat-value">{{ isFavorited() ? 'Saved' : 'Save' }}</span>
+        <span class="stat-value">{{ isFavorited() ? ('posts.card.saved' | t) : ('posts.card.save' | t) }}</span>
       </div>
     </div>
 
@@ -67,7 +67,7 @@
         [disabled]="isLoadingFavorite()"
         [title]="isFavorited() ? 'Remove from saved' : 'Save post'"
       >
-        {{ isFavorited() ? 'Saved' : 'Save' }}
+        {{ isFavorited() ? ('posts.card.saved' | t) : ('posts.card.save' | t) }}
       </button>
       @if (post.status === 'draft') {
         <button

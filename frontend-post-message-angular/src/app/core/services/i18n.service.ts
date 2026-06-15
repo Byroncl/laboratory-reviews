@@ -513,7 +513,9 @@ export class I18nService {
           edit: 'Editar',
           publish: 'Publicar',
           archive: 'Archivar',
-          delete: 'Eliminar'
+          delete: 'Eliminar',
+          save: 'Guardar',
+          saved: 'Guardado'
         },
         filter: {
           searchLabel: 'Buscar',
@@ -1140,7 +1142,9 @@ export class I18nService {
           edit: 'Edit',
           publish: 'Publish',
           archive: 'Archive',
-          delete: 'Delete'
+          delete: 'Delete',
+          save: 'Save',
+          saved: 'Saved'
         },
         filter: {
           searchLabel: 'Search',
