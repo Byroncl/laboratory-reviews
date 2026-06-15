@@ -18,12 +18,21 @@ export class ClientEntity {
   readonly updatedAt: Date;
 
   constructor(data: any) {
-    this.validateName(data.name);
-    this.validateLastname(data.lastname);
-    this.validateUsername(data.username);
-    this.validateEmail(data.email);
-    this.validatePassword(data.password_hash);
-    this.validateType(data.type);
+    try {
+      this.validateName(data.name);
+      this.validateLastname(data.lastname);
+      this.validateUsername(data.username);
+      this.validateEmail(data.email);
+      this.validatePassword(data.password_hash);
+      this.validateType(data.type);
+    } catch (error) {
+      console.error('[ClientEntity] Validation error:', {
+        field: error instanceof DomainException ? 'unknown' : 'constructor',
+        message: error instanceof Error ? error.message : String(error),
+        data: { name: data.name, lastname: data.lastname, username: data.username, email: data.email, type: data.type }
+      });
+      throw error;
+    }
 
     Object.defineProperties(this, {
       _id: { value: data._id, writable: false, enumerable: true },
