@@ -211,7 +211,8 @@ export class BulkUploadComponent {
 
       const dto: ICreatePostDTO = {
         title: typeof obj['title'] === 'string' ? obj['title'].trim() : `Post ${i + 1}`,
-        content: (obj['content'] as string).trim(),
+        body: (obj['content'] || obj['body'] as string).trim(),
+        author: obj['author'] as string || 'Anonymous',
       };
 
       if (obj['status']) dto.status = obj['status'] as PostStatus;

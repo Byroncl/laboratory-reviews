@@ -8,6 +8,7 @@ import { PostCardComponent, PostFilterComponent, PaginationComponent, BulkUpload
 import { IPostFilters } from '../interfaces';
 import { IPost } from '../interfaces';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { AuthService } from '../../../features/auth/services/auth.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -29,6 +30,7 @@ import Swal from 'sweetalert2';
 export class PostsListComponent implements OnInit {
   private postsService = inject(PostsService);
   private notificationService = inject(NotificationService);
+  private authService = inject(AuthService);
   private fb = inject(FormBuilder);
 
   public posts$ = this.postsService.posts$;
@@ -216,9 +218,13 @@ export class PostsListComponent implements OnInit {
     this.isCreatingPost.set(true);
     const formValue = this.createForm.value;
 
+    const currentUser = this.authService.currentUser$();
+    const author = currentUser?.username || 'Anonymous';
+
     const createData: any = {
       title: formValue.title,
-      content: formValue.body,
+      body: formValue.body,
+      author,
       tags: formValue.tags
         ? formValue.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag)
         : [],
