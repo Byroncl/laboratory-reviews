@@ -8,6 +8,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { TranslationService } from '../utils/translation.service';
+import { getConnectionToken } from '@nestjs/mongoose';
 
 function createMockExecutionContext(authHeader = ''): ExecutionContext {
   return {
@@ -26,6 +27,7 @@ describe('AuthGuard', () => {
   let mockJwtService: jest.Mocked<JwtService>;
   let mockReflector: jest.Mocked<Reflector>;
   let mockTranslationService: jest.Mocked<TranslationService>;
+  let mockConnection: any;
 
   beforeEach(async () => {
     mockJwtService = {
@@ -41,12 +43,36 @@ describe('AuthGuard', () => {
       setLanguage: jest.fn(),
     } as any;
 
+    mockConnection = {
+      model: jest.fn().mockReturnValue({
+        findById: jest.fn((id: string) => ({
+          populate: jest.fn().mockReturnValue({
+            lean: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue({
+                _id: id,
+                username: 'testuser',
+                role: {
+                  _id: '507f1f77bcf86cd799439999',
+                  name: 'User',
+                  identifier: 'user',
+                  permissions: [
+                    { _id: '507f1f77bcf86cd799438888', identifier: 'test:read', name: 'Test Read' },
+                  ],
+                },
+              }),
+            }),
+          }),
+        })),
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JwtAuthGuard,
         { provide: JwtService, useValue: mockJwtService },
         { provide: Reflector, useValue: mockReflector },
         { provide: TranslationService, useValue: mockTranslationService },
+        { provide: getConnectionToken(), useValue: mockConnection },
       ],
     }).compile();
 
@@ -142,6 +168,14 @@ describe('AuthGuard', () => {
         userId: payload.sub,
         username: payload.username,
         type: payload.type,
+        role: {
+          _id: '507f1f77bcf86cd799439999',
+          name: 'User',
+          identifier: 'user',
+          permissions: [
+            { _id: '507f1f77bcf86cd799438888', identifier: 'test:read', name: 'Test Read' },
+          ],
+        },
       });
     });
 

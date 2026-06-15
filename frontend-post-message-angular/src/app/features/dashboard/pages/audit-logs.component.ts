@@ -36,7 +36,6 @@ export class AuditLogsComponent implements OnInit {
   readonly fromDate$ = signal('');
   readonly toDate$ = signal('');
   readonly selectedEntry$ = signal<AuditLog | null>(null);
-  readonly loading$ = signal(false);
 
   // Computed derived state
   readonly hasActiveFilters = computed(() => {
@@ -191,14 +190,11 @@ export class AuditLogsComponent implements OnInit {
   }
 
   private load(): void {
-    this.loading$.set(true);
     this.auditLogService
       .getAuditLogs(this.filter$())
       .pipe(takeUntilDestroyed())
       .subscribe({
-        next: () => this.loading$.set(false),
         error: (err) => {
-          this.loading$.set(false);
           console.error('Error loading audit logs:', err);
           this.notificationService.toast(this.i18n.translate('dashboard.auditLogs.loadError'), 'error');
         }

@@ -22,7 +22,7 @@ export class PermissionsGuard implements CanActivate {
 
     this.logger.debug(`Checking permission: ${requiredPermission}`);
     this.logger.debug(`User: ${user ? user.username : 'none'}`);
-    this.logger.debug(`User.role: ${user?.role ? JSON.stringify(user.role) : 'none'}`);
+    this.logger.debug(`User.role: ${user?.role ? 'present' : 'missing'}`);
 
     if (!user || !user.role) {
       this.logger.warn(`User or role missing - denying access`);
@@ -30,7 +30,7 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const hasPermission = user.role.permissions?.some(
-      (permission) => permission.identifier === requiredPermission,
+      (permission: any) => permission.identifier === requiredPermission,
     );
 
     this.logger.debug(`Permission check result: ${hasPermission}`);

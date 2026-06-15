@@ -82,32 +82,62 @@
           <h2 class="modal-title">{{ selectedRole() ? 'Editar Rol' : 'Crear Rol' }}</h2>
           <button (click)="closeCreateModal()" class="modal-close">×</button>
         </div>
-        <div class="modal-body">
+        <form [formGroup]="roleForm" class="modal-body">
           <div class="form-group">
             <label class="form-label">Nombre</label>
-            <input type="text" class="form-input" placeholder="Ej: Administrador" />
+            <input
+              type="text"
+              class="form-input"
+              formControlName="name"
+              placeholder="Ej: Administrador"
+            />
+            @if (roleForm.get('name')?.invalid && roleForm.get('name')?.touched) {
+              <span class="form-error">
+                @if (roleForm.get('name')?.errors?.['required']) {
+                  El nombre es requerido
+                }
+                @if (roleForm.get('name')?.errors?.['minlength']) {
+                  Mínimo 2 caracteres
+                }
+              </span>
+            }
           </div>
           <div class="form-group">
             <label class="form-label">Identificador</label>
-            <input type="text" class="form-input" placeholder="Ej: admin" />
+            <input
+              type="text"
+              class="form-input"
+              formControlName="identifier"
+              placeholder="Ej: admin"
+            />
+            @if (roleForm.get('identifier')?.invalid && roleForm.get('identifier')?.touched) {
+              <span class="form-error">
+                @if (roleForm.get('identifier')?.errors?.['required']) {
+                  El identificador es requerido
+                }
+                @if (roleForm.get('identifier')?.errors?.['minlength']) {
+                  Mínimo 2 caracteres
+                }
+              </span>
+            }
           </div>
           <div class="form-group">
             <label class="form-label">Activo</label>
-            <select class="form-input">
-              <option value="true">Sí</option>
-              <option value="false">No</option>
+            <select class="form-input" formControlName="isActive">
+              <option [value]="true">Sí</option>
+              <option [value]="false">No</option>
             </select>
           </div>
-        </div>
+        </form>
         <div class="modal-actions">
           <button
             (click)="saveRole()"
-            [disabled]="isSavingRole()"
+            [disabled]="!roleForm.valid || isSavingRole()"
             class="btn btn-primary"
           >
-            {{ isSavingRole() ? 'Guardando...' : 'Guardar' }}
+            {{ isSavingRole() ? 'Guardando...' : (selectedRole() ? 'Guardar Cambios' : 'Crear') }}
           </button>
-          <button (click)="closeCreateModal()" class="btn btn-secondary">
+          <button (click)="closeCreateModal()" class="btn btn-secondary" [disabled]="isSavingRole()">
             Cancelar
           </button>
         </div>

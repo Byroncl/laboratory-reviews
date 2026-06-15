@@ -1,6 +1,6 @@
 import { Component, signal, computed, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import {
@@ -30,6 +30,7 @@ import {
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     TranslatePipe,
     TableComponent,
     PaginationComponent,
@@ -46,7 +47,9 @@ export class RolesComponent {
   readonly rolesService = inject(RolesService);
   private notificationService = inject(NotificationService);
   private i18n = inject(I18nService);
+  private fb = inject(FormBuilder);
 
+  readonly roleForm: FormGroup;
   readonly pageSize = 10;
 
   // Modal states
@@ -116,11 +119,17 @@ export class RolesComponent {
   ];
 
   constructor() {
+    this.roleForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+      identifier: ['', [Validators.required, Validators.minLength(2)]],
+      isActive: [true]
+    });
     this.loadRoles();
   }
 
   openCreateModal(): void {
     this.selectedRole.set(null);
+    this.roleForm.reset({ isActive: true });
     this.showCreateModal.set(true);
   }
 
@@ -136,6 +145,11 @@ export class RolesComponent {
 
   editRole(role: Role): void {
     this.selectedRole.set(role);
+    this.roleForm.patchValue({
+      name: role.name,
+      identifier: role.identifier,
+      isActive: role.isActive
+    });
     this.showViewModal.set(false);
     this.showCreateModal.set(true);
   }
@@ -156,13 +170,45 @@ export class RolesComponent {
   }
 
   saveRole(): void {
+    if (!this.roleForm.valid) {
+      this.notificationService.toast('❌ Por favor completa todos los campos', 'error');
+      return;
+    }
+
     this.isSavingRole.set(true);
-    // Refresh after save
-    setTimeout(() => {
-      this.isSavingRole.set(false);
-      this.closeCreateModal();
-      this.loadRoles();
-    }, 500);
+    const formValue = this.roleForm.value;
+    const selectedRole = this.selectedRole();
+
+    if (selectedRole) {
+      // Update existing role
+      const roleId = extractId(selectedRole);
+      this.rolesService.updateRole(roleId, formValue).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => {
+          this.notificationService.toast('✅ Rol actualizado correctamente', 'success');
+          this.isSavingRole.set(false);
+          this.closeCreateModal();
+          this.loadRoles();
+        },
+        error: () => {
+          this.notificationService.toast('❌ Error al actualizar', 'error');
+          this.isSavingRole.set(false);
+        }
+      });
+    } else {
+      // Create new role
+      this.rolesService.createRole(formValue).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => {
+          this.notificationService.toast('✅ Rol creado correctamente', 'success');
+          this.isSavingRole.set(false);
+          this.closeCreateModal();
+          this.loadRoles();
+        },
+        error: () => {
+          this.notificationService.toast('❌ Error al crear', 'error');
+          this.isSavingRole.set(false);
+        }
+      });
+    }
   }
 
   onTableAction(event: { action: string; row: Record<string, unknown> }): void {
