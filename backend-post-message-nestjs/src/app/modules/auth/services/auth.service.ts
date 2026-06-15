@@ -56,13 +56,21 @@ export class AuthService {
           this.logger.debug(`Validating as client (forced)...`);
           const client = await this.clientRepository.findByUsername(username);
           this.logger.debug(`Client found: ${client ? 'yes' : 'no'}`);
-          if (client && client.password_hash) {
-            const isPasswordValid = await CryptoUtils.comparePasswords(password, client.password_hash);
-            this.logger.debug(`Client password valid: ${isPasswordValid}`);
-            if (isPasswordValid) {
-              return { data: client, type: 'client' };
-            }
+          if (!client) {
+            this.logger.debug(`Client not found for username: ${username}`);
+            return null;
           }
+          if (!client.password_hash) {
+            this.logger.debug(`Client has no password_hash`);
+            return null;
+          }
+          this.logger.debug(`Comparing password. Hash length: ${client.password_hash?.length}`);
+          const isPasswordValid = await CryptoUtils.comparePasswords(password, client.password_hash);
+          this.logger.debug(`Client password valid: ${isPasswordValid}`);
+          if (isPasswordValid) {
+            return { data: client, type: 'client' };
+          }
+          this.logger.debug(`Password mismatch for client ${username}`);
         } catch (error) {
           this.logger.debug(`Client validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
@@ -87,12 +95,18 @@ export class AuthService {
         this.logger.debug(`Attempting to validate as client...`);
         const client = await this.clientRepository.findByUsername(username);
         this.logger.debug(`Client found: ${client ? 'yes' : 'no'}`);
-        if (client && client.password_hash) {
+        if (!client) {
+          this.logger.debug(`Client not found for username: ${username}`);
+        } else if (!client.password_hash) {
+          this.logger.debug(`Client has no password_hash`);
+        } else {
+          this.logger.debug(`Comparing password. Hash length: ${client.password_hash?.length}`);
           const isPasswordValid = await CryptoUtils.comparePasswords(password, client.password_hash);
           this.logger.debug(`Client password valid: ${isPasswordValid}`);
           if (isPasswordValid) {
             return { data: client, type: 'client' };
           }
+          this.logger.debug(`Password mismatch for client ${username}`);
         }
       } catch (error) {
         this.logger.debug(`Client validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
