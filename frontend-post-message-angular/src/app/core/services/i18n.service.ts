@@ -451,6 +451,7 @@ export class I18nService {
       home: {
         header: {
           logoAlt: 'Albatros inicio',
+          adminPanel: 'Panel Administrativo',
           logout: 'Cerrar sesión',
           signIn: 'Iniciar sesión',
           register: 'Registrarse'
@@ -1099,6 +1100,7 @@ export class I18nService {
       home: {
         header: {
           logoAlt: 'Albatros home',
+          adminPanel: 'Admin Panel',
           logout: 'Logout',
           signIn: 'Sign in',
           register: 'Register'

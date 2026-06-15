@@ -27,6 +27,10 @@ export class HeaderComponent {
 
   readonly menuOpen = signal(false);
 
+  get isAdmin(): boolean {
+    return this.user()?.role === 'user';
+  }
+
   navigateToLogin(): void {
     this.router.navigate([HOME_ROUTES.LOGIN], { queryParams: { returnUrl: HOME_ROUTES.ROOT } });
   }

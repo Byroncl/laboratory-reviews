@@ -50,9 +50,18 @@
 
           @if (menuOpen()) {
             <div
-              class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50"
+              class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50"
               role="menu"
             >
+              @if (isAdmin) {
+                <button
+                  class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition border-b border-gray-100"
+                  role="menuitem"
+                  (click)="router.navigate(['/admin']); menuOpen.set(false)"
+                >
+                  📊 {{ 'home.header.adminPanel' | t }}
+                </button>
+              }
               <button
                 data-cy="logout-btn"
                 class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary transition"
