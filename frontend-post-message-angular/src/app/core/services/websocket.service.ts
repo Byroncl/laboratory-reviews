@@ -93,13 +93,11 @@ export class WebSocketService implements OnDestroy {
         });
 
         socket.on('connect', () => {
-          console.log(`[WS] Connected to ${namespace}`);
           this.isConnected$.next(true);
           this.retryCount = 0;
         });
 
         socket.on('disconnect', () => {
-          console.log(`[WS] Disconnected from ${namespace}`);
           if (this.sockets.size === 0) {
             this.isConnected$.next(false);
           }

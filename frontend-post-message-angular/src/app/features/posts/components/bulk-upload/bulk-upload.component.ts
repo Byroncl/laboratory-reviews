@@ -76,7 +76,6 @@ export class BulkUploadComponent {
       };
     });
 
-    console.log('Sending posts:', postsWithAuthor);
     this.postsService.bulkCreatePosts(postsWithAuthor as any).subscribe({
       next: (response: any) => {
         this.isLoading.set(false);
