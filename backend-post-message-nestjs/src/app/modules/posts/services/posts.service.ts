@@ -21,6 +21,7 @@ export class PostsService {
   async create(createPostDto: CreatePostDto, authorId?: string): Promise<Post> {
     const postData = {
       ...createPostDto,
+      body: createPostDto.body || createPostDto.content,
       ...(authorId && { authorId }),
     };
     const createdPost = new this.postModel(postData);
@@ -171,8 +172,15 @@ export class PostsService {
       await this.filesService.deleteImage(existing.imageFilename);
     }
 
+    const updateData = {
+      ...updatePostDto,
+    };
+    if (updatePostDto.body !== undefined || updatePostDto.content !== undefined) {
+      updateData.body = updatePostDto.body !== undefined ? updatePostDto.body : updatePostDto.content;
+    }
+
     return this.postModel
-      .findByIdAndUpdate(id, updatePostDto, { new: true })
+      .findByIdAndUpdate(id, updateData, { new: true })
       .exec();
   }
 
@@ -197,6 +205,10 @@ export class PostsService {
   }
 
   async bulkCreate(createPostDtos: CreatePostDto[]): Promise<any> {
-    return this.postModel.insertMany(createPostDtos);
+    const mapped = createPostDtos.map((dto) => ({
+      ...dto,
+      body: dto.body || dto.content,
+    }));
+    return this.postModel.insertMany(mapped);
   }
 }

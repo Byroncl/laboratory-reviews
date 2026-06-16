@@ -248,7 +248,9 @@ describe('PostsService', () => {
       const result = await service.bulkCreate(dtos);
 
       expect(result).toEqual(insertedDocs);
-      expect(MockPostModel.insertMany).toHaveBeenCalledWith(dtos);
+      expect(MockPostModel.insertMany).toHaveBeenCalledWith(
+        dtos.map((d) => ({ ...d, body: d.content }))
+      );
     });
 
     it('should propagate insertMany errors', async () => {

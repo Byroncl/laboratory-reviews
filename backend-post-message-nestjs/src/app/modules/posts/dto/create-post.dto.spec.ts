@@ -30,4 +30,31 @@ describe('CreatePostDto', () => {
     const dto = plainToInstance(CreatePostDto, { ...validPayload, title: '  My Post  ' });
     expect(dto.title).toBe('My Post');
   });
+
+  it('should pass with body instead of content', async () => {
+    const dto = plainToInstance(CreatePostDto, {
+      title: 'My Post',
+      body: 'Some body content',
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('should reject when both content and body are missing', async () => {
+    const dto = plainToInstance(CreatePostDto, {
+      title: 'My Post',
+    });
+    const errors = await validate(dto);
+    expect(errors.find((e) => e.property === 'content')).toBeDefined();
+    expect(errors.find((e) => e.property === 'body')).toBeDefined();
+  });
+
+  it('should reject when body is empty string', async () => {
+    const dto = plainToInstance(CreatePostDto, {
+      title: 'My Post',
+      body: '',
+    });
+    const errors = await validate(dto);
+    expect(errors.find((e) => e.property === 'body')).toBeDefined();
+  });
 });

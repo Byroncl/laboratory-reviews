@@ -10,6 +10,7 @@ import {
   IsArray,
   ArrayMaxSize,
   ArrayUnique,
+  ValidateIf,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -34,12 +35,27 @@ export class CreatePostDto {
     minLength: 1,
     maxLength: 5000,
   })
+  @ValidateIf((o: any) => !o.body || o.content !== undefined)
   @IsString({ message: 'Content must be a string' })
   @IsNotEmpty({ message: 'Content is required' })
   @MinLength(1, { message: 'Content cannot be empty' })
   @MaxLength(5000, { message: 'Content must not exceed 5000 characters' })
-  @Transform(({ value }: { value: string }) => value?.trim())
-  content: string;
+  @Transform(({ value, obj }: { value: string; obj: any }) => (value || obj.body)?.trim())
+  content?: string;
+
+  @ApiPropertyOptional({
+    example: 'This is the post content.',
+    description: 'Alias for content (saved in database as body)',
+    minLength: 1,
+    maxLength: 5000,
+  })
+  @ValidateIf((o: any) => !o.content || o.body !== undefined)
+  @IsString({ message: 'Body must be a string' })
+  @IsNotEmpty({ message: 'Body is required' })
+  @MinLength(1, { message: 'Body cannot be empty' })
+  @MaxLength(5000, { message: 'Body must not exceed 5000 characters' })
+  @Transform(({ value, obj }: { value: string; obj: any }) => (value || obj.content)?.trim())
+  body?: string;
 
   @ApiPropertyOptional({
     example: 'http://localhost:9000/posts/1718000000000-photo.jpg',
