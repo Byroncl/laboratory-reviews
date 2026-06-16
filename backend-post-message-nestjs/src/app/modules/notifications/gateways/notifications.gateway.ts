@@ -29,11 +29,11 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   private logger = new Logger('NotificationsGateway');
   private userConnections = new Map<string, Set<string>>();
 
-  handleConnection(client: Socket) {
+  handleConnection = (client: Socket) => {
     this.logger.log(`Client connected: ${client.id}`);
-  }
+  };
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect = (client: Socket) => {
     this.logger.log(`Client disconnected: ${client.id}`);
     for (const [userId, connections] of this.userConnections.entries()) {
       if (connections.has(client.id)) {
@@ -43,7 +43,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
         }
       }
     }
-  }
+  };
 
   @SubscribeMessage('user:register')
   handleUserRegister(client: Socket, data: { userId: string }) {

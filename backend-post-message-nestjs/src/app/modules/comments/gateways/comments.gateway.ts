@@ -39,16 +39,16 @@ export class CommentsGateway
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  handleConnection(client: Socket): void {
+  handleConnection = (client: Socket): void => {
     this.logger.log(`Client connected: ${client.id}`);
 
     this.server.emit('user:connected', {
       clientId: client.id,
       totalConnected: this.connectedUsers.size + 1,
     });
-  }
+  };
 
-  handleDisconnect(client: Socket): void {
+  handleDisconnect = (client: Socket): void => {
     this.logger.log(`Client disconnected: ${client.id}`);
     this.connectedUsers.delete(client.id);
 
@@ -56,7 +56,7 @@ export class CommentsGateway
       clientId: client.id,
       totalConnected: this.connectedUsers.size,
     });
-  }
+  };
 
   @SubscribeMessage('user:register')
   async handleUserRegister(

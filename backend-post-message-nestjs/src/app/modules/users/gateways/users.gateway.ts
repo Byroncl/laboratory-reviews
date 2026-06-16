@@ -29,7 +29,7 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly i18n: I18nService,
   ) {}
 
-  handleConnection(client: Socket): void {
+  handleConnection = (client: Socket): void => {
     this.logger.log(`Client connected: ${client.id}`);
     if (this.server) {
       this.server.emit('user:connected', {
@@ -37,9 +37,9 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
         totalConnected: this.connectedUsers.size + 1,
       });
     }
-  }
+  };
 
-  handleDisconnect(client: Socket): void {
+  handleDisconnect = (client: Socket): void => {
     this.logger.log(`Client disconnected: ${client.id}`);
     this.connectedUsers.delete(client.id);
     if (this.server) {
@@ -48,7 +48,7 @@ export class UsersGateway implements OnGatewayConnection, OnGatewayDisconnect {
         totalConnected: this.connectedUsers.size,
       });
     }
-  }
+  };
 
   @SubscribeMessage('user:register')
   async handleUserRegister(
