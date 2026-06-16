@@ -64,23 +64,17 @@ export const authReducer = createReducer(
     const token = localStorage.getItem('auth_token');
     const userRaw = localStorage.getItem('auth_user');
 
-    console.log('[AuthReducer] loadAuthFromStorage - token:', token ? 'exists' : 'null', 'user:', userRaw);
-
     if (token && userRaw) {
       try {
         const parsed: unknown = JSON.parse(userRaw);
-        console.log('[AuthReducer] Parsed user:', parsed);
-        console.log('[AuthReducer] isValidAuthUser:', isValidAuthUser(parsed));
 
         if (!isValidAuthUser(parsed)) {
           // Legacy shape (email/name) or invalid — clear and stay logged out
-          console.log('[AuthReducer] User invalid, clearing token');
           localStorage.removeItem('auth_token');
           localStorage.removeItem('auth_user');
           return { ...initialState };
         }
 
-        console.log('[AuthReducer] User valid, restoring state');
         return {
           ...state,
           token,
@@ -88,7 +82,6 @@ export const authReducer = createReducer(
           isAuthenticated: true,
         };
       } catch (error) {
-        console.log('[AuthReducer] JSON parse error:', error);
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
         return { ...initialState };

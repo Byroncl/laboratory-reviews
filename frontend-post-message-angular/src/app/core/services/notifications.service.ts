@@ -31,7 +31,6 @@ export class NotificationsService {
   constructor() {
     effect(() => {
       if (this.isSocketConnected$()) {
-        console.log('WebSocket connected');
       }
     });
   }
@@ -143,13 +142,11 @@ export class NotificationsService {
     this.socket = io(NOTIFICATIONS_WEBSOCKET.URL, config);
 
     this.socket.on(NOTIFICATIONS_WEBSOCKET.EVENTS.CONNECT, () => {
-      console.log('WebSocket connected');
       this.isSocketConnected$.set(true);
       this.socket?.emit(NOTIFICATIONS_WEBSOCKET.EVENTS.USER_REGISTER, { userId });
     });
 
     this.socket.on(NOTIFICATIONS_WEBSOCKET.EVENTS.DISCONNECT, () => {
-      console.log('WebSocket disconnected');
       this.isSocketConnected$.set(false);
     });
 

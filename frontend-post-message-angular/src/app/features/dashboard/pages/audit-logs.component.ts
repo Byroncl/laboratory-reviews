@@ -79,10 +79,9 @@ export class AuditLogsComponent implements OnInit {
     readonly auditLogService: AuditLogService,
     private notificationService: NotificationService,
     private i18n: I18nService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    console.log('[AuditLogs] ngOnInit called');
     this.initializeDateFilter();
     this.load();
   }
@@ -108,7 +107,6 @@ export class AuditLogsComponent implements OnInit {
       from,
       to
     };
-    console.log('[AuditLogs] Filter initialized:', filter);
     this.filter$.set(filter);
   }
 
@@ -196,13 +194,11 @@ export class AuditLogsComponent implements OnInit {
 
   private load(): void {
     const filter = this.filter$();
-    console.log('[AuditLogs] load() called with filter:', filter);
     this.auditLogService
       .getAuditLogs(filter)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
-          console.log('[AuditLogs] Data received:', data);
         },
         error: (err) => {
           console.error('[AuditLogs] Error loading audit logs:', err);

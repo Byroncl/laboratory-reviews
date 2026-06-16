@@ -141,7 +141,7 @@ export class UsersComponent {
         this.activeCount.set(response.data.active);
         this.adminCount.set((response.data as any).admin ?? 0);
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -149,9 +149,7 @@ export class UsersComponent {
     this.rolesService.loadRoles(0, 100).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         const rolesList = Array.isArray(response.data) ? response.data : response.data.items || [];
-        console.log('Roles loaded for filter:', rolesList);
         this.rolesData.set(rolesList);
-        console.log('Role filter options:', this.roleFilterOptions());
       },
       error: (err) => console.error('Error loading roles for filter:', err)
     });
@@ -305,9 +303,9 @@ export class UsersComponent {
   private updateActiveFilters(): void {
     this.hasActiveFilters$.set(
       this.globalSearch$() !== '' ||
-        this.roleFilter$() !== '' ||
-        this.statusFilter$() !== '' ||
-        Object.keys(this.columnFilters$()).length > 0
+      this.roleFilter$() !== '' ||
+      this.statusFilter$() !== '' ||
+      Object.keys(this.columnFilters$()).length > 0
     );
   }
 }

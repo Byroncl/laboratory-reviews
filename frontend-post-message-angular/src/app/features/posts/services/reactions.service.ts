@@ -99,13 +99,10 @@ export class ReactionsService implements OnDestroy {
       .get<any>(url)
       .pipe(
         map((response) => {
-          console.log('[ReactionsService] getReactions response:', response);
 
           const data = response?.data || response;
           const reactions = Array.isArray(data) ? data : (data?.reactions || []);
           const userReaction = data?.userReaction;
-
-          console.log('[ReactionsService] userReaction:', userReaction, 'reactions:', reactions);
 
           const mapped = reactions.map((r: any) => ({
             emoji: r.emoji,
@@ -113,7 +110,6 @@ export class ReactionsService implements OnDestroy {
             reactedByMe: r.emoji === userReaction
           }));
 
-          console.log('[ReactionsService] mapped reactions:', mapped);
           return mapped;
         }),
         tap((summaries) => this.setLocalReactions(commentId, summaries)),
