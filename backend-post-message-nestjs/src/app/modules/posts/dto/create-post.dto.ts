@@ -66,19 +66,10 @@ export class CreatePostDto {
   @Transform(({ value, obj }: { value: string; obj: any }) => (value || obj.content)?.trim())
   body?: string;
 
-  @ApiPropertyOptional({
-    example: 'http://localhost:9000/posts/1718000000000-photo.jpg',
-    description: 'Valid URL of the post image (from POST /files/upload)',
-  })
   @IsOptional()
   @IsUrl({ require_protocol: true }, { message: 'Image URL must be a valid URL with protocol' })
   imageUrl?: string;
 
-  @ApiPropertyOptional({
-    example: '1718000000000-photo.jpg',
-    description: 'MinIO filename for the post image (1-500 characters)',
-    maxLength: 500,
-  })
   @IsOptional()
   @IsString({ message: 'Image filename must be a string' })
   @MaxLength(500, { message: 'Image filename must not exceed 500 characters' })
