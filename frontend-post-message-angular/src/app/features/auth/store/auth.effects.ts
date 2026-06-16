@@ -20,28 +20,21 @@ export class AuthEffects {
     this.actions$.pipe(
       ofType(AuthActions.login),
       switchMap(({ username, password, accountType }) => {
-        console.log('[AuthEffects] login$ - attempting login:', { username, accountType });
         return this.authService.login({ username, password, type: accountType }).pipe(
           map(({ access_token }) => {
-            console.log('[AuthEffects] login$ - got token, decoding...');
             const claims = decodeJwt(access_token);
-            console.log('[AuthEffects] login$ - decoded claims:', claims);
             if (!claims) {
-              console.log('[AuthEffects] login$ - no claims, returning loginFailure');
               return AuthActions.loginFailure({ error: 'Invalid token' });
             }
             const user: AuthUser = { id: claims.sub, username: claims.username, role: claims.type };
-            console.log('[AuthEffects] login$ - created user:', user);
             if (typeof window !== 'undefined') {
               localStorage.setItem('auth_token', access_token);
               localStorage.setItem('auth_user', JSON.stringify(user));
             }
-            console.log('[AuthEffects] login$ - returning loginSuccess');
             return AuthActions.loginSuccess({ user, token: access_token });
           }),
           catchError((error) => {
             const errorMessage = this.extractErrorMessage(error);
-            console.log('[AuthEffects] login$ - error:', errorMessage);
             return of(AuthActions.loginFailure({ error: errorMessage }));
           })
         );
@@ -54,11 +47,9 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
         tap(({ user, token }) => {
-          console.log('[AuthEffects] loginSuccess$ - user:', user);
           // Decode JWT to get role
           const claims = decodeJwt(token);
           const roleFromJwt = claims?.role || user.role || 'user';
-          console.log('[AuthEffects] loginSuccess$ - role from JWT:', roleFromJwt);
 
           // Load user permissions based on role
           const userRole = {
@@ -67,13 +58,8 @@ export class AuthEffects {
             identifier: roleFromJwt,
             permissions: this.getRolePermissions(roleFromJwt),
           };
-          console.log('[AuthEffects] Setting user role:', userRole);
           this.permissionsService.setUserRole(userRole);
-          console.log('[AuthEffects] isAdmin?', this.permissionsService.isAdmin());
-
-          // Determine navigation URL based on type
           const navigationUrl = user.role === 'client' ? '/home' : '/dashboard';
-          console.log('[AuthEffects] Navigating to:', navigationUrl);
           this.router.navigate([navigationUrl]);
         })
       ),
@@ -192,29 +178,22 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.loadAuthFromStorage),
         tap(() => {
-          console.log('[AuthEffects] loadAuthFromStorage$ - restoring permissions from storage');
-          // After reducer restores from storage, restore permissions too
           if (typeof window !== 'undefined') {
             const userRaw = localStorage.getItem('auth_user');
             const tokenRaw = localStorage.getItem('auth_token');
-            console.log('[AuthEffects] loadAuthFromStorage$ - userRaw:', userRaw);
             if (userRaw && tokenRaw) {
               try {
                 const user = JSON.parse(userRaw) as AuthUser;
                 const claims = decodeJwt(tokenRaw);
                 const roleFromJwt = claims?.role || user.role || 'user';
-                console.log('[AuthEffects] loadAuthFromStorage$ - parsed user:', user, 'role from JWT:', roleFromJwt);
                 const userRole = {
                   id: user.id,
                   name: roleFromJwt,
                   identifier: roleFromJwt,
                   permissions: this.getRolePermissions(roleFromJwt),
                 };
-                console.log('[AuthEffects] loadAuthFromStorage$ - setting user role:', userRole);
                 this.permissionsService.setUserRole(userRole);
-                console.log('[AuthEffects] loadAuthFromStorage$ - permissions restored');
               } catch (e) {
-                console.log('[AuthEffects] Failed to restore permissions from storage:', e);
               }
             }
           }

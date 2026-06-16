@@ -177,8 +177,6 @@ export class PermissionsComponent {
     const formValue = this.permissionForm.value;
     const permissionId = this.selectedPermission()?._id || this.selectedPermission()?.id;
 
-    console.log('Saving permission:', { permissionId, formValue });
-
     if (permissionId) {
       this.permissionsService.updatePermission(permissionId, formValue)
         .pipe(takeUntilDestroyed(this.destroyRef))
@@ -292,7 +290,7 @@ export class PermissionsComponent {
   private updateActiveFilters(): void {
     this.hasActiveFilters.set(
       this.globalSearch() !== '' ||
-        Object.keys(this.columnFilters$()).length > 0
+      Object.keys(this.columnFilters$()).length > 0
     );
   }
 }

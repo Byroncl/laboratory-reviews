@@ -69,7 +69,6 @@ export class CommentFormComponent implements OnInit {
     }
 
     this.store.select(selectAuthUser).pipe(take(1)).subscribe((user) => {
-      console.log('Auth user from Redux:', user);
 
       if (!user) {
         this.submitError = 'User information not found.';
@@ -84,8 +83,6 @@ export class CommentFormComponent implements OnInit {
         userId: user.id || '',
         author: user.username || '',
       };
-
-      console.log('Creating comment with DTO:', dto);
 
       this.isSubmitting = true;
 

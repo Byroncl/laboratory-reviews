@@ -34,7 +34,7 @@ export class UserFormComponent implements OnInit, OnDestroy, OnChanges {
     private rolesService: RolesService,
     private notificationService: NotificationService,
     private i18n: I18nService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadRoles();
@@ -98,7 +98,6 @@ export class UserFormComponent implements OnInit, OnDestroy, OnChanges {
       .subscribe({
         next: (response) => {
           const rolesList = Array.isArray(response.data) ? response.data : response.data.items || [];
-          console.log('Roles loaded:', rolesList);
           this.roles.set(rolesList);
         },
         error: (err) => {

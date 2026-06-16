@@ -16,7 +16,7 @@ export class UserMongoRepository implements UserRepository {
     @InjectModel('Post') private postModel: any,
     @InjectModel('Comment') private commentModel: any,
     @InjectModel(Role.name) private roleModel: Model<Role>,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const hashedPassword = await CryptoUtils.hashPassword(
@@ -68,8 +68,6 @@ export class UserMongoRepository implements UserRepository {
     if (filters?.email) {
       query.email = { $regex: filters.email, $options: 'i' };
     }
-
-    console.log(`[User Repository] Query filter:`, query);
 
     const [items, total] = await Promise.all([
       this.userModel.find(query).skip(skip).limit(limit).populate('role').exec(),

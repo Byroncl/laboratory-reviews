@@ -16,23 +16,18 @@ import { decodeJwt } from '../../features/auth/utils/jwt.util';
 
 @Injectable()
 export class JwtInterceptor implements HttpInterceptor {
-  constructor(private store: Store, private router: Router) {}
+  constructor(private store: Store, private router: Router) { }
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     let token: string | null = null;
     if (typeof window !== 'undefined') {
       token = localStorage.getItem('auth_token');
-      console.log('[JwtInterceptor] URL:', request.url);
-      console.log('[JwtInterceptor] Token from localStorage:', token ? 'exists' : 'null');
       if (token) {
-        console.log('[JwtInterceptor] Token preview:', token.substring(0, 50) + '...');
         const claims = decodeJwt(token);
-        console.log('[JwtInterceptor] Token claims:', claims);
       }
     }
 
     if (token) {
-      console.log('[JwtInterceptor] Adding Authorization header to', request.url);
       request = request.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`
@@ -50,7 +45,6 @@ export class JwtInterceptor implements HttpInterceptor {
             userId: body['userId'] || claims.sub,
             author: body['author'] || claims.username
           };
-          console.log('[JwtInterceptor] Enriched payload with userId and author from JWT');
           request = request.clone({
             body: updatedBody
           });
