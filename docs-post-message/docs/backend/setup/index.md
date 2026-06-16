@@ -119,6 +119,53 @@ SEED_ENABLED=true
 
 ---
 
+## Test Credentials
+
+When `SEED_ENABLED=true`, the database is populated with test users. All test users have the password **`password123`**.
+
+### Admin Users (can access the dashboard)
+
+| Username | Email | Role | Notes |
+|---|---|---|---|
+| `charlie` | charlie@example.com | admin | Full permissions |
+| `bianca` | bianca@example.com | admin | Full permissions |
+
+### Regular Users (can post, comment)
+
+| Username | Email | Role |
+|---|---|---|
+| `sofi` | sofi@example.com | user |
+| `joselin` | joselin@example.com | user |
+| `bibi` | bibi@example.com | user |
+| `idrovo` | idrovo@example.com | user |
+| `byron` | byron@example.com | user |
+
+### Client Users (end users, no admin access)
+
+| Username | Email | Notes |
+|---|---|---|
+| `client_admin` | client_admin@example.com | Client with elevated permissions |
+| `client_user` | client_user@example.com | Standard client user |
+| `app_mobile` | app_mobile@example.com | Mobile app test user |
+
+**Password for all test users:** `password123`
+
+#### Logging In
+
+1. Go to `http://localhost:3000/api/docs` (Scalar API reference)
+2. Find the `POST /auth/login` endpoint
+3. Enter credentials:
+   ```json
+   {
+     "email": "charlie@example.com",
+     "password": "password123"
+   }
+   ```
+4. Copy the JWT token from the response
+5. In Scalar, click the lock icon and paste the token to authorize subsequent requests
+
+---
+
 ## API Documentation
 
 Once the server is running, the interactive API reference (Scalar) is available at:

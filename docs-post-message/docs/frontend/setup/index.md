@@ -117,3 +117,28 @@ npm run serve:ssr:frontend-post-message-angular
 ```
 
 The server renders Angular on the server for the initial request, then hands off to the client-side SPA.
+
+---
+
+## Login with Test Credentials
+
+The Angular app connects to a NestJS backend. When the backend is running with `SEED_ENABLED=true`, test users are available.
+
+### Quick Start
+
+1. Ensure the NestJS backend is running on `http://localhost:3000`
+2. Start the Angular dev server: `npm start`
+3. Navigate to `http://localhost:4200`
+4. Click "Login" and use any of these credentials:
+
+**Admin users** (access the dashboard):
+- Email: `charlie@example.com` / Password: `password123`
+- Email: `bianca@example.com` / Password: `password123`
+
+**Client users** (standard end-user access):
+- Email: `client_admin@example.com` / Password: `password123`
+- Email: `client_user@example.com` / Password: `password123`
+
+After login, the app stores the JWT token in localStorage and uses the `JwtInterceptor` to attach it to all API requests.
+
+For more test users and credential details, see [Backend Setup: Test Credentials](../../../backend/setup/index.md#test-credentials).

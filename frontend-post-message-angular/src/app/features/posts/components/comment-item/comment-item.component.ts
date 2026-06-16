@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import Swal from 'sweetalert2';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { CommentsService } from '../../services';
 import { AuthService } from '../../../auth/services/auth.service';
@@ -99,22 +100,33 @@ export class CommentItemComponent {
   }
 
   deleteComment(): void {
-    if (!confirm('¿Estás seguro de que deseas eliminar este comentario?')) return;
+    Swal.fire({
+      title: '¿Eliminar comentario?',
+      text: 'Esta acción no se puede deshacer',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
 
-    const commentId = this.commentId;
-    if (!commentId) return;
+      const commentId = this.commentId;
+      if (!commentId) return;
 
-    this.isDeleting.set(true);
-    this.commentsService.deleteComment(commentId).subscribe({
-      next: () => {
-        this.toastService.success('Comentario eliminado exitosamente');
-        this.commentDeleted.emit(commentId);
-      },
-      error: (error) => {
-        console.error('Error deleting comment:', error);
-        this.isDeleting.set(false);
-        this.toastService.error('Error al eliminar el comentario');
-      },
+      this.isDeleting.set(true);
+      this.commentsService.deleteComment(commentId).subscribe({
+        next: () => {
+          this.toastService.success('Comentario eliminado exitosamente');
+          this.commentDeleted.emit(commentId);
+        },
+        error: (error) => {
+          console.error('Error deleting comment:', error);
+          this.isDeleting.set(false);
+          this.toastService.error('Error al eliminar el comentario');
+        },
+      });
     });
   }
 }
