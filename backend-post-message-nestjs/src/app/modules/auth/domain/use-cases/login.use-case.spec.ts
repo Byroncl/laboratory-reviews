@@ -62,6 +62,7 @@ describe('LoginUseCase', () => {
         username: 'testuser',
         sub: '507f1f77bcf86cd799439011',
         type: 'user',
+        role: 'user',
       });
 
       expect(authRepository.validateCredentials).toHaveBeenCalledWith(
@@ -114,7 +115,7 @@ describe('LoginUseCase', () => {
       );
     });
 
-    it('should default user type to "user" if not specified', async () => {
+    it('should default user type and role to "user" if not specified', async () => {
       const userWithoutType = { ...mockUser, type: undefined } as unknown as User;
       authRepository.validateCredentials.mockResolvedValue(userWithoutType);
       authRepository.recordLoginAttempt.mockResolvedValue(void 0);
@@ -122,6 +123,7 @@ describe('LoginUseCase', () => {
       const result = await useCase.execute('testuser', 'password123');
 
       expect(result.type).toBe('user');
+      expect(result.role).toBe('user');
     });
   });
 });

@@ -172,4 +172,28 @@ export class PermissionsController {
     this.permissionsGateway.notifyPermissionDeleted(findOneDto.id, currentUser.username);
     return ApiRes.success(null, this.i18n.translate(PERMISSIONS_MESSAGES.DELETED));
   }
+
+  @Auth()
+  @ApiOperation({ summary: 'Bulk create permissions', description: 'Create multiple permissions at once' })
+  @ApiBody({ type: [CreatePermissionDto] })
+  @ApiResponse({
+    status: 201,
+    description: 'Permissions created successfully',
+    type: [PermissionResponseDto],
+  })
+  @ApiResponse({
+    status: 400,
+    description: PERMISSIONS_RESPONSE_DESCRIPTIONS.VALIDATION_FAILED,
+  })
+  @ApiResponse({
+    status: 401,
+    description: PERMISSIONS_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
+  })
+  @Post('bulk')
+  async bulkCreate(@Body() createPermissionDtos: CreatePermissionDto[]) {
+    const permissions = await Promise.all(
+      createPermissionDtos.map(dto => this.permissionsService.create(dto))
+    );
+    return ApiRes.success(permissions, this.i18n.translate(PERMISSIONS_MESSAGES.CREATED));
+  }
 }

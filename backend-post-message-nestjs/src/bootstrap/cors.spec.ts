@@ -19,15 +19,19 @@ describe('setupCors', () => {
     process.env.NODE_ENV = originalEnv;
   });
 
-  it('should call enableCors with origin:true and credentials:true', () => {
+  it('should call enableCors with origin array and credentials:true', () => {
     process.env.NODE_ENV = 'development';
     const app = createMockApp();
 
     setupCors(app);
 
-    expect(app.enableCors).toHaveBeenCalledWith(
-      expect.objectContaining({ origin: true, credentials: true }),
+    const [config] = app.enableCors.mock.calls[0] as [
+      Parameters<INestApplication['enableCors']>[0],
+    ];
+    expect(config.origin).toEqual(
+      expect.arrayContaining(['http://localhost:3024', 'http://localhost:3025']),
     );
+    expect(config.credentials).toBe(true);
   });
 
   it('should include all HTTP methods', () => {
@@ -64,6 +68,23 @@ describe('setupCors', () => {
       Parameters<INestApplication['enableCors']>[0],
     ];
     expect(config.allowedHeaders).toEqual([...CORS_ALLOWED_HEADERS_PROD]);
+  });
+
+  it('should use production domains in production', () => {
+    process.env.NODE_ENV = NODE_ENV.PRODUCTION;
+    const app = createMockApp();
+
+    setupCors(app);
+
+    const [config] = app.enableCors.mock.calls[0] as [
+      Parameters<INestApplication['enableCors']>[0],
+    ];
+    expect(config.origin).toEqual(
+      expect.arrayContaining([
+        'https://albatrosfrontend.quetsana.com',
+        'https://albatrosbackend.quetsana.com',
+      ]),
+    );
   });
 
   it('should use wildcard allowedHeaders when NODE_ENV is undefined', () => {

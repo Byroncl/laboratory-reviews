@@ -4,16 +4,11 @@ export const MEDIA_MAX_TOTAL_BYTES = 5 * 1024 * 1024; // 5 MB
 export const MEDIA_PREVIEW_LIMIT = 3;
 
 /**
- * Accepted MIME type prefixes/full types.
- * Checked via String.startsWith or exact match.
+ * Accepted MIME types — images only (PNG, JPG, WEBP).
+ * Checked via exact match in media-upload.component.ts
  */
 export const MEDIA_ALLOWED_TYPES: string[] = [
-  'image/',
-  'video/',
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument',
-  'application/vnd.ms-excel',
-  'application/vnd.ms-powerpoint',
-  'application/vnd.oasis.opendocument',
+  'image/png',
+  'image/jpeg',
+  'image/webp',
 ];

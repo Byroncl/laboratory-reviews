@@ -379,8 +379,6 @@ export class UsersController {
   }
 
   @Auth()
-  @UseGuards(PermissionsGuard)
-  @HasPermission('users:manage')
   @ApiOperation(USERS_SWAGGER.GET_STATS)
   @ApiResponse({
     status: 200,

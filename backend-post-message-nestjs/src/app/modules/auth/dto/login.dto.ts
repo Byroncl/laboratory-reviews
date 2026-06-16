@@ -1,6 +1,6 @@
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsIn } from 'class-validator';
 import {
   AUTH_VALIDATION,
   AUTH_MESSAGES,
@@ -33,4 +33,13 @@ export class LoginDto {
   @IsNotEmpty({ message: AUTH_MESSAGES.PASSWORD_REQUIRED })
   @IsValidPassword()
   password: string;
+
+  @ApiProperty({
+    example: 'user',
+    description: 'Login type: user or client',
+    enum: ['user', 'client'],
+    required: false,
+  })
+  @IsIn(['user', 'client'], { message: 'Type must be user or client' })
+  type?: 'user' | 'client';
 }

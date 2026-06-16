@@ -57,7 +57,8 @@ export class PermissionsService {
   }
 
   isAdmin(): boolean {
-    return this.userRole()?.identifier === 'admin';
+    const identifier = this.userRole()?.identifier;
+    return identifier === 'admin' || identifier === 'moderator';
   }
 
   isClient(): boolean {

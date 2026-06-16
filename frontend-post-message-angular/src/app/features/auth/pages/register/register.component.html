@@ -73,12 +73,60 @@
             id="name"
             type="text"
             formControlName="name"
-            placeholder="Juan Pérez"
+            placeholder="Juan"
+            (focus)="onFieldFocus('name')"
             class="w-full px-4 py-3 rounded-lg border border-gray-300 text-primary placeholder-secondary focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-white transition outline-none text-sm lg:text-base bg-white"
-            [class.border-red-500]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched"
+            [class.border-red-500]="(registerForm.get('name')?.invalid && registerForm.get('name')?.touched) || fieldErrors['name']"
           />
-          <p *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched" class="text-red-500 text-xs mt-1.5">
+          <p *ngIf="fieldErrors['name']" class="text-red-500 text-xs mt-1.5">
+            {{ fieldErrors['name'] }}
+          </p>
+          <p *ngIf="!fieldErrors['name'] && registerForm.get('name')?.invalid && registerForm.get('name')?.touched" class="text-red-500 text-xs mt-1.5">
             {{ 'auth.register.errors.nameRequired' | t }}
+          </p>
+        </div>
+
+        <!-- Last Name -->
+        <div>
+          <label for="lastname" class="block text-sm font-medium text-primary mb-2">
+            {{ 'auth.register.lastName' | t }}
+          </label>
+          <input
+            id="lastname"
+            type="text"
+            formControlName="lastname"
+            placeholder="Pérez"
+            (focus)="onFieldFocus('lastname')"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 text-primary placeholder-secondary focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-white transition outline-none text-sm lg:text-base bg-white"
+            [class.border-red-500]="(registerForm.get('lastname')?.invalid && registerForm.get('lastname')?.touched) || fieldErrors['lastname']"
+          />
+          <p *ngIf="fieldErrors['lastname']" class="text-red-500 text-xs mt-1.5">
+            {{ fieldErrors['lastname'] }}
+          </p>
+          <p *ngIf="!fieldErrors['lastname'] && registerForm.get('lastname')?.invalid && registerForm.get('lastname')?.touched" class="text-red-500 text-xs mt-1.5">
+            {{ 'auth.register.errors.lastNameRequired' | t }}
+          </p>
+        </div>
+
+        <!-- Username -->
+        <div>
+          <label for="username" class="block text-sm font-medium text-primary mb-2">
+            {{ 'auth.register.username' | t }}
+          </label>
+          <input
+            id="username"
+            type="text"
+            formControlName="username"
+            placeholder="juan_perez"
+            (focus)="onFieldFocus('username')"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 text-primary placeholder-secondary focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-white transition outline-none text-sm lg:text-base bg-white"
+            [class.border-red-500]="(registerForm.get('username')?.invalid && registerForm.get('username')?.touched) || fieldErrors['username']"
+          />
+          <p *ngIf="fieldErrors['username']" class="text-red-500 text-xs mt-1.5">
+            {{ fieldErrors['username'] }}
+          </p>
+          <p *ngIf="!fieldErrors['username'] && registerForm.get('username')?.invalid && registerForm.get('username')?.touched" class="text-red-500 text-xs mt-1.5">
+            {{ 'auth.register.errors.usernameRequired' | t }}
           </p>
         </div>
 
@@ -92,10 +140,14 @@
             type="email"
             formControlName="email"
             placeholder="tu@correo.com"
+            (focus)="onFieldFocus('email')"
             class="w-full px-4 py-3 rounded-lg border border-gray-300 text-primary placeholder-secondary focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-white transition outline-none text-sm lg:text-base bg-white"
-            [class.border-red-500]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+            [class.border-red-500]="(registerForm.get('email')?.invalid && registerForm.get('email')?.touched) || fieldErrors['email']"
           />
-          <p *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="text-red-500 text-xs mt-1.5">
+          <p *ngIf="fieldErrors['email']" class="text-red-500 text-xs mt-1.5">
+            {{ fieldErrors['email'] }}
+          </p>
+          <p *ngIf="!fieldErrors['email'] && registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="text-red-500 text-xs mt-1.5">
             {{ 'auth.register.errors.invalidEmail' | t }}
           </p>
         </div>
@@ -111,8 +163,9 @@
               [type]="isShowPassword ? 'text' : 'password'"
               formControlName="password"
               placeholder="••••••••"
+              (focus)="onFieldFocus('password')"
               class="w-full px-4 py-3 rounded-lg border border-gray-300 text-primary placeholder-secondary focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-white transition outline-none text-sm lg:text-base bg-white pr-12"
-              [class.border-red-500]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+              [class.border-red-500]="(registerForm.get('password')?.invalid && registerForm.get('password')?.touched) || fieldErrors['password']"
             />
             <button
               type="button"
@@ -129,7 +182,10 @@
               </svg>
             </button>
           </div>
-          <p *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="text-red-500 text-xs mt-1.5">
+          <p *ngIf="fieldErrors['password']" class="text-red-500 text-xs mt-1.5">
+            {{ fieldErrors['password'] }}
+          </p>
+          <p *ngIf="!fieldErrors['password'] && registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="text-red-500 text-xs mt-1.5">
             {{ 'auth.register.errors.minPassword' | t }}
           </p>
         </div>

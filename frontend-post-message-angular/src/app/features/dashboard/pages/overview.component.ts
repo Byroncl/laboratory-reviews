@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthUser as User } from '../../../features/auth/models/auth.model';
 import { Store } from '@ngrx/store';
@@ -17,6 +17,7 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 })
 export class OverviewComponent implements OnInit {
   user$: Observable<User | null>;
+  private destroyRef = inject(DestroyRef);
 
   readonly totalPosts = signal(0);
   readonly totalComments = signal(0);
@@ -36,7 +37,7 @@ export class OverviewComponent implements OnInit {
 
   private loadStatistics(): void {
     this.usersService.loadStats()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
           const stats = response.data;

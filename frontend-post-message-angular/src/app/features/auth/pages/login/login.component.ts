@@ -44,15 +44,11 @@ export class LoginComponent {
   readonly error$ = toSignal(this.store.select(selectAuthError), { initialValue: null });
   readonly showPassword$ = signal(false);
   readonly isSubmitted$ = signal(false);
+  readonly loginType$ = signal<'user' | 'client'>('user');
 
   constructor() {
-    this.store.select(selectIsAuthenticated).pipe(
-      filter(auth => auth === true),
-      takeUntilDestroyed()
-    ).subscribe(() => {
-      const returnUrl = this.route.snapshot.queryParams['returnUrl'] ?? '/dashboard';
-      this.router.navigate([returnUrl]);
-    });
+    // Navigation is handled by loginSuccess$ effect in auth.effects.ts
+    // No need to navigate here again
   }
 
   hasError(field: string): boolean {
@@ -69,7 +65,11 @@ export class LoginComponent {
 
     if (this.loginForm.valid) {
       const { username, password } = this.loginForm.value as { username: string; password: string };
-      this.store.dispatch(AuthActions.login({ username, password }));
+      this.store.dispatch(AuthActions.login({
+        username: username.toLowerCase().trim(),
+        password,
+        accountType: this.loginType$()
+      }));
     }
   }
 
@@ -78,10 +78,6 @@ export class LoginComponent {
   }
 
   goBack(): void {
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      this.router.navigate(['/']);
-    }
+    this.router.navigate(['/']);
   }
 }

@@ -44,10 +44,38 @@ const config = {
         title: 'Documentación Post-Message',
         items: [
           {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
-            label: 'Backend',
+            type: 'doc',
+            docId: 'backend/intro',
+            label: '📚 Backend',
             position: 'left',
+          },
+          {
+            type: 'doc',
+            docId: 'frontend/intro',
+            label: '🎨 Frontend',
+            position: 'left',
+          },
+          {
+            type: 'dropdown',
+            label: '🌐 Guides',
+            position: 'left',
+            items: [
+              {
+                type: 'doc',
+                docId: 'ENV_GUIDE',
+                label: 'Environment Variables',
+              },
+              {
+                type: 'doc',
+                docId: 'DOCKER_GUIDE',
+                label: 'Docker Setup',
+              },
+              {
+                type: 'doc',
+                docId: 'TESTING_GUIDE',
+                label: 'Testing Strategy',
+              },
+            ],
           },
         ],
       },

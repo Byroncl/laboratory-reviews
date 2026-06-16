@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ValidateUserUseCase } from './validate-user.use-case';
 import { AuthRepository } from '../repositories/auth.repository';
@@ -63,30 +62,26 @@ describe('ValidateUserUseCase', () => {
       );
     });
 
-    it('should throw UnauthorizedException if user is not found', async () => {
+    it('should return null if user is not found', async () => {
       authRepository.validateCredentials.mockResolvedValue(null);
 
-      await expect(
-        useCase.execute('invaliduser', 'password123'),
-      ).rejects.toThrow(UnauthorizedException);
+      const result = await useCase.execute('invaliduser', 'password123');
 
-      expect(i18nService.translate).toHaveBeenCalledWith(
-        'auth.invalid_credentials',
+      expect(result).toBeNull();
+      expect(authRepository.validateCredentials).toHaveBeenCalledWith(
+        'invaliduser',
+        'password123',
       );
     });
 
-    it('should throw UnauthorizedException on repository error', async () => {
+    it('should return null on repository error', async () => {
       authRepository.validateCredentials.mockRejectedValue(
         new Error('Database error'),
       );
 
-      await expect(
-        useCase.execute('testuser', 'password123'),
-      ).rejects.toThrow(UnauthorizedException);
+      const result = await useCase.execute('testuser', 'password123');
 
-      expect(i18nService.translate).toHaveBeenCalledWith(
-        'auth.login_failed',
-      );
+      expect(result).toBeNull();
     });
   });
 });

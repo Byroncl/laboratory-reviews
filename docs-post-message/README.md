@@ -1,8 +1,14 @@
 # Post-Message Documentation
 
-Complete documentation for the Post-Message backend and frontend using Docusaurus.
+Complete documentation for the Post-Message backend (NestJS 11) and frontend (Angular 18) using Docusaurus.
 
-## 📚 Contents
+## Contents
+
+### Cross-Stack Guides
+
+- **[Environment Variables Guide](docs/ENV_GUIDE.md)** — All backend env vars, docker-compose substitution vars, frontend compile-time config, environment matrix, and security notes
+- **[Docker Guide](docs/DOCKER_GUIDE.md)** — Full-stack Docker Compose setup, service table, useful commands, health checks, and volumes
+- **[Testing Strategy](docs/TESTING_GUIDE.md)** — Jest (backend), Karma/Jasmine (frontend), Cypress e2e, and how to run all suites
 
 ### Backend Documentation
 
@@ -47,7 +53,12 @@ Complete documentation for the Post-Message backend and frontend using Docusauru
   - WebSocket authentication
   - i18n inconsistency
 
-## 🚀 Getting Started
+### Frontend Documentation
+
+- **[Introduction](docs/frontend/intro.md)** — Angular 18 frontend overview and tech stack
+- **[Setup](docs/frontend/setup/index.md)** — Local development and Docker setup for the frontend
+
+## Getting Started
 
 ### Prerequisites
 
@@ -79,7 +90,7 @@ npm run serve
 npm run deploy
 ```
 
-## 📖 Features
+## Features
 
 - **Interactive Diagrams** — Mermaid diagrams for architecture visualization
 - **Code Examples** — Practical code snippets throughout
@@ -88,14 +99,21 @@ npm run deploy
 - **i18n Ready** — English and Spanish support (ready to expand)
 - **Responsive** — Mobile-friendly design
 
-## 🎯 Key Sections
+## Key Sections
 
-### For Developers
+### For Backend Developers
 
 - Start with [Backend Introduction](docs/backend/intro.md)
 - Read [Architecture Overview](docs/backend/architecture/overview.md)
 - Explore [Module Structure](docs/backend/architecture/module-structure.md)
 - Check [Setup Guide](docs/backend/config/setup.md)
+
+### For Frontend Developers
+
+- Start with [Frontend Introduction](docs/frontend/intro.md)
+- Check [Frontend Setup](docs/frontend/setup/index.md)
+- Review [Environment Variables Guide](docs/ENV_GUIDE.md) for compile-time config
+- See [Testing Strategy](docs/TESTING_GUIDE.md) for Karma and Cypress setup
 
 ### For Architects
 
@@ -105,22 +123,22 @@ npm run deploy
 
 ### For DevOps
 
-- Check [Configuration Guide](docs/backend/config/environment.md)
+- See [Docker Guide](docs/DOCKER_GUIDE.md) for full-stack container setup
+- Check [Environment Variables Guide](docs/ENV_GUIDE.md) for all configuration
 - Review [Database Setup](docs/backend/database/schemas.md)
-- See [Setup Instructions](docs/backend/config/setup.md)
 
-## 📊 Architecture at a Glance
+## Architecture at a Glance
 
 ```mermaid
 graph TB
-    Client["🌐 Frontend<br/>(Angular)"]
-    API["🚀 NestJS API"]
-    Auth["🔐 JWT Auth"]
-    Services["📦 Services"]
-    DB["🗄️ MongoDB"]
-    Storage["☁️ MinIO"]
-    Socket["⚡ Socket.IO"]
-    
+    Client["Frontend (Angular 18)"]
+    API["NestJS 11 API"]
+    Auth["JWT Auth"]
+    Services["Services"]
+    DB["MongoDB"]
+    Storage["MinIO"]
+    Socket["Socket.IO"]
+
     Client -->|HTTP| API
     Client -->|WebSocket| Socket
     API --> Auth
@@ -130,21 +148,24 @@ graph TB
     Socket --> Services
 ```
 
-## 🐛 Known Issues
+## Known Issues
 
 The backend has some technical debt:
 
-1. **🔴 Hardcoded JWT Secret** — See [issue details](docs/backend/issues/hardcoded-secrets.md)
-2. **🟡 Orphaned Modules** — See [issue details](docs/backend/issues/orphaned-modules.md)
-3. **🔴 WebSocket Auth Gap** — See [issue details](docs/backend/issues/ws-auth.md)
-4. **🟡 i18n Duplication** — See [issue details](docs/backend/issues/i18n-inconsistency.md)
+1. **Hardcoded JWT Secret** — See [issue details](docs/backend/issues/hardcoded-secrets.md)
+2. **Orphaned Modules** — See [issue details](docs/backend/issues/orphaned-modules.md)
+3. **WebSocket Auth Gap** — See [issue details](docs/backend/issues/ws-auth.md)
+4. **i18n Duplication** — See [issue details](docs/backend/issues/i18n-inconsistency.md)
 
 All issues are documented with recommended fixes.
 
-## 📝 Documentation Structure
+## Documentation Structure
 
 ```
 docs/
+├── ENV_GUIDE.md                    # Environment variables (backend + frontend + Docker)
+├── DOCKER_GUIDE.md                 # Docker Compose full-stack guide
+├── TESTING_GUIDE.md                # Testing strategy and commands
 ├── backend/
 │   ├── intro.md                    # Start here
 │   ├── architecture/               # System design
@@ -185,15 +206,19 @@ docs/
 │       ├── orphaned-modules.md
 │       ├── ws-auth.md
 │       └── i18n-inconsistency.md
+└── frontend/
+    ├── intro.md                    # Frontend overview
+    └── setup/
+        └── index.md               # Frontend setup
 ```
 
-## 🔗 Important Links
+## Important Links
 
-- **Backend Repository**: `../backend-post-message-nestjs/`
-- **Frontend Repository**: `../frontend-post-message-angular/`
-- **Main Repository**: `../laboratory-reviews/`
+- **Backend**: `../backend-post-message-nestjs/`
+- **Frontend**: `../frontend-post-message-angular/`
+- **Main Repository**: `../`
 
-## 🎨 Diagrams & Visualizations
+## Diagrams and Visualizations
 
 This documentation uses Mermaid diagrams for:
 
@@ -203,16 +228,16 @@ This documentation uses Mermaid diagrams for:
 - Security and authentication flows
 - WebSocket event handling
 
-All diagrams are interactive and render automatically.
+All diagrams render automatically in Docusaurus.
 
-## 📱 Responsive Design
+## Responsive Design
 
 - Full desktop support
 - Tablet-optimized navigation
 - Mobile-friendly layouts
 - Dark mode support
 
-## 🌐 Multi-Language Support
+## Multi-Language Support
 
 Currently available:
 - **English** (default)
@@ -220,7 +245,7 @@ Currently available:
 
 To add more languages, update `docusaurus.config.js` i18n config.
 
-## 🤝 Contributing
+## Contributing
 
 To add or update documentation:
 
@@ -230,12 +255,13 @@ To add or update documentation:
 4. Add links to related sections
 5. Test locally with `npm run start`
 
-## 📄 License
+## License
 
 Documentation is part of the Post-Message project.
 
 ---
 
-**Last Updated**: June 13, 2024
+**Last Updated**: June 2026
 **Backend Version**: NestJS 11
-**Status**: Complete backend documentation ✅
+**Frontend Version**: Angular 18
+**Status**: Complete backend documentation + Frontend documentation

@@ -94,6 +94,7 @@ export class SeederService implements OnModuleInit {
       { name: 'Update User', identifier: 'update_user', type: 'user' },
       { name: 'Delete User', identifier: 'delete_user', type: 'user' },
       { name: 'View Users', identifier: 'view_users', type: 'user' },
+      { name: 'Manage Users', identifier: 'users:manage', type: 'user' },
 
       { name: 'Create Role', identifier: 'create_role', type: 'roles' },
       { name: 'Update Role', identifier: 'update_role', type: 'roles' },

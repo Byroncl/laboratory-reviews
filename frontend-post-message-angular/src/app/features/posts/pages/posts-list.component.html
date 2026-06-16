@@ -1,10 +1,244 @@
+<!-- View Post Modal -->
+@if (showViewModal()) {
+  <div class="modal-overlay" (click)="showViewModal.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ selectedPost()?.title }}</h2>
+        <button class="modal-close" (click)="showViewModal.set(false)">×</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Autor:</strong> {{ selectedPost()?.author }}</p>
+        <p><strong>Estado:</strong> {{ selectedPost()?.status }}</p>
+        <p><strong>Creado:</strong> {{ selectedPost()?.createdAt | date: 'short' }}</p>
+        <hr>
+        <p>{{ selectedPost()?.content }}</p>
+        @if (selectedPost()?.tags && selectedPost()!.tags!.length > 0) {
+          <div class="tags">
+            @for (tag of selectedPost()!.tags!; track tag) {
+              <span class="tag">{{ tag }}</span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Edit Modal -->
+@if (showEditModal()) {
+  <div class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Editar Post</h2>
+        <button class="modal-close" (click)="closeEditModal()">×</button>
+      </div>
+      <form [formGroup]="editForm" class="modal-body">
+        <div class="form-group">
+          <label for="title">Título</label>
+          <input
+            type="text"
+            id="title"
+            class="form-input"
+            formControlName="title"
+            placeholder="Ingresa el título del post"
+          />
+          @if (editForm.get('title')?.invalid && editForm.get('title')?.touched) {
+            <span class="form-error">
+              @if (editForm.get('title')?.errors?.['required']) {
+                El título es requerido
+              }
+              @if (editForm.get('title')?.errors?.['minlength']) {
+                El título debe tener al menos 5 caracteres
+              }
+            </span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Autor</label>
+          <p class="form-readonly">{{ selectedPost()?.author }}</p>
+        </div>
+
+        <div class="form-group">
+          <label>Estado</label>
+          <p class="form-readonly">{{ selectedPost()?.status }}</p>
+        </div>
+
+        <div class="form-group">
+          <label for="body">Contenido</label>
+          <textarea
+            id="body"
+            class="form-textarea"
+            formControlName="body"
+            placeholder="Ingresa el contenido del post"
+            rows="8"
+          ></textarea>
+          @if (editForm.get('body')?.invalid && editForm.get('body')?.touched) {
+            <span class="form-error">
+              @if (editForm.get('body')?.errors?.['required']) {
+                El contenido es requerido
+              }
+              @if (editForm.get('body')?.errors?.['minlength']) {
+                El contenido debe tener al menos 20 caracteres
+              }
+            </span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="tags">Tags (separados por comas)</label>
+          <input
+            type="text"
+            id="tags"
+            class="form-input"
+            formControlName="tags"
+            placeholder="ej: angular, typescript, frontend"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn btn-cancel"
+            (click)="closeEditModal()"
+            [disabled]="isSavingEdit()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn-confirm"
+            (click)="saveEditedPost()"
+            [disabled]="!editForm.valid || isSavingEdit()"
+          >
+            @if (isSavingEdit()) {
+              Guardando...
+            } @else {
+              Guardar cambios
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Create Modal -->
+@if (showCreateModal()) {
+  <div class="modal-overlay" (click)="closeCreateModal()">
+    <div class="modal modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Crear Nuevo Post</h2>
+        <button class="modal-close" (click)="closeCreateModal()">×</button>
+      </div>
+      <form [formGroup]="createForm" class="modal-body">
+        <div class="form-group">
+          <label for="create-title">Título</label>
+          <input
+            type="text"
+            id="create-title"
+            class="form-input"
+            formControlName="title"
+            placeholder="Ingresa el título del post"
+          />
+          @if (createForm.get('title')?.invalid && createForm.get('title')?.touched) {
+            <span class="form-error">
+              @if (createForm.get('title')?.errors?.['required']) {
+                El título es requerido
+              }
+              @if (createForm.get('title')?.errors?.['minlength']) {
+                El título debe tener al menos 5 caracteres
+              }
+            </span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="create-body">Contenido</label>
+          <textarea
+            id="create-body"
+            class="form-textarea"
+            formControlName="body"
+            placeholder="Ingresa el contenido del post"
+            rows="8"
+          ></textarea>
+          @if (createForm.get('body')?.invalid && createForm.get('body')?.touched) {
+            <span class="form-error">
+              @if (createForm.get('body')?.errors?.['required']) {
+                El contenido es requerido
+              }
+              @if (createForm.get('body')?.errors?.['minlength']) {
+                El contenido debe tener al menos 20 caracteres
+              }
+            </span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="create-tags">Tags (separados por comas)</label>
+          <input
+            type="text"
+            id="create-tags"
+            class="form-input"
+            formControlName="tags"
+            placeholder="ej: angular, typescript, frontend"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button
+            type="button"
+            class="btn btn-cancel"
+            (click)="closeCreateModal()"
+            [disabled]="isCreatingPost()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn-confirm"
+            (click)="createPost()"
+            [disabled]="!createForm.valid || isCreatingPost()"
+          >
+            @if (isCreatingPost()) {
+              Creando...
+            } @else {
+              Crear Post
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Status Modal -->
+@if (showStatusModal()) {
+  <div class="modal-overlay" (click)="showStatusModal.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Cambiar Estado del Post</h2>
+        <button class="modal-close" (click)="showStatusModal.set(false)">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Estado actual: <strong>{{ selectedPost()?.status }}</strong></p>
+        <p>¿Deseas cambiar a: <strong>{{ selectedStatus() }}</strong>?</p>
+        <div class="modal-actions">
+          <button class="btn btn-cancel" (click)="showStatusModal.set(false)">Cancelar</button>
+          <button class="btn btn-confirm" (click)="confirmStatusChange()">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
 <div class="posts-container">
   <div class="posts-header">
     <h1>{{ 'posts.list.title' | t }}</h1>
-    <a routerLink="/posts/new" class="btn btn-primary">{{ 'posts.list.newPost' | t }}</a>
+    <button (click)="openCreateModal()" class="btn btn-primary">{{ 'posts.list.newPost' | t }}</button>
   </div>
 
-  <app-bulk-upload></app-bulk-upload>
+  <app-bulk-upload (uploadSuccess)="loadPosts()"></app-bulk-upload>
 
   <app-post-filter
     [isLoading]="loading$()"
@@ -33,8 +267,7 @@
           (view)="onPostView($event)"
           (edit)="onPostEdit($event)"
           (delete)="onPostDelete($event)"
-          (publish)="onPostPublish($event)"
-          (archive)="onPostArchive($event)"
+          (changeStatus)="onPostChangeStatus($event)"
         ></app-post-card>
       }
     </div>

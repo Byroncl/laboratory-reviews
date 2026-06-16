@@ -20,6 +20,7 @@ export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
   isLoading = false;
   error: string | null = null;
+  fieldErrors: Record<string, string> = {};
   isShowPassword = false;
   isShowConfirmPassword = false;
 
@@ -36,15 +37,54 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
+    this.subscribeToErrors();
+  }
+
+  private subscribeToErrors(): void {
+    this.store.select(selectAuthError).subscribe(error => {
+      if (error) {
+        this.setErrorForField(error);
+      }
+    });
+  }
+
+  private setErrorForField(errorMessage: string): void {
+    // Clear previous errors
+    this.fieldErrors = {};
+
+    // Map backend validation messages to form fields
+    const errorMappings: Record<string, string[]> = {
+      name: ['El nombre', 'name'],
+      lastname: ['El apellido', 'lastname', 'last name'],
+      username: ['El nombre de usuario', 'username'],
+      email: ['El correo electrónico', 'email', 'Email'],
+      password: ['La contraseña', 'password']
+    };
+
+    // Check which field the error belongs to
+    const lowerError = errorMessage.toLowerCase();
+    for (const [fieldName, keywords] of Object.entries(errorMappings)) {
+      if (keywords.some(keyword => lowerError.includes(keyword.toLowerCase()))) {
+        this.fieldErrors[fieldName] = errorMessage;
+        this.error = errorMessage; // Also show in general error
+        return;
+      }
+    }
+
+    // If no specific field matched, show as general error
+    this.error = errorMessage;
   }
 
   private initForm(): void {
     this.registerForm = this.formBuilder.group(
       {
         name: ['', [Validators.required, Validators.minLength(2)]],
+        lastname: ['', [Validators.required, Validators.minLength(2)]],
+        username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(20)]],
         email: ['', [Validators.required, Validators.email]],
         password: ['', [Validators.required, Validators.minLength(6)]],
-        confirmPassword: ['', [Validators.required]]
+        confirmPassword: ['', [Validators.required]],
+        accountType: ['client', [Validators.required]]
       },
       { validators: this.passwordMatchValidator }
     );
@@ -62,12 +102,28 @@ export class RegisterComponent implements OnInit {
     if (this.registerForm.valid) {
       this.isLoading = true;
       this.error = null;
+      this.fieldErrors = {};
 
-      const { name, password } = this.registerForm.value as { name: string; password: string };
-      // Register dispatches login action with username; register endpoint is out of scope for this change
-      this.store.dispatch(AuthActions.register({ username: name, password }));
+      const { username, password, ...rest } = this.registerForm.value;
+      // Normalize username and email to lowercase
+      const normalizedUsername = username.toLowerCase().trim();
+      this.store.dispatch(
+        AuthActions.register({
+          username: normalizedUsername,
+          password,
+          name: rest.name,
+          lastname: rest.lastname,
+          email: rest.email.toLowerCase().trim(),
+          accountType: rest.accountType || 'client'
+        })
+      );
       this.isLoading = false;
     }
+  }
+
+  onFieldFocus(fieldName: string): void {
+    // Clear the error for this specific field when user starts typing
+    delete this.fieldErrors[fieldName];
   }
 
   togglePasswordVisibility(): void {
@@ -83,10 +139,6 @@ export class RegisterComponent implements OnInit {
   }
 
   goBack(): void {
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      this.router.navigate(['/']);
-    }
+    this.router.navigate(['/']);
   }
 }

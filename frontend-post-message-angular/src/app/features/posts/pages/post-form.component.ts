@@ -7,6 +7,7 @@ import { PostsService } from '../services';
 import { ICreatePostDTO, IUpdatePostDTO } from '../interfaces';
 import { POST_VALIDATION, POST_STATUSES, STATUS_FILTER_OPTIONS, MAX_TAGS, MAX_TAG_LENGTH } from '../constants';
 import { PostStatus } from '../types';
+import { AuthService } from '../../../features/auth/services/auth.service';
 
 @Component({
   selector: 'app-post-form',
@@ -17,6 +18,7 @@ import { PostStatus } from '../types';
 })
 export class PostFormComponent implements OnInit {
   private postsService = inject(PostsService);
+  private authService = inject(AuthService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private fb = inject(FormBuilder);
@@ -33,7 +35,7 @@ export class PostFormComponent implements OnInit {
   ngOnInit(): void {
     this.postForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(POST_VALIDATION.TITLE_MIN)]],
-      content: ['', [Validators.required, Validators.minLength(POST_VALIDATION.BODY_MIN)]],
+      body: ['', [Validators.required, Validators.minLength(POST_VALIDATION.BODY_MIN)]],
       status: [''],
       tags: [''],
     });
@@ -55,7 +57,7 @@ export class PostFormComponent implements OnInit {
         const post = response.data;
         this.postForm.patchValue({
           title: post.title,
-          content: post.content,
+          body: post.content,
           status: post.status ?? '',
           tags: post.tags?.join(', ') || '',
         });
@@ -88,9 +90,14 @@ export class PostFormComponent implements OnInit {
           .map((t: string) => t.substring(0, MAX_TAG_LENGTH))
       : [];
 
-    const data: ICreatePostDTO = {
+    const currentUser = this.authService.currentUser$();
+    const author = currentUser?.username || 'Anonymous';
+
+    const data: any = {
       title: formValue.title,
-      content: formValue.content,
+      content: formValue.body,
+      body: formValue.body,  // Backend schema uses 'body' for storage
+      author,
     };
 
     if (formValue.status) {

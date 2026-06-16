@@ -49,11 +49,17 @@ export class AuthService {
     this.isLoading$.set(true);
     this.error$.set(null);
 
-    return this.http.post<IAuthResponse>(
+    const normalizedRequest = {
+      ...request,
+      username: request.username.toLowerCase().trim()
+    };
+
+    return this.http.post<any>(
       `${this.apiUrl}${AUTH_ENDPOINTS.LOGIN}`,
-      request
+      normalizedRequest
     ).pipe(
       retry(this.retryAttempts),
+      map(response => response.data || response),
       tap(response => this._handleAuthSuccess(response)),
       catchError(error => this._handleAuthError(error))
     );
@@ -66,11 +72,18 @@ export class AuthService {
     this.isLoading$.set(true);
     this.error$.set(null);
 
-    return this.http.post<IAuthResponse>(
+    const normalizedRequest = {
+      ...request,
+      username: request.username.toLowerCase().trim(),
+      email: request.email.toLowerCase().trim()
+    };
+
+    return this.http.post<any>(
       `${this.apiUrl}${AUTH_ENDPOINTS.REGISTER}`,
-      request
+      normalizedRequest
     ).pipe(
       retry(this.retryAttempts),
+      map(response => response.data || response),
       tap(response => this._handleAuthSuccess(response)),
       catchError(error => this._handleAuthError(error))
     );

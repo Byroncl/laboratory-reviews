@@ -31,8 +31,8 @@ export class UpdateCommentDto extends PartialType(CreateCommentDto) {
 
   @ApiProperty({
     type: [String],
-    example: ['http://localhost:9000/posts/image1.jpg'],
-    description: 'Updated media URLs (0-10 URLs)',
+    example: ['/uploads/image1.jpg'],
+    description: 'Updated media URLs or paths (0-10 URLs)',
     required: false,
     minItems: 0,
     maxItems: 10,
@@ -41,10 +41,7 @@ export class UpdateCommentDto extends PartialType(CreateCommentDto) {
   @IsArray({ message: 'Media URLs must be an array' })
   @ArrayMinSize(0, { message: 'Media URLs array must have at least 0 items' })
   @ArrayMaxSize(10, { message: 'Media URLs array must not exceed 10 items' })
-  @IsUrl({ require_protocol: true }, {
-    each: true,
-    message: 'Each media URL must be a valid URL with protocol',
-  })
+  @IsString({ each: true, message: 'Each media URL must be a string' })
   mediaUrls?: string[];
 
   @ApiProperty({

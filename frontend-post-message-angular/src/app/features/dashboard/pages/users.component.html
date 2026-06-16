@@ -1,20 +1,24 @@
 <div class="space-y-6">
-  <!-- Form Modal -->
+  <!-- Form Modal Overlay -->
   @if (showUserForm$()) {
-    <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-gray-900">
-          {{ editingUserId$() ? ('dashboard.users.editTitle' | t) : ('dashboard.users.createTitle' | t) }}
-        </h2>
-        <button (click)="closeForm()" class="text-gray-500 hover:text-gray-700 text-2xl">
-          ×
-        </button>
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white flex justify-between items-center p-6 border-b border-gray-200">
+          <h2 class="text-xl font-bold text-gray-900">
+            {{ editingUserId$() ? ('dashboard.users.editTitle' | t) : ('dashboard.users.createTitle' | t) }}
+          </h2>
+          <button (click)="closeForm()" class="text-gray-500 hover:text-gray-700 text-2xl font-light leading-none">
+            ×
+          </button>
+        </div>
+        <div class="p-6">
+          <app-user-form
+            [editingUserId]="editingUserId$()"
+            (formSubmitted)="onFormSubmitted()"
+            (formCancelled)="closeForm()"
+          ></app-user-form>
+        </div>
       </div>
-      <app-user-form
-        [editingUserId]="editingUserId$()"
-        (formSubmitted)="onFormSubmitted()"
-        (formCancelled)="closeForm()"
-      ></app-user-form>
     </div>
   }
 
@@ -47,18 +51,7 @@
       class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
     >
       <option value="">{{ 'dashboard.users.allRoles' | t }}</option>
-      @for (option of roleFilterOptions; track option.value) {
-        <option [value]="option.value">{{ option.label }}</option>
-      }
-    </select>
-    <select
-      [ngModel]="statusFilter$()"
-      (ngModelChange)="statusFilter$.set($event)"
-      (change)="onStatusFilterChange()"
-      class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
-    >
-      <option value="">{{ 'dashboard.users.allStatuses' | t }}</option>
-      @for (option of statusFilterOptions; track option.value) {
+      @for (option of roleFilterOptions(); track option.value) {
         <option [value]="option.value">{{ option.label }}</option>
       }
     </select>

@@ -28,13 +28,15 @@ export interface IPost {
 export interface ICreatePostDTO {
   title: string;
   content: string;
+  author: string;
   status?: PostStatus;
   tags?: string[];
+  imageUrl?: string;
 }
 
 export interface IUpdatePostDTO {
   title?: string;
-  content?: string;
+  body?: string;
   status?: PostStatus;
   tags?: string[];
 }

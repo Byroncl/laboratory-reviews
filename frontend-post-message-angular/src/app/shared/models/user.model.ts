@@ -48,6 +48,7 @@ export interface UpdateUserDto {
   bio?: string;
   avatar?: string;
   language?: string;
+  type?: string;
   isActive?: boolean;
   status?: 'active' | 'inactive' | 'suspended';
 }

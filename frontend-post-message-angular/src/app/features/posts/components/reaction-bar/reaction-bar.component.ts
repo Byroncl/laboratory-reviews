@@ -35,6 +35,10 @@ export class ReactionBarComponent implements OnInit {
       next: (data) => {
         this.summary.set(data);
         this.reactionsService.setLocalReactions(this.commentId, data);
+        const reactedEmojis = data
+          .filter(r => r.reactedByMe)
+          .map(r => r.emoji);
+        this.reactedEmojis.set(new Set(reactedEmojis));
       },
       error: (err) => console.error('[ReactionBarComponent] getReactions error:', err),
     });
@@ -119,11 +123,11 @@ export class ReactionBarComponent implements OnInit {
       if (newCount === 0) {
         updated.splice(idx, 1);
       } else {
-        updated[idx] = { ...updated[idx], count: newCount };
+        updated[idx] = { ...updated[idx], count: newCount, reactedByMe: delta > 0 };
       }
       this.summary.set(updated);
     } else if (delta > 0) {
-      this.summary.set([...current, { emoji, count: delta }]);
+      this.summary.set([...current, { emoji, count: delta, reactedByMe: true }]);
     }
   }
 }

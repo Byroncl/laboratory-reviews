@@ -1,5 +1,5 @@
 export const environment = {
-  production: false,
-  apiUrl: 'http://host.docker.internal:3000/api',
-  socketUrl: 'http://host.docker.internal:3000',
+  production: true,
+  apiUrl: 'https://albatrosbackend.quetsana.com/api',
+  socketUrl: 'https://albatrosbackend.quetsana.com',
 };

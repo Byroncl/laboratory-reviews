@@ -370,7 +370,15 @@
       "delete_confirm": "¿Estás seguro de que querés eliminar este usuario?",
       "deleted": "Usuario eliminado correctamente",
       "delete_error": "Error al eliminar el usuario",
-      "edited": "Usuario actualizado correctamente"
+      "edited": "Usuario actualizado correctamente",
+      "formIncomplete": "Por favor, completa todos los campos requeridos",
+      "createSuccess": "Usuario creado exitosamente",
+      "createError": "Error al crear el usuario",
+      "updateSuccess": "Usuario actualizado exitosamente",
+      "updateError": "Error al actualizar el usuario",
+      "validation": {
+        "emailInvalid": "Debe ser una dirección de correo válida"
+      }
     },
     "posts": {
       "title": "Gestión de Posts",
@@ -457,6 +465,31 @@
       "ASSIGN": "Asignar",
       "ACTIVATE": "Activar",
       "DEACTIVATE": "Desactivar"
+    },
+    "userForm": {
+      "nameLabel": "Nombre",
+      "namePlaceholder": "Juan",
+      "lastnameLabel": "Apellido",
+      "lastnamePlaceholder": "Pérez",
+      "usernameLabel": "Usuario",
+      "usernamePlaceholder": "juanperez",
+      "emailLabel": "Email",
+      "emailPlaceholder": "juan@example.com",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "••••••••",
+      "typeLabel": "Tipo de Usuario",
+      "selectType": "Seleccionar tipo...",
+      "createUser": "Crear Usuario",
+      "updateUser": "Actualizar Usuario",
+      "cancel": "Cancelar"
+    },
+    "common": {
+      "validation": {
+        "required": "Este campo es requerido",
+        "minLength": "Mínimo {n} caracteres",
+        "maxLength": "Máximo {n} caracteres",
+        "invalid": "Campo inválido"
+      }
     }
   },
   "client": {

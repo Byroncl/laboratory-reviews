@@ -1,18 +1,20 @@
 import { Component, Input, Output, EventEmitter, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import Swal from 'sweetalert2';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { CommentsService } from '../../services';
 import { AuthService } from '../../../auth/services/auth.service';
+import { ToastService } from '../../../../core/services/toast.service';
 import { IComment } from '../../interfaces';
 import { getCommentId } from '../../utils/entity-id.util';
 import { ReactionBarComponent } from '../reaction-bar/reaction-bar.component';
-import { ReplyFormComponent } from '../reply-form/reply-form.component';
 import { MEDIA_PREVIEW_LIMIT } from '../../../../shared/constants/media-upload.constants';
 
 @Component({
   selector: 'app-comment-item',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, ReactionBarComponent, ReplyFormComponent, CommentItemComponent],
+  imports: [CommonModule, FormsModule, TranslatePipe, ReactionBarComponent, CommentItemComponent],
   templateUrl: './comment-item.component.html',
   styleUrls: ['./comment-item.component.css'],
 })
@@ -20,17 +22,24 @@ export class CommentItemComponent {
   @Input() comment!: IComment;
   @Input() postId!: string;
   @Input() postAuthor?: string;
+  @Input() level: number = 0; // 0 = top-level, 1 = first reply, 2 = second reply (max)
   @Output() replyAdded = new EventEmitter<void>();
+  @Output() commentDeleted = new EventEmitter<string>();
 
   private commentsService = inject(CommentsService);
   private authService = inject(AuthService);
+  private toastService = inject(ToastService);
 
   readonly isLoggedIn = computed(() => this.authService.isAuthenticated());
+  readonly currentUser = this.authService.currentUser$;
+  readonly isCommentOwner = computed(() => {
+    const current = this.currentUser();
+    return current && this.comment?.author === current.username;
+  });
 
-  readonly showReplyForm = signal(false);
-  readonly replies = signal<IComment[]>([]);
-  readonly repliesLoading = signal(false);
-  readonly showReplies = signal(false);
+  readonly isEditing = signal(false);
+  readonly editContent = signal('');
+  readonly isDeleting = signal(false);
 
   // Media display state
   readonly showAllMedia = signal(false);
@@ -49,10 +58,6 @@ export class CommentItemComponent {
     return getCommentId(this.comment) ?? '';
   }
 
-  get hasReplies(): boolean {
-    return !!(this.comment.replies?.length) || this.replies().length > 0;
-  }
-
   toggleMedia(): void {
     this.showAllMedia.update(v => !v);
   }
@@ -63,31 +68,65 @@ export class CommentItemComponent {
     return 'doc';
   }
 
-  expandReplies(): void {
-    if (this.showReplies()) {
-      this.showReplies.set(false);
-      return;
-    }
+  startEdit(): void {
+    this.editContent.set(this.comment.content);
+    this.isEditing.set(true);
+  }
 
-    const id = this.commentId;
-    if (!id) return;
+  cancelEdit(): void {
+    this.isEditing.set(false);
+    this.editContent.set('');
+  }
 
-    this.repliesLoading.set(true);
-    this.commentsService.getReplies(id).subscribe({
-      next: (data) => {
-        this.replies.set(data.data);
-        this.showReplies.set(true);
-        this.repliesLoading.set(false);
+  saveEdit(): void {
+    const newContent = this.editContent().trim();
+    if (!newContent) return;
+
+    const commentId = this.commentId;
+    if (!commentId) return;
+
+    this.commentsService.updateComment(commentId, { content: newContent }).subscribe({
+      next: () => {
+        this.comment.content = newContent;
+        this.isEditing.set(false);
+        this.editContent.set('');
+        this.toastService.success('Comentario actualizado exitosamente');
       },
-      error: () => this.repliesLoading.set(false),
+      error: (error) => {
+        console.error('Error updating comment:', error);
+        this.toastService.error('Error al actualizar el comentario');
+      },
     });
   }
 
-  onReplyAdded(): void {
-    this.showReplyForm.set(false);
-    this.replyAdded.emit();
-    // Reload replies to reflect the new one
-    this.showReplies.set(false);
-    this.expandReplies();
+  deleteComment(): void {
+    Swal.fire({
+      title: '¿Eliminar comentario?',
+      text: 'Esta acción no se puede deshacer',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      const commentId = this.commentId;
+      if (!commentId) return;
+
+      this.isDeleting.set(true);
+      this.commentsService.deleteComment(commentId).subscribe({
+        next: () => {
+          this.toastService.success('Comentario eliminado exitosamente');
+          this.commentDeleted.emit(commentId);
+        },
+        error: (error) => {
+          console.error('Error deleting comment:', error);
+          this.isDeleting.set(false);
+          this.toastService.error('Error al eliminar el comentario');
+        },
+      });
+    });
   }
 }

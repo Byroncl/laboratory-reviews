@@ -19,27 +19,33 @@ export class AuthEffects {
   login$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.login),
-      switchMap(({ username, password }) =>
-        this.authService.login({ username, password }).pipe(
+      switchMap(({ username, password, accountType }) => {
+        console.log('[AuthEffects] login$ - attempting login:', { username, accountType });
+        return this.authService.login({ username, password, type: accountType }).pipe(
           map(({ access_token }) => {
+            console.log('[AuthEffects] login$ - got token, decoding...');
             const claims = decodeJwt(access_token);
+            console.log('[AuthEffects] login$ - decoded claims:', claims);
             if (!claims) {
+              console.log('[AuthEffects] login$ - no claims, returning loginFailure');
               return AuthActions.loginFailure({ error: 'Invalid token' });
             }
             const user: AuthUser = { id: claims.sub, username: claims.username, role: claims.type };
+            console.log('[AuthEffects] login$ - created user:', user);
             if (typeof window !== 'undefined') {
               localStorage.setItem('auth_token', access_token);
               localStorage.setItem('auth_user', JSON.stringify(user));
             }
+            console.log('[AuthEffects] login$ - returning loginSuccess');
             return AuthActions.loginSuccess({ user, token: access_token });
           }),
-          catchError((error) =>
-            of(AuthActions.loginFailure({
-              error: error.error?.message || 'Invalid credentials'
-            }))
-          )
-        )
-      )
+          catchError((error) => {
+            const errorMessage = this.extractErrorMessage(error);
+            console.log('[AuthEffects] login$ - error:', errorMessage);
+            return of(AuthActions.loginFailure({ error: errorMessage }));
+          })
+        );
+      })
     )
   );
 
@@ -47,41 +53,57 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
-        tap(({ user }) => {
+        tap(({ user, token }) => {
+          console.log('[AuthEffects] loginSuccess$ - user:', user);
+          // Decode JWT to get role
+          const claims = decodeJwt(token);
+          const roleFromJwt = claims?.role || user.role || 'user';
+          console.log('[AuthEffects] loginSuccess$ - role from JWT:', roleFromJwt);
+
           // Load user permissions based on role
           const userRole = {
             id: user.id,
-            name: user.role,
-            identifier: user.role,
-            permissions: this.getRolePermissions(user.role),
+            name: roleFromJwt,
+            identifier: roleFromJwt,
+            permissions: this.getRolePermissions(roleFromJwt),
           };
+          console.log('[AuthEffects] Setting user role:', userRole);
           this.permissionsService.setUserRole(userRole);
+          console.log('[AuthEffects] isAdmin?', this.permissionsService.isAdmin());
 
-          // Read returnUrl from the current URL's query params if we were redirected here
-          const urlParams = new URLSearchParams(
-            typeof window !== 'undefined' ? window.location.search : ''
-          );
-          const returnUrl = urlParams.get('returnUrl') ?? '/dashboard';
-          this.router.navigate([returnUrl]);
+          // Determine navigation URL based on type
+          const navigationUrl = user.role === 'client' ? '/home' : '/dashboard';
+          console.log('[AuthEffects] Navigating to:', navigationUrl);
+          this.router.navigate([navigationUrl]);
         })
       ),
     { dispatch: false }
   );
 
   private getRolePermissions(role: string): any[] {
-    // Map roles to permissions
+    // Map backend roles from seed to frontend permissions
+    // Roles from seed: admin, moderator, user, client
+    const adminPermissions = [
+      { identifier: 'view_dashboard', name: 'View Dashboard' },
+      { identifier: 'manage_users', name: 'Manage Users' },
+      { identifier: 'manage_roles', name: 'Manage Roles' },
+      { identifier: 'manage_permissions', name: 'Manage Permissions' },
+      { identifier: 'view_audit_logs', name: 'View Audit Logs' },
+      { identifier: 'manage_clients', name: 'Manage Clients' },
+      { identifier: 'manage_posts', name: 'Manage Posts' },
+      { identifier: 'manage_comments', name: 'Manage Comments' },
+      { identifier: 'view_statistics', name: 'View Statistics' },
+    ];
+
+    const moderatorPermissions = [
+      { identifier: 'manage_posts', name: 'Manage Posts' },
+      { identifier: 'manage_comments', name: 'Manage Comments' },
+    ];
+
     const rolePermissions: Record<string, any[]> = {
-      admin: [
-        { identifier: 'view_dashboard', name: 'View Dashboard' },
-        { identifier: 'manage_users', name: 'Manage Users' },
-        { identifier: 'manage_roles', name: 'Manage Roles' },
-        { identifier: 'manage_permissions', name: 'Manage Permissions' },
-        { identifier: 'view_audit_logs', name: 'View Audit Logs' },
-        { identifier: 'manage_clients', name: 'Manage Clients' },
-        { identifier: 'manage_posts', name: 'Manage Posts' },
-        { identifier: 'manage_comments', name: 'Manage Comments' },
-        { identifier: 'view_statistics', name: 'View Statistics' },
-      ],
+      admin: adminPermissions,
+      moderator: moderatorPermissions,
+      user: [], // Regular users don't have dashboard access
       client: [
         { identifier: 'create_posts', name: 'Create Posts' },
         { identifier: 'edit_own_posts', name: 'Edit Own Posts' },
@@ -92,10 +114,6 @@ export class AuthEffects {
         { identifier: 'create_favorites', name: 'Create Favorites' },
         { identifier: 'view_favorites', name: 'View Favorites' },
       ],
-      user: [
-        { identifier: 'view_public_posts', name: 'View Public Posts' },
-        { identifier: 'view_comments', name: 'View Comments' },
-      ],
     };
 
     return rolePermissions[role] || [];
@@ -104,8 +122,15 @@ export class AuthEffects {
   register$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.register),
-      switchMap(({ username, password }) =>
-        this.authService.login({ username, password }).pipe(
+      switchMap(({ username, password, name, lastname, email, accountType }) =>
+        this.authService.register({
+          username,
+          password,
+          name,
+          lastname,
+          email,
+          type: accountType
+        }).pipe(
           map(({ access_token }) => {
             const claims = decodeJwt(access_token);
             if (!claims) {
@@ -116,13 +141,12 @@ export class AuthEffects {
               localStorage.setItem('auth_token', access_token);
               localStorage.setItem('auth_user', JSON.stringify(user));
             }
-            return AuthActions.registerSuccess({ user });
+            return AuthActions.registerSuccess({ user, token: access_token });
           }),
-          catchError((error) =>
-            of(AuthActions.registerFailure({
-              error: error.error?.message || 'Registration failed'
-            }))
-          )
+          catchError((error) => {
+            const errorMessage = this.extractErrorMessage(error, 'Registration failed');
+            return of(AuthActions.registerFailure({ error: errorMessage }));
+          })
         )
       )
     )
@@ -168,9 +192,55 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.loadAuthFromStorage),
         tap(() => {
-          // Reducer handles state hydration; this effect exists as a hook point only
+          console.log('[AuthEffects] loadAuthFromStorage$ - restoring permissions from storage');
+          // After reducer restores from storage, restore permissions too
+          if (typeof window !== 'undefined') {
+            const userRaw = localStorage.getItem('auth_user');
+            const tokenRaw = localStorage.getItem('auth_token');
+            console.log('[AuthEffects] loadAuthFromStorage$ - userRaw:', userRaw);
+            if (userRaw && tokenRaw) {
+              try {
+                const user = JSON.parse(userRaw) as AuthUser;
+                const claims = decodeJwt(tokenRaw);
+                const roleFromJwt = claims?.role || user.role || 'user';
+                console.log('[AuthEffects] loadAuthFromStorage$ - parsed user:', user, 'role from JWT:', roleFromJwt);
+                const userRole = {
+                  id: user.id,
+                  name: roleFromJwt,
+                  identifier: roleFromJwt,
+                  permissions: this.getRolePermissions(roleFromJwt),
+                };
+                console.log('[AuthEffects] loadAuthFromStorage$ - setting user role:', userRole);
+                this.permissionsService.setUserRole(userRole);
+                console.log('[AuthEffects] loadAuthFromStorage$ - permissions restored');
+              } catch (e) {
+                console.log('[AuthEffects] Failed to restore permissions from storage:', e);
+              }
+            }
+          }
         })
       ),
     { dispatch: false }
   );
+
+  private extractErrorMessage(error: any, defaultMessage = 'Invalid credentials'): string {
+    // Handle array of messages (from validation errors)
+    if (Array.isArray(error.error?.message)) {
+      return error.error.message.join('\n');
+    }
+    // Handle single message string
+    if (typeof error.error?.message === 'string') {
+      return error.error.message;
+    }
+    // Handle error object with message property
+    if (error.error?.error) {
+      return error.error.error;
+    }
+    // Handle string error response
+    if (typeof error.error === 'string') {
+      return error.error;
+    }
+    // Default fallback
+    return defaultMessage;
+  }
 }

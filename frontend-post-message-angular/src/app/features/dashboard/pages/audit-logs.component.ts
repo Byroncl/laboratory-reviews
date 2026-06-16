@@ -1,4 +1,4 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, OnInit, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -30,7 +30,9 @@ import { sortByField } from '../../admin';
   templateUrl: './audit-logs.component.html',
   styleUrl: './audit-logs.component.scss'
 })
-export class AuditLogsComponent {
+export class AuditLogsComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
+
   // State signals
   readonly filter$ = signal<AuditLogFilter>({ page: 1, limit: 20 });
   readonly fromDate$ = signal('');
@@ -77,8 +79,37 @@ export class AuditLogsComponent {
     readonly auditLogService: AuditLogService,
     private notificationService: NotificationService,
     private i18n: I18nService
-  ) {
+  ) {}
+
+  ngOnInit(): void {
+    console.log('[AuditLogs] ngOnInit called');
+    this.initializeDateFilter();
     this.load();
+  }
+
+  private initializeDateFilter(): void {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    // Format for datetime-local input (YYYY-MM-DDTHH:mm)
+    const fromISO = firstDay.toISOString().slice(0, 16);
+    const toISO = lastDay.toISOString().slice(0, 16);
+
+    this.fromDate$.set(fromISO);
+    this.toDate$.set(toISO);
+
+    // Update filter with full ISO dates
+    const from = firstDay.toISOString();
+    const to = lastDay.toISOString();
+    const filter = {
+      page: 1,
+      limit: 20,
+      from,
+      to
+    };
+    console.log('[AuditLogs] Filter initialized:', filter);
+    this.filter$.set(filter);
   }
 
   onFilterChange(patch: Partial<AuditLogFilter>): void {
@@ -86,12 +117,12 @@ export class AuditLogsComponent {
     this.load();
   }
 
-  onActionFilterChange(action: AuditAction | undefined): void {
-    this.onFilterChange({ action });
+  onActionFilterChange(value: string | undefined): void {
+    this.onFilterChange({ action: (value || undefined) as AuditAction | undefined });
   }
 
-  onEntityTypeFilterChange(entityType: EntityType | undefined): void {
-    this.onFilterChange({ entityType });
+  onEntityTypeFilterChange(value: string | undefined): void {
+    this.onFilterChange({ entityType: (value || undefined) as EntityType | undefined });
   }
 
   onSearchChange(search: string): void {
@@ -164,11 +195,19 @@ export class AuditLogsComponent {
   }
 
   private load(): void {
+    const filter = this.filter$();
+    console.log('[AuditLogs] load() called with filter:', filter);
     this.auditLogService
-      .getAuditLogs(this.filter$())
-      .pipe(takeUntilDestroyed())
+      .getAuditLogs(filter)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        error: () => this.notificationService.toast(this.i18n.translate('dashboard.auditLogs.loadError'), 'error')
+        next: (data) => {
+          console.log('[AuditLogs] Data received:', data);
+        },
+        error: (err) => {
+          console.error('[AuditLogs] Error loading audit logs:', err);
+          this.notificationService.toast(this.i18n.translate('dashboard.auditLogs.loadError'), 'error');
+        }
       });
   }
 }

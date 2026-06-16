@@ -7,10 +7,16 @@ import { User, UserDocument } from '../../schemas/user.schema';
 import { UserRepository } from '../../domain/repositories/user.repository';
 import { CryptoUtils } from '../../../../../app/core/utils/crypto.utils';
 import { PaginatedResponse } from 'src/app/core/dto/pagination.dto';
+import { Role } from '../../../roles/schemas/role.schema';
 
 @Injectable()
 export class UserMongoRepository implements UserRepository {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel('Post') private postModel: any,
+    @InjectModel('Comment') private commentModel: any,
+    @InjectModel(Role.name) private roleModel: Model<Role>,
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const hashedPassword = await CryptoUtils.hashPassword(
@@ -24,7 +30,7 @@ export class UserMongoRepository implements UserRepository {
   }
 
   async findOneByUsername(username: string): Promise<User | null> {
-    return this.userModel.findOne({ username }).exec();
+    return this.userModel.findOne({ username }).populate('role').exec();
   }
 
   async findOneById(id: string): Promise<User | null> {
@@ -43,17 +49,30 @@ export class UserMongoRepository implements UserRepository {
     const query: Record<string, unknown> = {};
 
     if (filters?.role) {
-      query.role = filters.role;
+      const roleDoc = await this.roleModel.findOne({ name: filters.role }).exec();
+      if (roleDoc) {
+        query.role = roleDoc._id;
+      } else {
+        console.warn(`[User Repository] Role "${filters.role}" not found. Continuing without role filter.`);
+      }
     }
+
     if (filters?.status) {
-      query.status = filters.status;
+      if (filters.status === 'active') {
+        query.isActive = true;
+      } else if (filters.status === 'inactive' || filters.status === 'suspended') {
+        query.isActive = false;
+      }
     }
+
     if (filters?.email) {
       query.email = { $regex: filters.email, $options: 'i' };
     }
 
+    console.log(`[User Repository] Query filter:`, query);
+
     const [items, total] = await Promise.all([
-      this.userModel.find(query).skip(skip).limit(limit).exec(),
+      this.userModel.find(query).skip(skip).limit(limit).populate('role').exec(),
       this.userModel.countDocuments(query).exec(),
     ]);
 
@@ -117,13 +136,33 @@ export class UserMongoRepository implements UserRepository {
       .exec();
   }
 
-  async getStats(): Promise<{ total: number; active: number; verified: number }> {
-    const [total, active, verified] = await Promise.all([
+  async getStats(): Promise<{
+    total: number;
+    active: number;
+    verified: number;
+    posts: number;
+    comments: number;
+    growthPercentage: number;
+  }> {
+    const [total, active, verified, posts, comments] = await Promise.all([
       this.userModel.countDocuments().exec(),
       this.userModel.countDocuments({ isActive: true }).exec(),
       this.userModel.countDocuments({ isVerified: true }).exec(),
+      this.postModel.countDocuments({ isActive: true, isDeleted: false }).exec(),
+      this.commentModel.countDocuments({ isActive: true, isDeleted: false }).exec(),
     ]);
-    return { total, active, verified };
+
+    // Calculate growth percentage (active users growth)
+    const growthPercentage = total > 0 ? ((active / total) * 100).toFixed(2) : 0;
+
+    return {
+      total,
+      active,
+      verified,
+      posts,
+      comments,
+      growthPercentage: Number(growthPercentage)
+    };
   }
 
   async updateLastLogin(id: string): Promise<void> {

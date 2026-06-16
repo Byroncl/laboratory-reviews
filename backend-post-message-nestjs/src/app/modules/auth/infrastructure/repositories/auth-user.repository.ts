@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AuthRepository } from '../../domain/repositories/auth.repository';
 import { UserRepository } from '../../../users/domain/repositories/user.repository';
 import { CryptoUtils } from '../../../../core/utils/crypto.utils';
@@ -10,6 +10,8 @@ import { User } from '../../schemas/user.schema';
  */
 @Injectable()
 export class AuthUserRepository implements AuthRepository {
+  private readonly logger = new Logger('AuthUserRepository');
+
   constructor(private readonly userRepository: UserRepository) {}
 
   /**
@@ -25,15 +27,20 @@ export class AuthUserRepository implements AuthRepository {
     const user = await this.userRepository.findOneByUsername(username);
 
     if (!user) {
+      this.logger.debug(`User not found: ${username}`);
       return null;
     }
 
+    this.logger.debug(`User found: ${username}, validating password...`);
     const isPasswordValid = await CryptoUtils.comparePasswords(
       password,
       user.password_hash,
     );
 
+    this.logger.debug(`Password valid for ${username}: ${isPasswordValid}`);
+
     if (!isPasswordValid) {
+      this.logger.debug(`Invalid password for user: ${username}`);
       return null;
     }
 

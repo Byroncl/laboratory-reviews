@@ -1,12 +1,14 @@
 services:
-  # Servidor de Base de Datos (MongoDB) por red para no exponer puertos
+  # Servidor de Base de Datos (MongoDB)
   mongodb:
     image: mongo:latest
-    container_name: mi_mongo
+    container_name: laboratory_mongo
     restart: always
+    ports:
+      - "27019:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-admin123}
     volumes:
       - mongo_data:/data/db
     networks:
@@ -17,17 +19,36 @@ services:
       timeout: 5s
       retries: 5
 
+  # Mongo Express - Interfaz para gestionar MongoDB
+  mongo-express:
+    image: mongo-express:latest
+    container_name: laboratory_mongo_express
+    restart: always
+    ports:
+      - "8083:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USER:-admin}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD:-admin123}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASSWORD:-admin123}@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    depends_on:
+      mongodb:
+        condition: service_started
+    networks:
+      - app-network
+
   # Servidor de almacenamiento de objetos (MinIO)
   minio:
     image: minio/minio:latest
-    container_name: mi_minio
+    container_name: laboratory_minio
     restart: always
     ports:
       - "9000:9000"
       - "9001:9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
@@ -39,32 +60,32 @@ services:
       timeout: 20s
       retries: 3
 
-  # Servidor de Aplicación (NestJS)
+  # Servidor de Aplicación (NestJS Backend)
   nestjs-app:
     build:
       context: ./backend-post-message-nestjs
       dockerfile: Dockerfile
-    container_name: mi_nestjs
+    container_name: laboratory_nestjs
     restart: always
     ports:
-      - "3000:3000"
+      - "3025:3000"
     depends_on:
       mongodb:
-        condition: service_started
+        condition: service_healthy
       minio:
         condition: service_started
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       SEED_ENABLED: "true"
       TESTING: "true"
-      MONGODB_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017/${MONGO_DB_NAME}?authSource=admin
+      MONGODB_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASSWORD:-admin123}@mongodb:27017/${MONGO_DB_NAME:-laboratory-reviews}?authSource=admin
       PORT: 3000
-      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
-      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME:-laboratory-reviews}
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -72,15 +93,38 @@ services:
     networks:
       - app-network
 
-  # Documentación (HTTP Server)
+  # Frontend (Angular)
+  angular-app:
+    build:
+      context: ./frontend-post-message-angular
+      dockerfile: Dockerfile
+    container_name: laboratory_angular
+    restart: always
+    ports:
+      - "3024:4200"
+    depends_on:
+      nestjs-app:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4200/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Documentación (Docusaurus)
   docs:
     build:
       context: ./docs-post-message
       dockerfile: Dockerfile
-    container_name: mi_docs
+    container_name: laboratory_docs
     restart: always
     ports:
-      - "3001:3001"
+      - "3026:3001"
     networks:
       - app-network
 

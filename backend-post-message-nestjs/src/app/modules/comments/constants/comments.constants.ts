@@ -132,7 +132,7 @@ export const COMMENTS_EXAMPLES = {
   COMMENT_RESPONSE: {
     id: '507f1f77bcf86cd799439011',
     content: 'Great post! Very informative.',
-    post: '507f1f77bcf86cd799439010',
+    postId: '507f1f77bcf86cd799439010',
     isActive: true,
     parentCommentId: null,
     childCommentIds: ['507f1f77bcf86cd799439013'],

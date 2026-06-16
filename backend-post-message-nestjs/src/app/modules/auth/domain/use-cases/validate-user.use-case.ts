@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { AuthRepository } from '../repositories/auth.repository';
 import { User } from '../../schemas/user.schema';
 import { I18nService } from '../../../../core/i18n/i18n.service';
@@ -9,6 +9,8 @@ import { I18nService } from '../../../../core/i18n/i18n.service';
  */
 @Injectable()
 export class ValidateUserUseCase {
+  private readonly logger = new Logger('ValidateUserUseCase');
+
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly i18nService: I18nService,
@@ -22,27 +24,17 @@ export class ValidateUserUseCase {
    * @throws UnauthorizedException if credentials are invalid
    */
   async execute(username: string, password: string): Promise<User | null> {
+    this.logger.debug(`ValidateUserUseCase.execute called for username: ${username}`);
     try {
       const user = await this.authRepository.validateCredentials(
         username,
         password,
       );
-
-      if (!user) {
-        throw new UnauthorizedException(
-          this.i18nService.translate('auth.invalid_credentials'),
-        );
-      }
-
-      return user;
+      this.logger.debug(`AuthRepository.validateCredentials returned: ${user ? 'user found' : 'null'}`);
+      return user || null;
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-
-      throw new UnauthorizedException(
-        this.i18nService.translate('auth.login_failed'),
-      );
+      this.logger.debug(`AuthRepository.validateCredentials threw error: ${error instanceof Error ? error.message : 'Unknown'}`);
+      return null;
     }
   }
 }

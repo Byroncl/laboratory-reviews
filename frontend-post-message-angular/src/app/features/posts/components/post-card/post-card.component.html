@@ -45,9 +45,9 @@
         <span class="stat-icon">💬</span>
         <span class="stat-value">{{ post.commentCount || 0 }}</span>
       </div>
-      <div class="stat" [class.active]="isFavorited()">
-        <span class="stat-icon">{{ isFavorited() ? '❤️' : '🤍' }}</span>
-        <span class="stat-value">{{ isFavorited() ? 'Saved' : 'Save' }}</span>
+      <div class="stat">
+        <span class="stat-icon">👁️</span>
+        <span class="stat-value">{{ post.viewCount || 0 }}</span>
       </div>
     </div>
 
@@ -61,34 +61,55 @@
         View
       </button>
       <button
-        class="action-btn"
-        [class.active]="isFavorited()"
-        (click)="onToggleFavorite()"
-        [disabled]="isLoadingFavorite()"
-        [title]="isFavorited() ? 'Remove from saved' : 'Save post'"
+        class="action-btn status"
+        (click)="showStatusModal.set(true)"
+        [disabled]="isLoading"
+        title="Change post status"
       >
-        {{ isFavorited() ? 'Saved' : 'Save' }}
+        Status
       </button>
-      @if (post.status === 'draft') {
-        <button
-          class="action-btn success"
-          (click)="onPublish()"
-          [disabled]="isLoading"
-          title="Publish this post"
-        >
-          Publish
-        </button>
+
+      <!-- Status Selection Modal -->
+      @if (showStatusModal()) {
+        <div class="modal-overlay" (click)="showStatusModal.set(false)">
+          <div class="modal modal-sm" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h3>Cambiar Estado del Post</h3>
+              <button class="modal-close" (click)="showStatusModal.set(false)">×</button>
+            </div>
+            <div class="modal-body">
+              <p class="modal-label">Estado actual: <strong>{{ post.status }}</strong></p>
+              <div class="status-options">
+                <button
+                  class="status-option"
+                  [class.disabled]="post.status === 'draft'"
+                  (click)="handleStatusSelect('draft')"
+                  [disabled]="post.status === 'draft'"
+                >
+                  Draft
+                </button>
+                <button
+                  class="status-option"
+                  [class.disabled]="post.status === 'published'"
+                  (click)="handleStatusSelect('published')"
+                  [disabled]="post.status === 'published'"
+                >
+                  Published
+                </button>
+                <button
+                  class="status-option"
+                  [class.disabled]="post.status === 'archived'"
+                  (click)="handleStatusSelect('archived')"
+                  [disabled]="post.status === 'archived'"
+                >
+                  Archived
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       }
-      @if (post.status === 'published') {
-        <button
-          class="action-btn warning"
-          (click)="onArchive()"
-          [disabled]="isLoading"
-          title="Archive this post"
-        >
-          Archive
-        </button>
-      }
+
       <button
         class="action-btn edit"
         (click)="onEdit()"

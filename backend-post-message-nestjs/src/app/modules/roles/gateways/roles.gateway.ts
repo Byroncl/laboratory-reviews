@@ -31,19 +31,23 @@ export class RolesGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleConnection(client: Socket): void {
     this.logger.log(`Client connected: ${client.id}`);
-    this.server.emit('user:connected', {
-      clientId: client.id,
-      totalConnected: this.connectedUsers.size + 1,
-    });
+    if (this.server) {
+      this.server.emit('user:connected', {
+        clientId: client.id,
+        totalConnected: this.connectedUsers.size + 1,
+      });
+    }
   }
 
   handleDisconnect(client: Socket): void {
     this.logger.log(`Client disconnected: ${client.id}`);
     this.connectedUsers.delete(client.id);
-    this.server.emit('user:disconnected', {
-      clientId: client.id,
-      totalConnected: this.connectedUsers.size,
-    });
+    if (this.server) {
+      this.server.emit('user:disconnected', {
+        clientId: client.id,
+        totalConnected: this.connectedUsers.size,
+      });
+    }
   }
 
   @SubscribeMessage('user:register')
@@ -85,6 +89,10 @@ export class RolesGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Internal method called by the controller when a role is created
   notifyRoleCreated(role: any, createdBy: string): void {
+    if (!this.server) {
+      this.logger.warn('WebSocket server not initialized for role:created notification');
+      return;
+    }
     this.server.emit('role:created', {
       id: role._id || role.id,
       name: role.name,
@@ -97,6 +105,10 @@ export class RolesGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Internal method called by the controller when a role is updated
   notifyRoleUpdated(role: any, updatedBy: string): void {
+    if (!this.server) {
+      this.logger.warn('WebSocket server not initialized for role:updated notification');
+      return;
+    }
     this.server.emit('role:updated', {
       id: role._id || role.id,
       name: role.name,
@@ -109,6 +121,10 @@ export class RolesGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Internal method called by the controller when a role is deleted
   notifyRoleDeleted(roleId: string, deletedBy: string): void {
+    if (!this.server) {
+      this.logger.warn('WebSocket server not initialized for role:deleted notification');
+      return;
+    }
     this.server.emit('role:deleted', {
       id: roleId,
       deletedBy,

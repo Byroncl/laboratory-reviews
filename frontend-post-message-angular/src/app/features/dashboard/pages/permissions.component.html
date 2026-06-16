@@ -1,32 +1,109 @@
-<div class="space-y-6">
-  <!-- Form Panel -->
-  @if (showPermissionForm$()) {
-    <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-gray-900">
-          {{ editingPermissionId$() ? ('dashboard.permissions.editTitle' | t) : ('dashboard.permissions.createTitle' | t) }}
-        </h2>
-        <button (click)="closeForm()" class="text-gray-500 hover:text-gray-700 text-2xl">
-          ×
+<!-- View Modal -->
+@if (showViewModal()) {
+  <div class="modal-overlay" (click)="closeViewModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ selectedPermission()?.name }}</h2>
+        <button class="modal-close" (click)="closeViewModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="view-field">
+          <label>Tipo</label>
+          <p>{{ selectedPermission()?.type }}</p>
+        </div>
+        <div class="view-field">
+          <label>Creado</label>
+          <p>{{ selectedPermission()?.createdAt | date: 'short' }}</p>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="closeViewModal()">Cerrar</button>
+        <button class="btn btn-primary" (click)="editPermission(selectedPermission()!)">Editar</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Create/Edit Modal -->
+@if (showCreateModal()) {
+  <div class="modal-overlay" (click)="closeCreateModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ selectedPermission() ? 'Editar Permiso' : 'Crear Nuevo Permiso' }}</h2>
+        <button class="modal-close" (click)="closeCreateModal()">×</button>
+      </div>
+      <form [formGroup]="permissionForm" class="modal-body">
+        <div class="form-group">
+          <label for="perm-name">Nombre</label>
+          <input
+            type="text"
+            id="perm-name"
+            class="form-input"
+            formControlName="name"
+            placeholder="Ingresa el nombre del permiso"
+          />
+          @if (permissionForm.get('name')?.invalid && permissionForm.get('name')?.touched) {
+            <span class="form-error">
+              @if (permissionForm.get('name')?.errors?.['required']) {
+                El nombre es requerido
+              }
+              @if (permissionForm.get('name')?.errors?.['minlength']) {
+                Mínimo 2 caracteres
+              }
+              @if (permissionForm.get('name')?.errors?.['maxlength']) {
+                Máximo 100 caracteres
+              }
+            </span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="perm-type">Tipo</label>
+          <select id="perm-type" class="form-input" formControlName="type">
+            <option value="">Selecciona un tipo</option>
+            @for (type of permissionTypes; track type) {
+              <option [value]="type">{{ type }}</option>
+            }
+          </select>
+          @if (permissionForm.get('type')?.invalid && permissionForm.get('type')?.touched) {
+            <span class="form-error">El tipo es requerido</span>
+          }
+        </div>
+      </form>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="closeCreateModal()" [disabled]="isSavingPermission()">
+          Cancelar
+        </button>
+        <button class="btn btn-primary" (click)="savePermission()" [disabled]="!permissionForm.valid || isSavingPermission()">
+          @if (isSavingPermission()) {
+            Guardando...
+          } @else {
+            {{ selectedPermission() ? 'Guardar Cambios' : 'Crear Permiso' }}
+          }
         </button>
       </div>
-      <app-permission-form
-        [editingPermissionId]="editingPermissionId$()"
-        (formSubmitted)="onFormSubmitted()"
-        (formCancelled)="closeForm()"
-      ></app-permission-form>
     </div>
-  }
+  </div>
+}
+
+<div class="space-y-6">
+  <!-- Stats -->
+  <div class="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+      <p class="text-secondary text-xs font-medium uppercase tracking-wide">Total de Permisos</p>
+      <p class="text-3xl font-bold text-primary mt-2">{{ totalPermissionsCount() }}</p>
+    </div>
+  </div>
 
   <!-- Header -->
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-    <h1 class="text-3xl font-bold text-primary">{{ 'sidebar.permissions' | t }}</h1>
+    <h1 class="text-3xl font-bold text-primary">Permisos</h1>
     <button
-      (click)="onCreatePermission()"
-      [disabled]="showPermissionForm$()"
+      (click)="openCreateModal()"
+      [disabled]="showCreateModal()"
       class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-black transition font-medium text-sm whitespace-nowrap disabled:opacity-50"
     >
-      {{ 'dashboard.permissions.newPermission' | t }}
+      Nuevo Permiso
     </button>
   </div>
 
@@ -34,18 +111,18 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-white rounded-lg shadow p-4">
     <input
       type="text"
-      [placeholder]="'dashboard.permissions.searchPlaceholder' | t"
-      [ngModel]="globalSearch$()"
-      (ngModelChange)="globalSearch$.set($event)"
+      placeholder="Buscar permisos..."
+      [ngModel]="globalSearch()"
+      (ngModelChange)="globalSearch.set($event)"
       (input)="onGlobalSearch()"
       class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
     />
-    @if (hasActiveFilters$()) {
+    @if (hasActiveFilters()) {
       <button
         (click)="clearAllFilters()"
         class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium text-sm"
       >
-        {{ 'dashboard.permissions.clearFilters' | t }}
+        Limpiar Filtros
       </button>
     }
   </div>
@@ -76,16 +153,8 @@
       ></app-pagination>
     } @else {
       <div class="bg-white rounded-lg shadow p-8 text-center">
-        <p class="text-gray-500 font-medium">{{ 'dashboard.permissions.noResults' | t }}</p>
+        <p class="text-gray-500 font-medium">No hay permisos</p>
       </div>
     }
   }
-
-  <!-- Stats -->
-  <div class="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
-    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
-      <p class="text-secondary text-xs font-medium uppercase tracking-wide">{{ 'dashboard.permissions.totalPermissions' | t }}</p>
-      <p class="text-3xl font-bold text-primary mt-2">{{ totalPermissionsCount() }}</p>
-    </div>
-  </div>
 </div>

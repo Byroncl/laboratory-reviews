@@ -5,7 +5,9 @@ import { CreateCommentDto } from './create-comment.dto';
 describe('CreateCommentDto', () => {
   const validPayload = {
     content: 'Great post!',
-    post: '507f1f77bcf86cd799439011',
+    postId: '507f1f77bcf86cd799439011',
+    userId: '507f1f77bcf86cd799439013',
+    author: 'john_doe',
   };
 
   it('should pass with required fields', async () => {
@@ -21,9 +23,9 @@ describe('CreateCommentDto', () => {
   });
 
   it('should reject an invalid mongo id for post', async () => {
-    const dto = plainToInstance(CreateCommentDto, { ...validPayload, post: 'not-a-mongo-id' });
+    const dto = plainToInstance(CreateCommentDto, { ...validPayload, postId: 'not-a-mongo-id' });
     const errors = await validate(dto);
-    expect(errors.find((e) => e.property === 'post')).toBeDefined();
+    expect(errors.find((e) => e.property === 'postId')).toBeDefined();
   });
 
   it('should trim content via Transform', async () => {

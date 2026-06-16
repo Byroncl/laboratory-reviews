@@ -3,7 +3,7 @@ import { AuthUser } from '../models/auth.model';
 
 export const login = createAction(
   '[Auth] Login',
-  props<{ username: string; password: string }>()
+  props<{ username: string; password: string; accountType?: 'user' | 'client' }>()
 );
 
 export const loginSuccess = createAction(
@@ -18,12 +18,19 @@ export const loginFailure = createAction(
 
 export const register = createAction(
   '[Auth] Register',
-  props<{ username: string; password: string }>()
+  props<{
+    username: string;
+    password: string;
+    name: string;
+    lastname: string;
+    email: string;
+    accountType: 'client';
+  }>()
 );
 
 export const registerSuccess = createAction(
   '[Auth] Register Success',
-  props<{ user: AuthUser }>()
+  props<{ user: AuthUser; token: string }>()
 );
 
 export const registerFailure = createAction(

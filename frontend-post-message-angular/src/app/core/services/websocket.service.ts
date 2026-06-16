@@ -77,14 +77,14 @@ export class WebSocketService implements OnDestroy {
   readonly notificationReceived = this.notificationReceived$.asObservable();
 
   connect(token: string): void {
-    const apiUrl = environment.apiUrl || 'http://localhost:3000';
+    const socketUrl = environment.socketUrl || window.location.origin;
     const namespaces = ['comments', 'users', 'posts', 'roles', 'permissions'];
 
     for (const namespace of namespaces) {
       if (this.sockets.has(namespace)) continue;
 
       try {
-        const socket = io(`${apiUrl}/${namespace}`, {
+        const socket = io(`${socketUrl}/${namespace}`, {
           auth: { token },
           reconnection: true,
           reconnectionDelay: 1000,

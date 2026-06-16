@@ -4,7 +4,6 @@ import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { IPost } from '../../interfaces';
 import { PostStatusPipe } from '../../pipes/post-status.pipe';
 import { I18nService } from '../../../../core/services/i18n.service';
-import { FavoritesService } from '../../services/favorites.service';
 
 @Component({
   selector: 'app-post-card',
@@ -19,67 +18,38 @@ export class PostCardComponent {
   @Output() view = new EventEmitter<string>();
   @Output() edit = new EventEmitter<string>();
   @Output() delete = new EventEmitter<string>();
-  @Output() publish = new EventEmitter<string>();
-  @Output() archive = new EventEmitter<string>();
+  @Output() changeStatus = new EventEmitter<{ id: string; status: string }>();
 
-  readonly isLoadingFavorite = signal(false);
-
-  private readonly favoritesService = inject(FavoritesService);
+  readonly showStatusModal = signal(false);
 
   constructor(private i18n: I18nService) {}
 
   onView(): void {
-    if (this.post?.id) {
-      this.view.emit(this.post.id);
+    const postId = this.post?.id || this.post?._id;
+    if (postId) {
+      this.view.emit(postId);
     }
   }
 
   onEdit(): void {
-    if (this.post?.id) {
-      this.edit.emit(this.post.id);
+    const postId = this.post?.id || this.post?._id;
+    if (postId) {
+      this.edit.emit(postId);
     }
   }
 
   onDelete(): void {
-    if (this.post?.id && confirm(this.i18n.translate('posts.postCard.deleteConfirm'))) {
-      this.delete.emit(this.post.id);
+    const postId = this.post?.id || this.post?._id;
+    if (postId) {
+      this.delete.emit(postId);
     }
   }
 
-  onPublish(): void {
-    if (this.post?.id) {
-      this.publish.emit(this.post.id);
-    }
-  }
-
-  onArchive(): void {
-    if (this.post?.id) {
-      this.archive.emit(this.post.id);
-    }
-  }
-
-  isFavorited(): boolean {
-    const postId = this.post.id || this.post._id;
-    return this.favoritesService.isFavorite(postId || '');
-  }
-
-  onToggleFavorite(): void {
-    const postId = this.post.id || this.post._id;
-    if (!postId) return;
-
-    this.isLoadingFavorite.set(true);
-    const isFav = this.isFavorited();
-
-    if (isFav) {
-      this.favoritesService.removeFavorite(postId).subscribe({
-        error: () => this.isLoadingFavorite.set(false),
-        complete: () => this.isLoadingFavorite.set(false),
-      });
-    } else {
-      this.favoritesService.addFavorite(postId).subscribe({
-        error: () => this.isLoadingFavorite.set(false),
-        complete: () => this.isLoadingFavorite.set(false),
-      });
+  handleStatusSelect(status: string): void {
+    const postId = this.post?.id || this.post?._id;
+    if (postId) {
+      this.changeStatus.emit({ id: postId, status });
+      this.showStatusModal.set(false);
     }
   }
 }

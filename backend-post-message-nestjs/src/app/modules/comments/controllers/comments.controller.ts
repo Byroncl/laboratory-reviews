@@ -30,7 +30,7 @@ import { FindCommentsByPostDto } from '../dto/find-comments-by-post.dto';
 import { CreateReactionDto } from '../dto/create-reaction.dto';
 import { ReactionResponseDto } from '../dto/reaction-response.dto';
 import { ApiResponse as ApiRes } from '../../../core/dto/api.response';
-import { Auth } from '../../../core/decorators/auth.decorator';
+import { Auth, OptionalAuth } from '../../../core/decorators/auth.decorator';
 import { CurrentUser } from '../../../core/decorators/current-user.decorator';
 import type { CurrentUserPayload } from '../../../core/decorators/current-user.decorator';
 import { FindOneDto } from 'src/app/core/dto/find-one.dto';
@@ -55,7 +55,6 @@ export class CommentsController {
     private readonly i18n: TranslationService,
   ) {}
 
-  @Auth()
   @AuditActionDecorator(AuditAction.CREATE, EntityType.COMMENT)
   @ApiOperation(COMMENTS_SWAGGER.CREATE)
   @ApiBody({ type: CreateCommentDto })
@@ -68,23 +67,19 @@ export class CommentsController {
     status: 400,
     description: COMMENTS_RESPONSE_DESCRIPTIONS.VALIDATION_FAILED,
   })
-  @ApiResponse({
-    status: 401,
-    description: COMMENTS_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
-  })
   @Post()
   async create(
     @Body() createCommentDto: CreateCommentDto,
-    @CurrentUser() user: CurrentUserPayload,
+    @CurrentUser() user?: CurrentUserPayload,
   ) {
     const comment = await this.commentsService.create({
       ...createCommentDto,
-      userId: user.userId,
-      author: user.username,
+      userId: user?.userId || 'anonymous',
+      author: user?.username || 'anonymous',
     } as any);
 
-    if (this.notificationsGateway) {
-      const post = await this.commentsService.getPostByCommentPostId(createCommentDto.post);
+    if (this.notificationsGateway && user) {
+      const post = await this.commentsService.getPostByCommentPostId(createCommentDto.postId);
       if (post && (post as any).authorId) {
         this.notificationsGateway.notifyCommentAdded(
           (post as any).authorId.toString(),
@@ -179,7 +174,6 @@ export class CommentsController {
     return ApiRes.success(comment);
   }
 
-  @Auth()
   @AuditActionDecorator(AuditAction.UPDATE, EntityType.COMMENT, { captureSnapshot: true })
   @ApiOperation(COMMENTS_SWAGGER.UPDATE)
   @ApiParam({
@@ -197,10 +191,6 @@ export class CommentsController {
     status: 404,
     description: COMMENTS_RESPONSE_DESCRIPTIONS.NOT_FOUND,
   })
-  @ApiResponse({
-    status: 401,
-    description: COMMENTS_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
-  })
   @Put(':id')
   async update(
     @Param() findOneDto: FindOneDto,
@@ -213,7 +203,6 @@ export class CommentsController {
     return ApiRes.success(comment, this.i18n.translate(COMMENTS_MESSAGES.UPDATED));
   }
 
-  @Auth()
   @AuditActionDecorator(AuditAction.DELETE, EntityType.COMMENT)
   @ApiOperation(COMMENTS_SWAGGER.DELETE)
   @ApiParam({
@@ -228,10 +217,6 @@ export class CommentsController {
   @ApiResponse({
     status: 404,
     description: COMMENTS_RESPONSE_DESCRIPTIONS.NOT_FOUND,
-  })
-  @ApiResponse({
-    status: 401,
-    description: COMMENTS_RESPONSE_DESCRIPTIONS.UNAUTHORIZED,
   })
   @Delete(':id')
   async remove(@Param() findOneDto: FindOneDto) {
@@ -347,7 +332,6 @@ export class CommentsController {
 
   // ─── Reactions ────────────────────────────────────────────────────────────
 
-  @Auth()
   @ApiOperation(COMMENTS_SWAGGER.ADD_REACTION)
   @ApiParam({
     name: 'id',
@@ -363,12 +347,12 @@ export class CommentsController {
   async addReaction(
     @Param() findOneDto: FindOneDto,
     @Body() createReactionDto: CreateReactionDto,
-    @CurrentUser() user: CurrentUserPayload,
+    @CurrentUser() user?: CurrentUserPayload,
   ) {
     const reaction = await this.reactionsService.addReaction({
       ...createReactionDto,
       commentId: findOneDto.id,
-      userId: user.userId,
+      userId: user?.userId || 'anonymous',
     });
 
     const reactionsSummary = await this.reactionsService.getReactionsByComment(
@@ -378,7 +362,7 @@ export class CommentsController {
     this.commentsGateway?.server?.emit('comment:reaction:added', {
       commentId: findOneDto.id,
       emoji: reaction.emoji,
-      userId: user.userId,
+      userId: user?.userId || 'anonymous',
       reactions: reactionsSummary,
     });
 

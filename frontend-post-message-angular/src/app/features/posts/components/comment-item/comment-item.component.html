@@ -15,7 +15,34 @@
   </header>
 
   <!-- Body -->
-  <p class="comment-content">{{ comment.content }}</p>
+  @if (!isEditing()) {
+    <p class="comment-content">{{ comment.content }}</p>
+  } @else {
+    <div class="comment-edit-form">
+      <textarea
+        [(ngModel)]="editContent"
+        class="edit-textarea"
+        placeholder="Editar comentario..."
+      ></textarea>
+      <div class="edit-actions">
+        <button
+          type="button"
+          class="btn-action btn-save"
+          (click)="saveEdit()"
+          [disabled]="!editContent().trim()"
+        >
+          {{ 'posts.comments.save' | t }}
+        </button>
+        <button
+          type="button"
+          class="btn-action btn-cancel"
+          (click)="cancelEdit()"
+        >
+          {{ 'posts.comments.cancel' | t }}
+        </button>
+      </div>
+    </div>
+  }
 
   <!-- Media grid -->
   @if (comment.media && comment.media.length > 0) {
@@ -86,55 +113,26 @@
 
   <!-- Action buttons -->
   <footer class="comment-actions">
-    @if (isLoggedIn()) {
+    @if (isCommentOwner() && !isEditing()) {
       <button
         type="button"
-        class="btn-action"
-        (click)="showReplyForm.set(!showReplyForm())"
+        class="btn-action btn-edit"
+        (click)="startEdit()"
       >
-        {{ showReplyForm() ? ('posts.comments.cancelReply' | t) : ('posts.comments.reply' | t) }}
+        ✏️ {{ 'posts.comments.edit' | t }}
       </button>
-    }
-
-    @if (hasReplies || replies().length > 0) {
       <button
         type="button"
-        class="btn-action btn-expand"
-        [disabled]="repliesLoading()"
-        (click)="expandReplies()"
+        class="btn-action btn-delete"
+        (click)="deleteComment()"
+        [disabled]="isDeleting()"
       >
-        @if (repliesLoading()) {
-          {{ 'posts.comments.loadingReplies' | t }}
-        } @else if (showReplies()) {
-          {{ 'posts.comments.hideReplies' | t }}
+        @if (isDeleting()) {
+          ⏳ {{ 'posts.comments.deleting' | t }}
         } @else {
-          {{ 'posts.comments.showReplies' | t }}
+          🗑️ {{ 'posts.comments.delete' | t }}
         }
       </button>
     }
   </footer>
-
-  <!-- Inline reply form -->
-  @if (showReplyForm() && commentId) {
-    <app-reply-form
-      [postId]="postId"
-      [parentCommentId]="commentId"
-      (submitted)="onReplyAdded()"
-      (cancelled)="showReplyForm.set(false)"
-    />
-  }
-
-  <!-- Nested replies -->
-  @if (showReplies() && replies().length > 0) {
-    <section class="comment-replies">
-      @for (reply of replies(); track reply._id ?? reply.id) {
-        <app-comment-item
-          [comment]="reply"
-          [postId]="postId"
-          [postAuthor]="postAuthor"
-          (replyAdded)="onReplyAdded()"
-        />
-      }
-    </section>
-  }
 </article>

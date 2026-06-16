@@ -10,6 +10,7 @@ import {
 } from '../interfaces';
 import { COMMENTS_API_ENDPOINTS } from '../constants';
 import { WebSocketService } from '../../../core/services/websocket.service';
+import { AuthService } from '../../auth/services/auth.service';
 
 interface ReactionAddedEvent {
   commentId: string;
@@ -23,6 +24,7 @@ interface ReactionAddedEvent {
 export class ReactionsService implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly webSocketService = inject(WebSocketService);
+  private readonly authService = inject(AuthService);
   private readonly baseUrl = environment.apiUrl;
 
   /** Map<commentId, IReactionSummary[]> */
@@ -48,14 +50,16 @@ export class ReactionsService implements OnDestroy {
 
   /**
    * Add an emoji reaction to a comment.
-   * POST /comments/:id/reactions  { emoji }
+   * POST /comments/:id/reactions  { commentId, emoji, userId }
    * Updates the local signal optimistically via tap.
    */
   public addReaction(commentId: string, emoji: string): Observable<IReactionResponse> {
     const url = `${this.baseUrl}${COMMENTS_API_ENDPOINTS.REACTIONS.replace(':id', commentId)}`;
+    const currentUser = this.authService.currentUser$();
+    const userId = currentUser?.id || '';
 
     return this.http
-      .post<IReactionResponse>(url, { emoji })
+      .post<IReactionResponse>(url, { commentId, emoji, userId })
       .pipe(
         tap(() => this._incrementReaction(commentId, emoji)),
         catchError((err) => this._handleError(err, 'Failed to add reaction')),
@@ -71,9 +75,13 @@ export class ReactionsService implements OnDestroy {
     const url = `${this.baseUrl}${COMMENTS_API_ENDPOINTS.REACTION_BY_EMOJI
       .replace(':id', commentId)
       .replace(':emoji', encodeURIComponent(emoji))}`;
+    const currentUser = this.authService.currentUser$();
+    const userId = currentUser?.id || '';
 
     return this.http
-      .delete<void>(url)
+      .delete<void>(url, {
+        body: { commentId, emoji, userId }
+      })
       .pipe(
         tap(() => this._decrementReaction(commentId, emoji)),
         catchError((err) => this._handleError(err, 'Failed to remove reaction')),
@@ -91,8 +99,22 @@ export class ReactionsService implements OnDestroy {
       .get<any>(url)
       .pipe(
         map((response) => {
+          console.log('[ReactionsService] getReactions response:', response);
+
           const data = response?.data || response;
-          return Array.isArray(data) ? data : (data?.reactions || []);
+          const reactions = Array.isArray(data) ? data : (data?.reactions || []);
+          const userReaction = data?.userReaction;
+
+          console.log('[ReactionsService] userReaction:', userReaction, 'reactions:', reactions);
+
+          const mapped = reactions.map((r: any) => ({
+            emoji: r.emoji,
+            count: r.count,
+            reactedByMe: r.emoji === userReaction
+          }));
+
+          console.log('[ReactionsService] mapped reactions:', mapped);
+          return mapped;
         }),
         tap((summaries) => this.setLocalReactions(commentId, summaries)),
         catchError((err) => this._handleError(err, 'Failed to get reactions')),

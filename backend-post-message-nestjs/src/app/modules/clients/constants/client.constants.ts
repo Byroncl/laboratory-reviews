@@ -138,7 +138,7 @@ export const CLIENT_DTO_DESCRIPTIONS = {
 
 // Regex Patterns
 export const CLIENT_PATTERNS = {
-  NAME_LASTNAME: /^[a-zA-Z\s'-]+$/,
+  NAME_LASTNAME: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/,
 };
 
 // Examples

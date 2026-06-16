@@ -34,6 +34,7 @@ export class I18nService {
         login: {
           title: 'Bienvenido de vuelta',
           subtitle: 'Inicia sesión en tu cuenta para continuar',
+          username: 'Nombre de usuario',
           email: 'Correo o usuario',
           password: 'Contraseña',
           rememberMe: 'Recordar mi contraseña',
@@ -42,7 +43,12 @@ export class I18nService {
           noAccount: '¿No tienes cuenta?',
           createAccount: 'Crear cuenta',
           copyright: '© 2024 Albatros. Todos los derechos reservados.',
+          types: {
+            user: 'Usuario Administrativo',
+            client: 'Cliente'
+          },
           errors: {
+            usernameRequired: 'Se requiere nombre de usuario',
             invalidEmail: 'Correo inválido',
             minPassword: 'Mínimo 6 caracteres'
           }
@@ -51,9 +57,12 @@ export class I18nService {
           title: 'Crear cuenta',
           subtitle: 'Regístrate para comenzar',
           fullName: 'Nombre completo',
+          lastName: 'Apellido',
+          username: 'Nombre de usuario',
           email: 'Correo electrónico',
           password: 'Contraseña',
           confirmPassword: 'Confirmar contraseña',
+          accountType: 'Tipo de cuenta',
           createAccount: 'Crear cuenta',
           creating: 'Creando cuenta...',
           haveAccount: '¿Ya tienes cuenta?',
@@ -62,8 +71,14 @@ export class I18nService {
           termsLink: 'Términos de servicio',
           joinTitle: 'Únete a nosotros',
           joinSubtitle: 'Crea tu cuenta y comienza a gestionar tu plataforma hoy',
+          types: {
+            user: 'Usuario Administrativo',
+            client: 'Cliente'
+          },
           errors: {
             nameRequired: 'Se requiere nombre (mínimo 2 caracteres)',
+            lastNameRequired: 'Se requiere apellido (mínimo 2 caracteres)',
+            usernameRequired: 'Se requiere nombre de usuario (3-20 caracteres)',
             invalidEmail: 'Correo electrónico inválido',
             minPassword: 'Mínimo 6 caracteres',
             confirmRequired: 'Confirma tu contraseña',
@@ -101,7 +116,10 @@ export class I18nService {
             minLength: 'Mínimo {n} caracteres',
             maxLength: 'Máximo {n} caracteres',
             invalid: 'Campo inválido'
-          }
+          },
+          close: 'Cerrar',
+          cancel: 'Cancelar',
+          cannotUndone: 'Esta acción no se puede deshacer'
         },
         posts: {
           loadError: 'Error al cargar posts',
@@ -119,6 +137,7 @@ export class I18nService {
             urlPattern: 'URL debe comenzar con http:// o https://'
           },
           newPost: '+ Nuevo Post',
+          bulkUploadBtn: '📦 Carga Masiva',
           editTitle: 'Editar Post',
           createTitle: 'Crear Nuevo Post',
           searchPlaceholder: 'Buscar posts...',
@@ -130,7 +149,32 @@ export class I18nService {
           noResults: 'No hay posts que coincidan con los filtros',
           totalPosts: 'Total de Posts',
           publishedCount: 'Publicados',
-          draftCount: 'En Borrador'
+          draftCount: 'En Borrador',
+          bulkUpload: 'Carga Masiva de Posts',
+          dragDropFiles: 'Arrastra archivos aquí o haz clic para seleccionar',
+          supportedFormats: 'Formatos soportados: JSON (.json) o CSV (.csv)',
+          selectFile: 'Seleccionar archivo',
+          selectedFile: 'Archivo seleccionado',
+          postsFound: 'posts encontrados',
+          preview: 'Vista previa',
+          fileLoaded: '{count} posts cargados exitosamente',
+          parseError: 'Error al procesar el archivo',
+          noPostsToUpload: 'No hay posts para cargar',
+          bulkUploadSuccess: '{count} posts cargados correctamente',
+          bulkUploadError: 'Error al cargar los posts en lote',
+          invalidFileFormat: 'Formato de archivo inválido. Por favor usa JSON o CSV',
+          publishSuccess: 'Post publicado correctamente',
+          publishError: 'Error al publicar el post',
+          archiveSuccess: 'Post archivado correctamente',
+          archiveError: 'Error al archivar el post',
+          uploadPosts: 'Cargar Posts',
+          by: 'Por',
+          createdAt: 'Creado',
+          views: 'Vistas',
+          category: 'Categoría',
+          content: 'Contenido',
+          edit: 'Editar',
+          delete: 'Eliminar'
         },
         users: {
           loadError: 'Error al cargar usuarios',
@@ -200,12 +244,27 @@ export class I18nService {
           deleteConfirmInline: '¿Estás seguro de que deseas eliminar este permiso?',
           formIncomplete: 'Por favor complete todos los campos requeridos',
           newPermission: '+ Nuevo Permiso',
+          bulkUploadBtn: '📦 Carga Masiva',
           editTitle: 'Editar Permiso',
           createTitle: 'Crear Nuevo Permiso',
           searchPlaceholder: 'Buscar por nombre...',
           clearFilters: '✕ Limpiar filtros',
           noResults: 'No hay permisos que coincidan con los filtros',
-          totalPermissions: 'Total Permisos'
+          totalPermissions: 'Total Permisos',
+          bulkUpload: 'Carga Masiva de Permisos',
+          dragDropFiles: 'Arrastra archivos aquí o haz clic para seleccionar',
+          supportedFormats: 'Formatos soportados: JSON (.json) o CSV (.csv)',
+          selectFile: 'Seleccionar archivo',
+          selectedFile: 'Archivo seleccionado',
+          permissionsFound: 'permisos encontrados',
+          preview: 'Vista previa',
+          fileLoaded: '{count} permisos cargados exitosamente',
+          parseError: 'Error al procesar el archivo',
+          noPermissionsToUpload: 'No hay permisos para cargar',
+          bulkUploadSuccess: '{count} permisos cargados correctamente',
+          bulkUploadError: 'Error al cargar los permisos en lote',
+          invalidFileFormat: 'Formato de archivo inválido. Por favor usa JSON o CSV',
+          uploadPermissions: 'Cargar Permisos'
         },
         auditLogs: {
           loadError: 'Error al cargar registros de auditoría',
@@ -436,6 +495,7 @@ export class I18nService {
       home: {
         header: {
           logoAlt: 'Albatros inicio',
+          adminPanel: 'Panel Administrativo',
           logout: 'Cerrar sesión',
           signIn: 'Iniciar sesión',
           register: 'Registrarse'
@@ -511,7 +571,9 @@ export class I18nService {
           edit: 'Editar',
           publish: 'Publicar',
           archive: 'Archivar',
-          delete: 'Eliminar'
+          delete: 'Eliminar',
+          save: 'Guardar',
+          saved: 'Guardado'
         },
         filter: {
           searchLabel: 'Buscar',
@@ -547,7 +609,12 @@ export class I18nService {
           cancelReply: 'Cancelar Respuesta',
           loadingReplies: 'Cargando respuestas...',
           hideReplies: 'Ocultar Respuestas',
-          showReplies: 'Mostrar Respuestas'
+          showReplies: 'Mostrar Respuestas',
+          edit: 'Editar',
+          delete: 'Eliminar',
+          save: 'Guardar',
+          cancel: 'Cancelar',
+          deleting: 'Eliminando...'
         },
         reply: {
           placeholder: 'Responder comentario...',
@@ -613,10 +680,16 @@ export class I18nService {
       },
       navigation: {
         menu: 'Menú',
+        feed: 'Feed',
         myPosts: 'Mis Posts',
         myFavorites: 'Mis Favoritos',
         myComments: 'Mis Comentarios',
-        myProfile: 'Mi Perfil'
+        myProfile: 'Mi Perfil',
+        backHome: 'Volver al Inicio'
+      },
+      feed: {
+        description: 'Explora las publicaciones de la comunidad y participa',
+        empty: 'No hay publicaciones disponibles en este momento'
       },
       activity: {
         recentActivity: 'Actividad Reciente',
@@ -654,6 +727,7 @@ export class I18nService {
         login: {
           title: 'Welcome back',
           subtitle: 'Sign in to your account to continue',
+          username: 'Username',
           email: 'Email or username',
           password: 'Password',
           rememberMe: 'Remember my password',
@@ -662,7 +736,12 @@ export class I18nService {
           noAccount: "Don't have an account?",
           createAccount: 'Create account',
           copyright: '© 2024 Albatros. All rights reserved.',
+          types: {
+            user: 'Admin User',
+            client: 'Client'
+          },
           errors: {
+            usernameRequired: 'Username is required',
             invalidEmail: 'Invalid email',
             minPassword: 'Minimum 6 characters'
           }
@@ -671,9 +750,12 @@ export class I18nService {
           title: 'Create account',
           subtitle: 'Sign up to get started',
           fullName: 'Full name',
+          lastName: 'Last name',
+          username: 'Username',
           email: 'Email address',
           password: 'Password',
           confirmPassword: 'Confirm password',
+          accountType: 'Account type',
           createAccount: 'Create account',
           creating: 'Creating account...',
           haveAccount: 'Already have an account?',
@@ -682,8 +764,14 @@ export class I18nService {
           termsLink: 'Terms of Service',
           joinTitle: 'Join us',
           joinSubtitle: 'Create your account and start managing your platform today',
+          types: {
+            user: 'Admin User',
+            client: 'Client'
+          },
           errors: {
             nameRequired: 'Name is required (at least 2 characters)',
+            lastNameRequired: 'Last name is required (at least 2 characters)',
+            usernameRequired: 'Username is required (3-20 characters)',
             invalidEmail: 'Please enter a valid email',
             minPassword: 'Password must be at least 6 characters',
             confirmRequired: 'Confirm password is required',
@@ -721,7 +809,10 @@ export class I18nService {
             minLength: 'Minimum {n} characters',
             maxLength: 'Maximum {n} characters',
             invalid: 'Invalid field'
-          }
+          },
+          close: 'Close',
+          cancel: 'Cancel',
+          cannotUndone: 'This action cannot be undone'
         },
         posts: {
           loadError: 'Error loading posts',
@@ -739,6 +830,7 @@ export class I18nService {
             urlPattern: 'URL must start with http:// or https://'
           },
           newPost: '+ New Post',
+          bulkUploadBtn: '📦 Bulk Upload',
           editTitle: 'Edit Post',
           createTitle: 'Create New Post',
           searchPlaceholder: 'Search posts...',
@@ -750,7 +842,32 @@ export class I18nService {
           noResults: 'No posts match the current filters',
           totalPosts: 'Total Posts',
           publishedCount: 'Published',
-          draftCount: 'Draft'
+          draftCount: 'Draft',
+          bulkUpload: 'Bulk Upload Posts',
+          dragDropFiles: 'Drag files here or click to select',
+          supportedFormats: 'Supported formats: JSON (.json) or CSV (.csv)',
+          selectFile: 'Select file',
+          selectedFile: 'Selected file',
+          postsFound: 'posts found',
+          preview: 'Preview',
+          fileLoaded: '{count} posts loaded successfully',
+          parseError: 'Error processing the file',
+          noPostsToUpload: 'No posts to upload',
+          bulkUploadSuccess: '{count} posts uploaded successfully',
+          bulkUploadError: 'Error uploading posts',
+          invalidFileFormat: 'Invalid file format. Please use JSON or CSV',
+          publishSuccess: 'Post published successfully',
+          publishError: 'Error publishing post',
+          archiveSuccess: 'Post archived successfully',
+          archiveError: 'Error archiving post',
+          uploadPosts: 'Upload Posts',
+          by: 'By',
+          createdAt: 'Created',
+          views: 'Views',
+          category: 'Category',
+          content: 'Content',
+          edit: 'Edit',
+          delete: 'Delete'
         },
         users: {
           loadError: 'Error loading users',
@@ -820,12 +937,27 @@ export class I18nService {
           deleteConfirmInline: 'Are you sure you want to delete this permission?',
           formIncomplete: 'Please complete all required fields',
           newPermission: '+ New Permission',
+          bulkUploadBtn: '📦 Bulk Upload',
           editTitle: 'Edit Permission',
           createTitle: 'Create New Permission',
           searchPlaceholder: 'Search by name...',
           clearFilters: '✕ Clear filters',
           noResults: 'No permissions match the current filters',
-          totalPermissions: 'Total Permissions'
+          totalPermissions: 'Total Permissions',
+          bulkUpload: 'Bulk Upload Permissions',
+          dragDropFiles: 'Drag files here or click to select',
+          supportedFormats: 'Supported formats: JSON (.json) or CSV (.csv)',
+          selectFile: 'Select file',
+          selectedFile: 'Selected file',
+          permissionsFound: 'permissions found',
+          preview: 'Preview',
+          fileLoaded: '{count} permissions loaded successfully',
+          parseError: 'Error processing the file',
+          noPermissionsToUpload: 'No permissions to upload',
+          bulkUploadSuccess: '{count} permissions uploaded successfully',
+          bulkUploadError: 'Error uploading permissions',
+          invalidFileFormat: 'Invalid file format. Please use JSON or CSV',
+          uploadPermissions: 'Upload Permissions'
         },
         auditLogs: {
           loadError: 'Error loading audit logs',
@@ -1029,9 +1161,6 @@ export class I18nService {
           delete: 'Delete',
           viewPost: 'View post'
         },
-        postForm: {
-          saving: 'Saving...'
-        },
         myComments: {
           loadError: 'Error loading comments',
           deleteError: 'Error deleting comment'
@@ -1056,6 +1185,7 @@ export class I18nService {
       home: {
         header: {
           logoAlt: 'Albatros home',
+          adminPanel: 'Admin Panel',
           logout: 'Logout',
           signIn: 'Sign in',
           register: 'Register'
@@ -1131,7 +1261,9 @@ export class I18nService {
           edit: 'Edit',
           publish: 'Publish',
           archive: 'Archive',
-          delete: 'Delete'
+          delete: 'Delete',
+          save: 'Save',
+          saved: 'Saved'
         },
         filter: {
           searchLabel: 'Search',
@@ -1167,7 +1299,12 @@ export class I18nService {
           cancelReply: 'Cancel Reply',
           loadingReplies: 'Loading replies...',
           hideReplies: 'Hide Replies',
-          showReplies: 'Show Replies'
+          showReplies: 'Show Replies',
+          edit: 'Edit',
+          delete: 'Delete',
+          save: 'Save',
+          cancel: 'Cancel',
+          deleting: 'Deleting...'
         },
         reply: {
           placeholder: 'Reply to comment...',
@@ -1233,10 +1370,16 @@ export class I18nService {
       },
       navigation: {
         menu: 'Menu',
+        feed: 'Feed',
         myPosts: 'My Posts',
         myFavorites: 'My Favorites',
         myComments: 'My Comments',
-        myProfile: 'My Profile'
+        myProfile: 'My Profile',
+        backHome: 'Back to Home'
+      },
+      feed: {
+        description: 'Explore community posts and participate',
+        empty: 'No posts available at this moment'
       },
       activity: {
         recentActivity: 'Recent Activity',

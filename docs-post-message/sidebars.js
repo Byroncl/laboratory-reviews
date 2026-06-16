@@ -105,5 +105,64 @@ module.exports = {
         },
       ],
     },
+    {
+      type: 'category',
+      label: '🎨 Frontend',
+      collapsed: false,
+      items: [
+        'frontend/intro',
+        {
+          type: 'category',
+          label: 'Setup',
+          collapsed: false,
+          items: [
+            'frontend/setup/index',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Architecture',
+          collapsed: false,
+          items: [
+            'frontend/architecture/structure',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Features',
+          collapsed: false,
+          items: [
+            'frontend/features/index',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Services & Core',
+          collapsed: false,
+          items: [
+            'frontend/services/index',
+            'frontend/state/index',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Testing',
+          collapsed: false,
+          items: [
+            'frontend/testing/index',
+          ],
+        },
+      ],
+    },
+    {
+      type: 'category',
+      label: '🌐 Cross-Project Guides',
+      collapsed: false,
+      items: [
+        'ENV_GUIDE',
+        'DOCKER_GUIDE',
+        'TESTING_GUIDE',
+      ],
+    },
   ],
 };

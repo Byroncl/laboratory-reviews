@@ -1,10 +1,11 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { AuthUser as User } from '../../features/auth/models/auth.model';
 import { TranslatePipe } from '../pipes/translate.pipe';
 import { I18nService } from '../services/i18n.service';
+import { PermissionsService } from '../services/permissions.service';
 
 export interface MenuItem {
   id: string;
@@ -12,6 +13,7 @@ export interface MenuItem {
   icon: string;
   route?: string;
   action?: () => void;
+  requiredPermission?: string;
 }
 
 @Component({
@@ -39,7 +41,7 @@ export interface MenuItem {
 
       <!-- Navigation -->
       <nav class="flex-1 p-6 space-y-2 overflow-y-auto">
-        @for (item of menuItems; track item.id) {
+        @for (item of visibleMenuItems(); track item.id) {
           <div class="space-y-1">
             @if (item.route) {
               <a
@@ -141,61 +143,69 @@ export class SidebarComponent {
   @Output() close = new EventEmitter<void>();
   @Output() logout = new EventEmitter<void>();
 
+  private permissionsService = inject(PermissionsService);
+
   menuItems: MenuItem[] = [
     {
       id: 'dashboard',
       label: 'sidebar.dashboard',
       icon: 'dashboard',
-      route: '/dashboard/'
+      route: '/dashboard/',
+      requiredPermission: 'view_dashboard'
     },
     {
       id: 'posts',
       label: 'sidebar.posts',
       icon: 'posts',
-      route: '/dashboard/posts'
+      route: '/dashboard/posts',
+      requiredPermission: 'manage_posts'
     },
     {
       id: 'users',
       label: 'sidebar.users',
       icon: 'users',
-      route: '/dashboard/users'
+      route: '/dashboard/users',
+      requiredPermission: 'manage_users'
     },
     {
       id: 'roles',
       label: 'sidebar.roles',
       icon: 'roles',
-      route: '/dashboard/roles'
+      route: '/dashboard/roles',
+      requiredPermission: 'manage_roles'
     },
     {
       id: 'permissions',
       label: 'sidebar.permissions',
       icon: 'permissions',
-      route: '/dashboard/permissions'
-    },
-    {
-      id: 'comments',
-      label: 'sidebar.comments',
-      icon: 'comments',
-      route: '/dashboard/comments'
+      route: '/dashboard/permissions',
+      requiredPermission: 'manage_permissions'
     },
     {
       id: 'files',
       label: 'sidebar.files',
       icon: 'files',
-      route: '/dashboard/files'
+      route: '/dashboard/files',
+      requiredPermission: 'manage_files'
     },
     {
       id: 'audit-logs',
       label: 'sidebar.auditLogs',
       icon: 'audit',
-      route: '/dashboard/audit-logs'
+      route: '/dashboard/audit-logs',
+      requiredPermission: 'view_audit_logs'
     }
   ];
 
-  constructor(
-    private router: Router,
-    private i18n: I18nService
-  ) {}
+  visibleMenuItems = computed(() => {
+    return this.menuItems.filter(item => {
+      if (!item.requiredPermission) return true;
+      return this.permissionsService.hasPermission(item.requiredPermission);
+    });
+  });
+
+  private router = inject(Router);
+  private i18n = inject(I18nService);
 
   getSvgIcon(iconName: string): string {
     const icons: Record<string, string> = {
@@ -213,9 +223,6 @@ export class SidebarComponent {
       </svg>`,
       permissions: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-      </svg>`,
-      comments: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2h-2.586a1 1 0 00-.707.293l-4.414 4.414z"></path>
       </svg>`,
       files: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>

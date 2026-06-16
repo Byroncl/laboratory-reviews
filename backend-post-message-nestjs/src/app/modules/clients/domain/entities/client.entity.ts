@@ -18,12 +18,25 @@ export class ClientEntity {
   readonly updatedAt: Date;
 
   constructor(data: any) {
-    this.validateName(data.name);
-    this.validateLastname(data.lastname);
-    this.validateUsername(data.username);
-    this.validateEmail(data.email);
-    this.validatePassword(data.password_hash);
-    this.validateType(data.type);
+    if (!data) {
+      throw new DomainException('Client data is required');
+    }
+
+    try {
+      this.validateName(data.name);
+      this.validateLastname(data.lastname);
+      this.validateUsername(data.username);
+      this.validateEmail(data.email);
+      this.validatePasswordHash(data.password_hash);
+      this.validateType(data.type);
+    } catch (error) {
+      console.error('[ClientEntity] Validation error:', {
+        field: error instanceof DomainException ? 'unknown' : 'constructor',
+        message: error instanceof Error ? error.message : String(error),
+        data: { name: data.name, lastname: data.lastname, username: data.username, email: data.email, type: data.type }
+      });
+      throw error;
+    }
 
     Object.defineProperties(this, {
       _id: { value: data._id, writable: false, enumerable: true },
@@ -95,7 +108,7 @@ export class ClientEntity {
     ) {
       throw new DomainException(CLIENT_VALIDATION_MESSAGES.USERNAME_MIN_LENGTH);
     }
-    if (!/^[a-zA-Z0-9]+$/.test(username)) {
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
       throw new DomainException(CLIENT_VALIDATION_MESSAGES.USERNAME_ALPHANUMERIC);
     }
   }
@@ -113,13 +126,13 @@ export class ClientEntity {
     }
   }
 
-  private validatePassword(password: string): void {
-    if (!password || typeof password !== 'string') {
+  private validatePasswordHash(passwordHash: string): void {
+    if (!passwordHash || typeof passwordHash !== 'string') {
       throw new DomainException(CLIENT_VALIDATION_MESSAGES.PASSWORD_REQUIRED);
     }
     if (
-      password.length < CLIENT_VALIDATION.PASSWORD_MIN_LENGTH ||
-      password.length > CLIENT_VALIDATION.PASSWORD_MAX_LENGTH
+      passwordHash.length < CLIENT_VALIDATION.PASSWORD_MIN_LENGTH ||
+      passwordHash.length > CLIENT_VALIDATION.PASSWORD_MAX_LENGTH
     ) {
       throw new DomainException(CLIENT_VALIDATION_MESSAGES.PASSWORD_MIN_LENGTH);
     }

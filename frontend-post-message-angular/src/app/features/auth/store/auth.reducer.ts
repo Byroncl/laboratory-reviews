@@ -13,7 +13,7 @@ const initialState: AuthState = {
 function isValidAuthUser(parsed: unknown): parsed is AuthUser {
   if (!parsed || typeof parsed !== 'object') return false;
   const u = parsed as Record<string, unknown>;
-  return typeof u['username'] === 'string' && typeof u['role'] === 'string';
+  return typeof u['username'] === 'string' && typeof u['role'] === 'string' && typeof u['id'] === 'string';
 }
 
 export const authReducer = createReducer(
@@ -42,11 +42,12 @@ export const authReducer = createReducer(
     isLoading: true,
     error: null,
   })),
-  on(AuthActions.registerSuccess, (state, { user }) => ({
+  on(AuthActions.registerSuccess, (state, { user, token }) => ({
     ...state,
     user,
+    token,
     isLoading: false,
-    isAuthenticated: false,
+    isAuthenticated: true,
     error: null,
   })),
   on(AuthActions.registerFailure, (state, { error }) => ({
@@ -63,24 +64,31 @@ export const authReducer = createReducer(
     const token = localStorage.getItem('auth_token');
     const userRaw = localStorage.getItem('auth_user');
 
+    console.log('[AuthReducer] loadAuthFromStorage - token:', token ? 'exists' : 'null', 'user:', userRaw);
+
     if (token && userRaw) {
       try {
         const parsed: unknown = JSON.parse(userRaw);
+        console.log('[AuthReducer] Parsed user:', parsed);
+        console.log('[AuthReducer] isValidAuthUser:', isValidAuthUser(parsed));
 
         if (!isValidAuthUser(parsed)) {
           // Legacy shape (email/name) or invalid — clear and stay logged out
+          console.log('[AuthReducer] User invalid, clearing token');
           localStorage.removeItem('auth_token');
           localStorage.removeItem('auth_user');
           return { ...initialState };
         }
 
+        console.log('[AuthReducer] User valid, restoring state');
         return {
           ...state,
           token,
           user: parsed,
           isAuthenticated: true,
         };
-      } catch {
+      } catch (error) {
+        console.log('[AuthReducer] JSON parse error:', error);
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
         return { ...initialState };

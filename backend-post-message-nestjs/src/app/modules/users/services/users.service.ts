@@ -91,7 +91,14 @@ export class UsersService {
     return this.deactivateUserUseCase.execute(id);
   }
 
-  async getStats(): Promise<{ total: number; active: number; verified: number }> {
+  async getStats(): Promise<{
+    total: number;
+    active: number;
+    verified: number;
+    posts: number;
+    comments: number;
+    growthPercentage: number;
+  }> {
     return this.getUserStatsUseCase.execute();
   }
 }

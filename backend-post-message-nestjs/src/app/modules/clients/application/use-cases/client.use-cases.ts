@@ -2,13 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { ClientRepository } from '../../infrastructure/repositories/client.repository';
 import { IClient, IClientUseCase } from '../../interfaces/client.interface';
 import { ClientEntity } from '../../domain/entities/client.entity';
+import { CryptoUtils } from '../../../../core/utils/crypto.utils';
 
 @Injectable()
 export class CreateClientUseCase {
   constructor(private repository: ClientRepository) {}
 
   async execute(data: IClient): Promise<IClient> {
-    const entity = new ClientEntity(data);
+    const hashedPassword = await CryptoUtils.hashPassword(data.password_hash);
+    const entity = new ClientEntity({ ...data, password_hash: hashedPassword });
     return this.repository.create(entity);
   }
 }

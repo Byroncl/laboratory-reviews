@@ -34,7 +34,23 @@ export class CreateCommentDto {
   })
   @IsMongoId({ message: 'Post ID must be a valid MongoDB ObjectId' })
   @IsNotEmpty({ message: 'Post ID is required' })
-  post: string;
+  postId: string;
+
+  @ApiProperty({
+    example: '507f1f77bcf86cd799439013',
+    description: 'User ID of the comment author',
+  })
+  @IsString({ message: 'User ID must be a string' })
+  @IsNotEmpty({ message: 'User ID is required' })
+  userId: string;
+
+  @ApiProperty({
+    example: 'john_doe',
+    description: 'Username of the comment author',
+  })
+  @IsString({ message: 'Author name must be a string' })
+  @IsNotEmpty({ message: 'Author name is required' })
+  author: string;
 
   @ApiProperty({
     example: '507f1f77bcf86cd799439012',
@@ -57,10 +73,10 @@ export class CreateCommentDto {
   @ApiProperty({
     type: [String],
     example: [
-      'http://localhost:9000/posts/image1.jpg',
-      'http://localhost:9000/posts/audio1.mp3',
+      '/uploads/image1.jpg',
+      '/uploads/audio1.mp3',
     ],
-    description: 'Array of valid media URLs (0-10 URLs)',
+    description: 'Array of media URLs or paths (0-10 URLs)',
     required: false,
     minItems: 0,
     maxItems: 10,
@@ -69,10 +85,7 @@ export class CreateCommentDto {
   @IsArray({ message: 'Media URLs must be an array' })
   @ArrayMinSize(0, { message: 'Media URLs array must have at least 0 items' })
   @ArrayMaxSize(10, { message: 'Media URLs array must not exceed 10 items' })
-  @IsUrl({ require_protocol: true }, {
-    each: true,
-    message: 'Each media URL must be a valid URL with protocol',
-  })
+  @IsString({ each: true, message: 'Each media URL must be a string' })
   mediaUrls?: string[];
 
   @ApiProperty({

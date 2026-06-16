@@ -25,16 +25,9 @@
       }
     </div>
 
-    <!-- Media upload -->
-    <app-media-upload
-      [disabled]="isSubmitting"
-      (filesReady)="mediaResult.set($event)"
-      (uploadingChange)="isUploading.set($event)"
-    />
-
     <div class="form-actions">
-      <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || isUploading()">
-        @if (isSubmitting || isUploading()) {
+      <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+        @if (isSubmitting) {
           <span class="inline-flex items-center gap-1.5">
             <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -46,7 +39,7 @@
           {{ 'posts.comment.submit' | t }}
         }
       </button>
-      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSubmitting || isUploading()">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSubmitting">
         {{ 'posts.comment.cancel' | t }}
       </button>
     </div>

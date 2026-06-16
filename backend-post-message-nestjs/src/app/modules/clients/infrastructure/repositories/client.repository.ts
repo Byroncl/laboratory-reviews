@@ -45,7 +45,19 @@ export class ClientRepository implements IClientRepository {
   async findByUsername(username: string): Promise<IClient | null> {
     const client = await this.clientModel.findOne({ username }).exec();
     if (!client) return null;
-    return this.mapper.toResponse(this.mapper.toDomain(client)) as unknown as IClient;
+    const entity = this.mapper.toDomain(client);
+    return {
+      _id: entity._id ?? '',
+      name: entity.name,
+      lastname: entity.lastname,
+      username: entity.username,
+      email: entity.email,
+      password_hash: entity.password_hash,
+      type: entity.type,
+      isActive: entity.isActive,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    } as unknown as IClient;
   }
 
   async findAll(): Promise<IClient[]> {
