@@ -13,15 +13,27 @@ export const setupSwagger = (app: INestApplication, name: string): void => {
   const config = new DocumentBuilder()
     .setTitle('Post Message API')
     .setDescription('REST API for managing posts, comments, users, clients, roles, and permissions')
-    .setVersion(`v${API_VERSION.V1}`)
+    .setVersion(`v${API_VERSION.V1}`);
+
+  // Add servers with Production first if in production mode
+  if (isProd) {
+    config.addServer('https://albatrosbackend.quetsana.com', 'Production');
+  }
+
+  config
     .addServer('http://localhost:3000', 'Local development')
     .addServer('http://host.docker.internal:3000', 'Docker development')
-    .addServer('http://127.0.0.1:3025', 'Local Docker (port 3025)')
-    .addServer('https://albatrosbackend.quetsana.com', 'Production')
-    .addBearerAuth()
-    .build();
+    .addServer('http://127.0.0.1:3025', 'Local Docker (port 3025)');
 
-  const document = SwaggerModule.createDocument(app, config);
+  if (!isProd) {
+    config.addServer('https://albatrosbackend.quetsana.com', 'Production');
+  }
+
+  config.addBearerAuth();
+
+  const builtConfig = config.build();
+
+  const document = SwaggerModule.createDocument(app, builtConfig);
 
   // Use Scalar for API documentation instead of Swagger
   app.use(
