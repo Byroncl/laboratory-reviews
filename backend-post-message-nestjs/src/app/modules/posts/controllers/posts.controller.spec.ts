@@ -148,7 +148,7 @@ describe('PostsController', () => {
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockPost);
-      expect(mockPostsService.create).toHaveBeenCalledWith(dto, 'u1');
+      expect(mockPostsService.create).toHaveBeenCalledWith(dto, 'u1', 'testuser');
     });
 
     it('should create a post with imageUrl', async () => {
@@ -165,7 +165,7 @@ describe('PostsController', () => {
 
       expect(response.success).toBe(true);
       expect(response.data).toEqual(mockPostWithImage);
-      expect(mockPostsService.create).toHaveBeenCalledWith(dto, 'u1');
+      expect(mockPostsService.create).toHaveBeenCalledWith(dto, 'u1', 'testuser');
     });
 
     it('should create a post without image', async () => {

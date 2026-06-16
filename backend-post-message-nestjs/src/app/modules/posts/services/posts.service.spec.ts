@@ -249,7 +249,7 @@ describe('PostsService', () => {
 
       expect(result).toEqual(insertedDocs);
       expect(MockPostModel.insertMany).toHaveBeenCalledWith(
-        dtos.map((d) => ({ ...d, body: d.content }))
+        dtos.map((d) => ({ ...d, body: d.content, author: 'Anonymous' }))
       );
     });
 

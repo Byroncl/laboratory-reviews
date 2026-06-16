@@ -29,6 +29,15 @@ export class CreatePostDto {
   @Transform(({ value }: { value: string }) => value?.trim())
   title: string;
 
+  @ApiPropertyOptional({
+    example: 'dawd',
+    description: 'Author of the post',
+  })
+  @IsOptional()
+  @IsString({ message: 'Author must be a string' })
+  @Transform(({ value }: { value: string }) => value?.trim())
+  author?: string;
+
   @ApiProperty({
     example: 'This is the post content.',
     description: 'Body content of the post (1-5000 characters)',

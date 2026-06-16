@@ -18,10 +18,11 @@ export class PostsService {
     @Optional() private readonly categoriesService?: CategoriesService,
   ) {}
 
-  async create(createPostDto: CreatePostDto, authorId?: string): Promise<Post> {
+  async create(createPostDto: CreatePostDto, authorId?: string, authorUsername?: string): Promise<Post> {
     const postData = {
       ...createPostDto,
       body: createPostDto.body || createPostDto.content,
+      author: createPostDto.author || authorUsername || 'Anonymous',
       ...(authorId && { authorId }),
     };
     const createdPost = new this.postModel(postData);
@@ -208,6 +209,7 @@ export class PostsService {
     const mapped = createPostDtos.map((dto) => ({
       ...dto,
       body: dto.body || dto.content,
+      author: dto.author || 'Anonymous',
     }));
     return this.postModel.insertMany(mapped);
   }

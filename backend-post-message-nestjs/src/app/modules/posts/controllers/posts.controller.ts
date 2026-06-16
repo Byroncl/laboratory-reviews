@@ -71,7 +71,7 @@ export class PostsController {
     @Body() createPostDto: CreatePostDto,
     @CurrentUser() currentUser: CurrentUserPayload,
   ) {
-    const post = await this.postsService.create(createPostDto, currentUser.userId);
+    const post = await this.postsService.create(createPostDto, currentUser.userId, currentUser.username);
     this.postsGateway.notifyPostCreated(post, 'System');
     return ApiRes.success(post, this.i18n.translate(POSTS_MESSAGES.CREATED));
   }
