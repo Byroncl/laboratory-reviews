@@ -152,14 +152,6 @@ module.exports = {
             'frontend/testing/index',
           ],
         },
-        {
-          type: 'category',
-          label: 'Deployment',
-          collapsed: false,
-          items: [
-            'frontend/deployment/index',
-          ],
-        },
       ],
     },
     {
