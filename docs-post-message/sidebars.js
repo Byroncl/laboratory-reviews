@@ -94,6 +94,15 @@ module.exports = {
         },
         {
           type: 'category',
+          label: 'Testing',
+          collapsed: false,
+          items: [
+            'backend/testing/index',
+            'backend/testing/test-coverage',
+          ],
+        },
+        {
+          type: 'category',
           label: 'Known Issues',
           collapsed: true,
           items: [
