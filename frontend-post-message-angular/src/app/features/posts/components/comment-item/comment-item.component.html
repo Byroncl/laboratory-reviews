@@ -1,17 +1,4 @@
-<article class="comment-item" [class.comment-level-1]="level === 1" [class.comment-level-2]="level === 2">
-  <!-- Thread indicator for nested comments -->
-  @if (level > 0) {
-    <div class="comment-thread-indicator">
-      <span class="thread-level">
-        @if (level === 1) {
-          ↳ Respuesta
-        } @else if (level === 2) {
-          ↳↳ Respuesta a respuesta
-        }
-      </span>
-    </div>
-  }
-
+<article class="comment-item">
   <!-- Header: author + date -->
   <header class="comment-header">
     <span class="comment-author" [class.is-op]="comment.author && postAuthor && comment.author === postAuthor">
@@ -126,21 +113,6 @@
 
   <!-- Action buttons -->
   <footer class="comment-actions">
-    @if (isLoggedIn() && !isEditing() && canReply()) {
-      <button
-        type="button"
-        class="btn-action"
-        (click)="showReplyForm.set(!showReplyForm())"
-      >
-        {{ showReplyForm() ? ('posts.comments.cancelReply' | t) : ('posts.comments.reply' | t) }}
-      </button>
-    }
-    @if (level >= 2) {
-      <span class="reply-limit-msg" title="Maximum nesting level reached">
-        ⚠️ Máx. 2 niveles de respuestas
-      </span>
-    }
-
     @if (isCommentOwner() && !isEditing()) {
       <button
         type="button"
@@ -162,47 +134,5 @@
         }
       </button>
     }
-
-    @if (hasReplies || replies().length > 0) {
-      <button
-        type="button"
-        class="btn-action btn-expand"
-        [disabled]="repliesLoading()"
-        (click)="expandReplies()"
-      >
-        @if (repliesLoading()) {
-          {{ 'posts.comments.loadingReplies' | t }}
-        } @else if (showReplies()) {
-          {{ 'posts.comments.hideReplies' | t }}
-        } @else {
-          {{ 'posts.comments.showReplies' | t }}
-        }
-      </button>
-    }
   </footer>
-
-  <!-- Inline reply form -->
-  @if (showReplyForm() && commentId) {
-    <app-reply-form
-      [postId]="postId"
-      [parentCommentId]="commentId"
-      (submitted)="onReplyAdded()"
-      (cancelled)="showReplyForm.set(false)"
-    />
-  }
-
-  <!-- Nested replies -->
-  @if (showReplies() && replies().length > 0) {
-    <section class="comment-replies">
-      @for (reply of replies(); track reply._id ?? reply.id) {
-        <app-comment-item
-          [comment]="reply"
-          [postId]="postId"
-          [postAuthor]="postAuthor"
-          [level]="level + 1"
-          (replyAdded)="onReplyAdded()"
-        />
-      }
-    </section>
-  }
 </article>

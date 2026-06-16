@@ -323,9 +323,9 @@ describe('CommentsController', () => {
   // ─── Auth metadata assertions (TEST-BE-008) ───────────────────────────────
 
   describe('auth metadata', () => {
-    it('create handler carries AUTH_KEY metadata (TEST-BE-008)', () => {
+    it('create handler is public (no AUTH_KEY metadata) (TEST-BE-008)', () => {
       const metadata = Reflect.getMetadata(AUTH_KEY, controller.create);
-      expect(metadata).toBeDefined();
+      expect(metadata).toBeUndefined();
     });
 
     it('findAll handler does NOT carry AUTH_KEY metadata (public read)', () => {
@@ -353,9 +353,24 @@ describe('CommentsController', () => {
       expect(metadata).toBeUndefined();
     });
 
-    it('getReactions handler carries OPTIONAL_AUTH_KEY metadata (optional auth)', () => {
+    it('getReactions handler does NOT carry auth metadata (public read)', () => {
       const metadata = Reflect.getMetadata(OPTIONAL_AUTH_KEY, controller.getReactions);
-      expect(metadata).toBe(true);
+      expect(metadata).toBeUndefined();
+    });
+
+    it('remove handler does NOT carry AUTH_KEY metadata (public delete)', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.remove);
+      expect(metadata).toBeUndefined();
+    });
+
+    it('addReaction handler does NOT carry AUTH_KEY metadata (public write)', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.addReaction);
+      expect(metadata).toBeUndefined();
+    });
+
+    it('update handler does NOT carry AUTH_KEY metadata (public write)', () => {
+      const metadata = Reflect.getMetadata(AUTH_KEY, controller.update);
+      expect(metadata).toBeUndefined();
     });
   });
 

@@ -37,6 +37,22 @@ export class CreateCommentDto {
   postId: string;
 
   @ApiProperty({
+    example: '507f1f77bcf86cd799439013',
+    description: 'User ID of the comment author',
+  })
+  @IsString({ message: 'User ID must be a string' })
+  @IsNotEmpty({ message: 'User ID is required' })
+  userId: string;
+
+  @ApiProperty({
+    example: 'john_doe',
+    description: 'Username of the comment author',
+  })
+  @IsString({ message: 'Author name must be a string' })
+  @IsNotEmpty({ message: 'Author name is required' })
+  author: string;
+
+  @ApiProperty({
     example: '507f1f77bcf86cd799439012',
     description: 'Valid MongoDB ObjectId of the previous comment (for threading)',
     required: false,

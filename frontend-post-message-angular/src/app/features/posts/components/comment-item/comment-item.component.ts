@@ -8,13 +8,12 @@ import { ToastService } from '../../../../core/services/toast.service';
 import { IComment } from '../../interfaces';
 import { getCommentId } from '../../utils/entity-id.util';
 import { ReactionBarComponent } from '../reaction-bar/reaction-bar.component';
-import { ReplyFormComponent } from '../reply-form/reply-form.component';
 import { MEDIA_PREVIEW_LIMIT } from '../../../../shared/constants/media-upload.constants';
 
 @Component({
   selector: 'app-comment-item',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, ReactionBarComponent, ReplyFormComponent, CommentItemComponent],
+  imports: [CommonModule, FormsModule, TranslatePipe, ReactionBarComponent, CommentItemComponent],
   templateUrl: './comment-item.component.html',
   styleUrls: ['./comment-item.component.css'],
 })
@@ -36,12 +35,7 @@ export class CommentItemComponent {
     const current = this.currentUser();
     return current && this.comment?.author === current.username;
   });
-  readonly canReply = computed(() => this.level < 2); // Allow replies only up to level 1 (max depth 2)
 
-  readonly showReplyForm = signal(false);
-  readonly replies = signal<IComment[]>([]);
-  readonly repliesLoading = signal(false);
-  readonly showReplies = signal(false);
   readonly isEditing = signal(false);
   readonly editContent = signal('');
   readonly isDeleting = signal(false);
@@ -63,10 +57,6 @@ export class CommentItemComponent {
     return getCommentId(this.comment) ?? '';
   }
 
-  get hasReplies(): boolean {
-    return !!(this.comment.replies?.length) || this.replies().length > 0;
-  }
-
   toggleMedia(): void {
     this.showAllMedia.update(v => !v);
   }
@@ -75,33 +65,6 @@ export class CommentItemComponent {
     if (type.startsWith('image/')) return 'image';
     if (type.startsWith('video/')) return 'video';
     return 'doc';
-  }
-
-  expandReplies(): void {
-    if (this.showReplies()) {
-      this.showReplies.set(false);
-      return;
-    }
-
-    const id = this.commentId;
-    if (!id) return;
-
-    this.repliesLoading.set(true);
-    this.commentsService.getReplies(id).subscribe({
-      next: (data) => {
-        this.replies.set(data.data);
-        this.showReplies.set(true);
-        this.repliesLoading.set(false);
-      },
-      error: () => this.repliesLoading.set(false),
-    });
-  }
-
-  onReplyAdded(): void {
-    this.showReplyForm.set(false);
-    this.replyAdded.emit();
-    this.showReplies.set(false);
-    this.expandReplies();
   }
 
   startEdit(): void {

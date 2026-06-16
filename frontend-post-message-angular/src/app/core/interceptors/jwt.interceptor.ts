@@ -12,28 +12,52 @@ import { Store } from '@ngrx/store';
 import { Router } from '@angular/router';
 import { selectToken } from '../../features/auth/store/auth.selectors';
 import * as AuthActions from '../../features/auth/store/auth.actions';
+import { decodeJwt } from '../../features/auth/utils/jwt.util';
 
 @Injectable()
 export class JwtInterceptor implements HttpInterceptor {
   constructor(private store: Store, private router: Router) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    // Get token from localStorage (sync) or Redux store
     let token: string | null = null;
     if (typeof window !== 'undefined') {
       token = localStorage.getItem('auth_token');
-      console.log('[JwtInterceptor] Token from localStorage:', token ? 'exists' : 'null', token?.substring(0, 20) + '...');
+      console.log('[JwtInterceptor] URL:', request.url);
+      console.log('[JwtInterceptor] Token from localStorage:', token ? 'exists' : 'null');
+      if (token) {
+        console.log('[JwtInterceptor] Token preview:', token.substring(0, 50) + '...');
+        const claims = decodeJwt(token);
+        console.log('[JwtInterceptor] Token claims:', claims);
+      }
     }
 
     if (token) {
-      console.log('[JwtInterceptor] Adding Authorization header');
+      console.log('[JwtInterceptor] Adding Authorization header to', request.url);
       request = request.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`
         }
       });
+
+      // For comment-related POST/PUT/DELETE requests, inject userId and author from JWT
+      const isCommentEndpoint = request.url.includes('/api/comments');
+      if (isCommentEndpoint && (request.method === 'POST' || request.method === 'PUT' || request.method === 'DELETE')) {
+        const claims = decodeJwt(token);
+        if (claims && request.body) {
+          const body = request.body as Record<string, any>;
+          const updatedBody = {
+            ...body,
+            userId: body['userId'] || claims.sub,
+            author: body['author'] || claims.username
+          };
+          console.log('[JwtInterceptor] Enriched payload with userId and author from JWT');
+          request = request.clone({
+            body: updatedBody
+          });
+        }
+      }
     } else {
-      console.log('[JwtInterceptor] No token to add');
+      console.log('[JwtInterceptor] No token found for', request.url);
     }
 
     return next.handle(request).pipe(
@@ -41,12 +65,12 @@ export class JwtInterceptor implements HttpInterceptor {
         if (error.status === 401) {
           const storedToken = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-          // Only logout if there was a token but it got rejected (actually authenticated but invalid)
-          // For now, just log the error instead of auto-logout to prevent getting stuck
           if (storedToken) {
-            console.warn('[JwtInterceptor] 401 Unauthorized with valid token. Token may be expired or invalid.', error);
-            // Optionally logout only on specific endpoints that explicitly require auth
-            // For other endpoints, let the app handle the error
+            console.warn('[JwtInterceptor] 401 Unauthorized. Possible reasons:', {
+              tokenExists: !!storedToken,
+              error: error.error,
+              url: error.url
+            });
           }
         }
         return throwError(() => error);

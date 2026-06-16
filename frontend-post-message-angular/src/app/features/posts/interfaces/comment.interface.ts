@@ -19,6 +19,8 @@ export interface IComment {
 export interface ICreateCommentDTO {
   content: string;
   postId: string;
+  userId: string;
+  author: string;
   parentCommentId?: string;
   mediaUrls?: string[];
   mediaTypes?: string[];

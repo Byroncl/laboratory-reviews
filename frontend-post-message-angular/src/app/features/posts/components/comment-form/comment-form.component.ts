@@ -11,11 +11,14 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { take } from 'rxjs/operators';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { CommentsService } from '../../services';
 import { ICreateCommentDTO } from '../../interfaces';
 import { AuthService } from '../../../auth/services/auth.service';
 import { ToastService } from '../../../../core/services/toast.service';
+import { selectAuthUser } from '../../../auth/store/auth.selectors';
 
 @Component({
   selector: 'app-comment-form',
@@ -36,6 +39,7 @@ export class CommentFormComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
   private toastService = inject(ToastService);
+  private store = inject(Store);
 
   readonly showAuthModal = signal(false);
   readonly isLoggedIn = computed(() => this.authService.isAuthenticated());
@@ -64,27 +68,42 @@ export class CommentFormComponent implements OnInit {
       return;
     }
 
-    const dto: ICreateCommentDTO = {
-      content: this.commentForm.value.content,
-      postId: this.postId,
-    };
+    this.store.select(selectAuthUser).pipe(take(1)).subscribe((user) => {
+      console.log('Auth user from Redux:', user);
 
-    this.isSubmitting = true;
+      if (!user) {
+        this.submitError = 'User information not found.';
+        this.toastService.error(this.submitError);
+        this.isSubmitting = false;
+        return;
+      }
 
-    this.commentsService.createComment(dto).subscribe({
-      next: () => {
-        this.commentForm.reset();
-        this.hasBeenSubmitted = false;
-        this.isSubmitting = false;
-        this.toastService.success('Comentario creado exitosamente');
-        this.submitted.emit(dto);
-      },
-      error: (err) => {
-        const errorMsg = err?.message ?? 'Failed to submit comment.';
-        this.submitError = errorMsg;
-        this.isSubmitting = false;
-        this.toastService.error(errorMsg);
-      },
+      const dto: ICreateCommentDTO = {
+        content: this.commentForm.value.content,
+        postId: this.postId,
+        userId: user.id || '',
+        author: user.username || '',
+      };
+
+      console.log('Creating comment with DTO:', dto);
+
+      this.isSubmitting = true;
+
+      this.commentsService.createComment(dto).subscribe({
+        next: () => {
+          this.commentForm.reset();
+          this.hasBeenSubmitted = false;
+          this.isSubmitting = false;
+          this.toastService.success('Comentario creado exitosamente');
+          this.submitted.emit(dto);
+        },
+        error: (err) => {
+          const errorMsg = err?.message ?? 'Failed to submit comment.';
+          this.submitError = errorMsg;
+          this.isSubmitting = false;
+          this.toastService.error(errorMsg);
+        },
+      });
     });
   }
 

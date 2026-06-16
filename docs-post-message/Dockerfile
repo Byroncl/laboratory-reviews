@@ -11,56 +11,20 @@ COPY . .
 
 RUN npm run build
 
-# Production stage - serve with simple HTTP server
-FROM node:22-alpine
+# Production stage - serve with nginx
+FROM nginx:alpine
 
-WORKDIR /app
+# Copy the built Docusaurus app to nginx HTML directory
+COPY --from=builder /app/build /usr/share/nginx/html
 
-# Install serve to serve static files
-RUN npm install -g serve
-
-# Copy built app from builder
-COPY --from=builder /app/build ./build
-
-# Create index.html that redirects to /docs/
-RUN cat > ./build/index.html << 'EOF'
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=/docs/">
-    <title>Redirecting...</title>
-</head>
-<body>
-    <p>Redirecting to <a href="/docs/">documentation</a>...</p>
-    <script>
-        window.location.href = '/docs/';
-    </script>
-</body>
-</html>
-EOF
-
-# Create index.html in /docs/ that redirects to the intro page
-RUN cat > ./build/docs/index.html << 'EOF'
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=/docs/backend/intro/">
-    <title>Redirecting...</title>
-</head>
-<body>
-    <p>Redirecting to <a href="/docs/backend/intro/">documentation</a>...</p>
-    <script>
-        window.location.href = '/docs/backend/intro/';
-    </script>
-</body>
-</html>
-EOF
+# Copy custom entrypoint script and convert line endings (CRLF -> LF)
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN sed -i 's/\r$//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
 
 EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD wget --quiet --tries=1 --spider http://localhost:3001/ || exit 1
 
-CMD ["serve", "build", "-l", "3001"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]

@@ -6,6 +6,8 @@ describe('CreateCommentDto', () => {
   const validPayload = {
     content: 'Great post!',
     postId: '507f1f77bcf86cd799439011',
+    userId: '507f1f77bcf86cd799439013',
+    author: 'john_doe',
   };
 
   it('should pass with required fields', async () => {

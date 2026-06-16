@@ -10,12 +10,15 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { take } from 'rxjs/operators';
 import { TranslatePipe } from '../../../../core/pipes/translate.pipe';
 import { CommentsService } from '../../services';
 import { ToastService } from '../../../../core/services/toast.service';
 import { ICreateCommentDTO } from '../../interfaces';
 import { MediaUploadComponent } from '../../../../shared/components/media-upload/media-upload.component';
 import { MediaUploadResult } from '../../../../shared/models/media-upload.model';
+import { selectAuthUser } from '../../../auth/store/auth.selectors';
 
 @Component({
   selector: 'app-reply-form',
@@ -33,6 +36,7 @@ export class ReplyFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private commentsService = inject(CommentsService);
   private toastService = inject(ToastService);
+  private store = inject(Store);
 
   // Media upload state
   readonly mediaResult = signal<MediaUploadResult | null>(null);
@@ -63,38 +67,49 @@ export class ReplyFormComponent implements OnInit {
 
     if (this.replyForm.invalid) return;
 
-    this.isSubmitting = true;
-
-    const m = this.mediaResult();
-    const dto: ICreateCommentDTO = {
-      content: this.replyForm.value.content,
-      postId: this.postId,
-      parentCommentId: this.parentCommentId,
-      ...(m && m.mediaUrls.length
-        ? {
-            mediaUrls: m.mediaUrls,
-            mediaTypes: m.mediaTypes,
-            mediaFilenames: m.mediaFilenames,
-          }
-        : {}),
-    };
-
-    this.commentsService.replyToComment(this.parentCommentId, dto).subscribe({
-      next: () => {
-        this.replyForm.reset();
-        this.hasBeenSubmitted = false;
+    this.store.select(selectAuthUser).pipe(take(1)).subscribe((user) => {
+      if (!user) {
+        this.submitError = 'User information not found.';
+        this.toastService.error(this.submitError);
         this.isSubmitting = false;
-        this.mediaResult.set(null);
-        this.mediaUpload()?.reset();
-        this.toastService.success('Respuesta creada exitosamente');
-        this.submitted.emit();
-      },
-      error: (err) => {
-        const errorMsg = err?.message ?? 'Failed to submit reply.';
-        this.submitError = errorMsg;
-        this.isSubmitting = false;
-        this.toastService.error(errorMsg);
-      },
+        return;
+      }
+
+      this.isSubmitting = true;
+
+      const m = this.mediaResult();
+      const dto: ICreateCommentDTO = {
+        content: this.replyForm.value.content,
+        postId: this.postId,
+        parentCommentId: this.parentCommentId,
+        userId: user.id || '',
+        author: user.username || '',
+        ...(m && m.mediaUrls.length
+          ? {
+              mediaUrls: m.mediaUrls,
+              mediaTypes: m.mediaTypes,
+              mediaFilenames: m.mediaFilenames,
+            }
+          : {}),
+      };
+
+      this.commentsService.replyToComment(this.parentCommentId, dto).subscribe({
+        next: () => {
+          this.replyForm.reset();
+          this.hasBeenSubmitted = false;
+          this.isSubmitting = false;
+          this.mediaResult.set(null);
+          this.mediaUpload()?.reset();
+          this.toastService.success('Respuesta creada exitosamente');
+          this.submitted.emit();
+        },
+        error: (err) => {
+          const errorMsg = err?.message ?? 'Failed to submit reply.';
+          this.submitError = errorMsg;
+          this.isSubmitting = false;
+          this.toastService.error(errorMsg);
+        },
+      });
     });
   }
 
