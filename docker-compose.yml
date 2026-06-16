@@ -124,7 +124,7 @@ services:
     container_name: laboratory_docs
     restart: always
     ports:
-      - "3026:3000"
+      - "3026:3001"
     networks:
       - app-network
 
