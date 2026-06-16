@@ -8,7 +8,7 @@
   </div>
 
   <!-- Filter Bar -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white rounded-lg shadow p-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 bg-white rounded-lg shadow p-4">
     <!-- Search -->
     <input
       type="text"
@@ -20,11 +20,11 @@
 
     <!-- Action filter -->
     <select
-      [ngModel]="filter$().action"
-      (ngModelChange)="onActionFilterChange($event)"
+      [value]="filter$().action || ''"
+      (change)="onActionFilterChange($any($event.target).value)"
       class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition bg-white"
     >
-      <option [ngValue]="undefined">{{ 'dashboard.auditLogs.allActions' | t }}</option>
+      <option value="">{{ 'dashboard.auditLogs.allActions' | t }}</option>
       @for (action of auditActions; track action) {
         <option [value]="action">{{ action }}</option>
       }
@@ -32,11 +32,11 @@
 
     <!-- Entity type filter -->
     <select
-      [ngModel]="filter$().entityType"
-      (ngModelChange)="onEntityTypeFilterChange($event)"
+      [value]="filter$().entityType || ''"
+      (change)="onEntityTypeFilterChange($any($event.target).value)"
       class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition bg-white"
     >
-      <option [ngValue]="undefined">{{ 'dashboard.auditLogs.allEntityTypes' | t }}</option>
+      <option value="">{{ 'dashboard.auditLogs.allEntityTypes' | t }}</option>
       @for (et of entityTypes; track et) {
         <option [value]="et">{{ et }}</option>
       }

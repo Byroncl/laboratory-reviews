@@ -18,12 +18,16 @@ export class ClientEntity {
   readonly updatedAt: Date;
 
   constructor(data: any) {
+    if (!data) {
+      throw new DomainException('Client data is required');
+    }
+
     try {
       this.validateName(data.name);
       this.validateLastname(data.lastname);
       this.validateUsername(data.username);
       this.validateEmail(data.email);
-      this.validatePassword(data.password_hash);
+      this.validatePasswordHash(data.password_hash);
       this.validateType(data.type);
     } catch (error) {
       console.error('[ClientEntity] Validation error:', {
@@ -122,13 +126,13 @@ export class ClientEntity {
     }
   }
 
-  private validatePassword(password: string): void {
-    if (!password || typeof password !== 'string') {
+  private validatePasswordHash(passwordHash: string): void {
+    if (!passwordHash || typeof passwordHash !== 'string') {
       throw new DomainException(CLIENT_VALIDATION_MESSAGES.PASSWORD_REQUIRED);
     }
     if (
-      password.length < CLIENT_VALIDATION.PASSWORD_MIN_LENGTH ||
-      password.length > CLIENT_VALIDATION.PASSWORD_MAX_LENGTH
+      passwordHash.length < CLIENT_VALIDATION.PASSWORD_MIN_LENGTH ||
+      passwordHash.length > CLIENT_VALIDATION.PASSWORD_MAX_LENGTH
     ) {
       throw new DomainException(CLIENT_VALIDATION_MESSAGES.PASSWORD_MIN_LENGTH);
     }

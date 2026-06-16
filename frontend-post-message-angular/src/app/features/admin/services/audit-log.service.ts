@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { tap, catchError, retry } from 'rxjs/operators';
+import { tap, catchError, retry, map } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
 import {
   AuditLog,
@@ -36,16 +36,18 @@ export class AuditLogService {
 
     const params = this._buildParams(filter);
 
-    return this.api.get<AuditLogPage>(ADMIN_ENDPOINTS.AUDIT_LOGS, params).pipe(
+    return this.api.get<{ data: AuditLogPage }>(ADMIN_ENDPOINTS.AUDIT_LOGS, params).pipe(
       retry(this.retryAttempts),
-      tap(response => this._handleLoadSuccess(response)),
+      map(response => response.data),
+      tap(data => this._handleLoadSuccess(data)),
       catchError(err => this._handleError(err, 'Failed to load audit logs'))
     );
   }
 
   getAuditLogById(id: string): Observable<AuditLog> {
-    return this.api.get<AuditLog>(`${ADMIN_ENDPOINTS.AUDIT_LOGS}/${id}`).pipe(
+    return this.api.get<{ data: AuditLog }>(`${ADMIN_ENDPOINTS.AUDIT_LOGS}/${id}`).pipe(
       retry(this.retryAttempts),
+      map(response => response.data),
       catchError(err => this._handleError(err, 'Failed to load audit log'))
     );
   }
@@ -64,12 +66,13 @@ export class AuditLogService {
       ...filter
     });
 
-    return this.api.get<AuditLogPage>(
+    return this.api.get<{ data: AuditLogPage }>(
       `${ADMIN_ENDPOINTS.AUDIT_LOGS}/entity/${entityType}/${entityId}`,
       params
     ).pipe(
       retry(this.retryAttempts),
-      tap(response => this._handleLoadSuccess(response)),
+      map(response => response.data),
+      tap(data => this._handleLoadSuccess(data)),
       catchError(err => this._handleError(err, 'Failed to load entity audit logs'))
     );
   }
